@@ -2,39 +2,64 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Definition of the design system. All colors, gradients, fonts, etc should be defined here. 
-All colors MUST be HSL.
-*/
+/* Campaign Management Platform Design System - Brazilian Political Theme */
 
 @layer base {
   :root {
     --background: 0 0% 100%;
-    --foreground: 222.2 84% 4.9%;
+    --foreground: 220 15% 15%;
 
     --card: 0 0% 100%;
-    --card-foreground: 222.2 84% 4.9%;
+    --card-foreground: 220 15% 15%;
 
     --popover: 0 0% 100%;
-    --popover-foreground: 222.2 84% 4.9%;
+    --popover-foreground: 220 15% 15%;
 
-    --primary: 222.2 47.4% 11.2%;
-    --primary-foreground: 210 40% 98%;
+    /* Brazilian civic blue - professional and trustworthy */
+    --primary: 217 88% 45%;
+    --primary-foreground: 0 0% 100%;
+    --primary-hover: 217 88% 40%;
 
-    --secondary: 210 40% 96.1%;
-    --secondary-foreground: 222.2 47.4% 11.2%;
+    /* Civic green - secondary Brazilian color */
+    --secondary: 142 69% 35%;
+    --secondary-foreground: 0 0% 100%;
+    --secondary-hover: 142 69% 30%;
 
-    --muted: 210 40% 96.1%;
-    --muted-foreground: 215.4 16.3% 46.9%;
+    /* Professional neutrals */
+    --muted: 220 13% 96%;
+    --muted-foreground: 220 9% 45%;
 
-    --accent: 210 40% 96.1%;
-    --accent-foreground: 222.2 47.4% 11.2%;
+    --accent: 217 88% 95%;
+    --accent-foreground: 217 88% 25%;
 
-    --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 210 40% 98%;
+    --destructive: 0 84% 50%;
+    --destructive-foreground: 0 0% 100%;
 
-    --border: 214.3 31.8% 91.4%;
-    --input: 214.3 31.8% 91.4%;
-    --ring: 222.2 84% 4.9%;
+    --border: 220 13% 91%;
+    --input: 220 13% 91%;
+    --ring: 217 88% 45%;
+
+    /* Campaign-specific colors */
+    --success: 142 69% 35%;
+    --success-foreground: 0 0% 100%;
+    
+    --warning: 43 96% 45%;
+    --warning-foreground: 0 0% 100%;
+
+    /* Professional gradients */
+    --gradient-primary: linear-gradient(135deg, hsl(217 88% 45%), hsl(217 88% 55%));
+    --gradient-secondary: linear-gradient(135deg, hsl(142 69% 35%), hsl(142 69% 45%));
+    --gradient-hero: linear-gradient(135deg, hsl(217 88% 45%), hsl(217 88% 35%), hsl(142 69% 40%));
+    --gradient-card: linear-gradient(145deg, hsl(0 0% 100%), hsl(220 13% 98%));
+
+    /* Professional shadows */
+    --shadow-card: 0 2px 8px -2px hsl(220 15% 15% / 0.1);
+    --shadow-elevated: 0 8px 25px -8px hsl(220 15% 15% / 0.15);
+    --shadow-primary: 0 4px 20px -4px hsl(217 88% 45% / 0.3);
+
+    /* Smooth transitions */
+    --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    --transition-bounce: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
 
     --radius: 0.5rem;
 
@@ -100,6 +125,47 @@ All colors MUST be HSL.
   }
 
   body {
-    @apply bg-background text-foreground;
+    @apply bg-background text-foreground antialiased;
+    font-feature-settings: "cv02", "cv03", "cv04", "cv11";
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    @apply font-semibold text-foreground;
+  }
+
+  .gradient-primary {
+    background: var(--gradient-primary);
+  }
+
+  .gradient-secondary {
+    background: var(--gradient-secondary);
+  }
+
+  .gradient-hero {
+    background: var(--gradient-hero);
+  }
+
+  .gradient-card {
+    background: var(--gradient-card);
+  }
+
+  .shadow-card {
+    box-shadow: var(--shadow-card);
+  }
+
+  .shadow-elevated {
+    box-shadow: var(--shadow-elevated);
+  }
+
+  .shadow-primary {
+    box-shadow: var(--shadow-primary);
+  }
+
+  .transition-smooth {
+    transition: var(--transition-smooth);
+  }
+
+  .transition-bounce {
+    transition: var(--transition-bounce);
   }
 }

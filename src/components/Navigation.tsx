@@ -1,6 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
+import { useAuth } from "@/hooks/useAuth";
 import { 
   BarChart3, 
   DollarSign, 
@@ -9,28 +10,16 @@ import {
   Settings, 
   LogOut,
   Menu,
-  Bell
+  Bell,
+  Receipt
 } from "lucide-react";
 
-interface NavigationProps {
-  user?: {
-    name: string;
-    role: 'admin' | 'candidate' | 'supporter';
-    avatar?: string;
-  };
-}
+interface NavigationProps {}
 
-export function Navigation({ user }: NavigationProps) {
-  const roleColors = {
-    admin: 'bg-destructive text-destructive-foreground',
-    candidate: 'bg-primary text-primary-foreground',
-    supporter: 'bg-secondary text-secondary-foreground'
-  };
-
-  const roleLabels = {
-    admin: 'Administrador',
-    candidate: 'Candidato',
-    supporter: 'Apoiador'
+export function Navigation({}: NavigationProps) {
+  const { user, signOut } = useAuth();
+  const handleNavigation = (path: string) => {
+    window.location.href = path;
   };
 
   return (
@@ -49,61 +38,70 @@ export function Navigation({ user }: NavigationProps) {
           </div>
 
           {/* Main Navigation */}
-          <div className="hidden md:flex items-center gap-2">
-            <Button variant="ghost" className="gap-2">
-              <BarChart3 className="w-4 h-4" />
-              Dashboard
-            </Button>
-            <Button variant="ghost" className="gap-2">
-              <DollarSign className="w-4 h-4" />
-              Orçamento
-            </Button>
-            <Button variant="ghost" className="gap-2">
-              <Users className="w-4 h-4" />
-              Apoiadores
-            </Button>
-            <Button variant="ghost" className="gap-2">
-              <FileText className="w-4 h-4" />
-              Relatórios
-            </Button>
-          </div>
+          {user && (
+            <div className="hidden md:flex items-center gap-2">
+              <Button variant="ghost" className="gap-2" onClick={() => handleNavigation('/')}>
+                <BarChart3 className="w-4 h-4" />
+                Dashboard
+              </Button>
+              <Button variant="ghost" className="gap-2" onClick={() => handleNavigation('/budget')}>
+                <DollarSign className="w-4 h-4" />
+                Orçamento
+              </Button>
+              <Button variant="ghost" className="gap-2" onClick={() => handleNavigation('/expenses')}>
+                <Receipt className="w-4 h-4" />
+                Despesas
+              </Button>
+              <Button variant="ghost" className="gap-2" onClick={() => handleNavigation('/supporters')}>
+                <Users className="w-4 h-4" />
+                Apoiadores
+              </Button>
+              <Button variant="ghost" className="gap-2" onClick={() => handleNavigation('/reports')}>
+                <FileText className="w-4 h-4" />
+                Relatórios
+              </Button>
+            </div>
+          )}
         </div>
 
         {/* User Section */}
         <div className="flex items-center gap-4">
-          <Button variant="ghost" size="icon" className="relative">
-            <Bell className="w-4 h-4" />
-            <span className="absolute -top-1 -right-1 w-3 h-3 bg-destructive rounded-full text-xs"></span>
-          </Button>
+          {user ? (
+            <>
+              <Button variant="ghost" size="icon" className="relative">
+                <Bell className="w-4 h-4" />
+                <span className="absolute -top-1 -right-1 w-3 h-3 bg-destructive rounded-full text-xs"></span>
+              </Button>
 
-          {user && (
-            <div className="flex items-center gap-3">
-              <div className="text-right hidden sm:block">
-                <p className="text-sm font-medium">{user.name}</p>
-                <Badge variant="secondary" className={roleColors[user.role]}>
-                  {roleLabels[user.role]}
-                </Badge>
+              <div className="flex items-center gap-3">
+                <div className="text-right hidden sm:block">
+                  <p className="text-sm font-medium">{user.email}</p>
+                </div>
+                <Avatar className="w-8 h-8">
+                  <AvatarImage src="" />
+                  <AvatarFallback className="text-xs gradient-primary text-white">
+                    {user.email?.charAt(0).toUpperCase()}
+                  </AvatarFallback>
+                </Avatar>
               </div>
-              <Avatar className="w-8 h-8">
-                <AvatarImage src={user.avatar} />
-                <AvatarFallback className="text-xs gradient-primary text-white">
-                  {user.name.split(' ').map(n => n[0]).join('').toUpperCase()}
-                </AvatarFallback>
-              </Avatar>
-            </div>
-          )}
 
-          <div className="flex items-center gap-2">
-            <Button variant="ghost" size="icon">
-              <Settings className="w-4 h-4" />
+              <div className="flex items-center gap-2">
+                <Button variant="ghost" size="icon">
+                  <Settings className="w-4 h-4" />
+                </Button>
+                <Button variant="ghost" size="icon" onClick={signOut}>
+                  <LogOut className="w-4 h-4" />
+                </Button>
+                <Button variant="ghost" size="icon" className="md:hidden">
+                  <Menu className="w-4 h-4" />
+                </Button>
+              </div>
+            </>
+          ) : (
+            <Button variant="campaign" onClick={() => handleNavigation('/auth')}>
+              Entrar
             </Button>
-            <Button variant="ghost" size="icon">
-              <LogOut className="w-4 h-4" />
-            </Button>
-            <Button variant="ghost" size="icon" className="md:hidden">
-              <Menu className="w-4 h-4" />
-            </Button>
-          </div>
+          )}
         </div>
       </div>
     </nav>

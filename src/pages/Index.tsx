@@ -1,6 +1,6 @@
-import { Navigation } from "@/components/Navigation";
+import { Navbar } from "@/components/Navbar";
 import { CampaignHero } from "@/components/CampaignHero";
-import { DashboardModuleGrid, DashboardWelcome } from "@/components/dashboard";
+import { DashboardModuleGrid, DashboardWelcome } from "@/components/dashboard/index";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/useAuth";
 import { useNavigate } from "react-router-dom";
@@ -24,7 +24,7 @@ const Index = () => {
   if (!user) {
     return (
       <div className="min-h-screen bg-background">
-        <Navigation />
+        <Navbar />
         <CampaignHero />
         
         <section className="py-20 bg-muted/30">
@@ -58,7 +58,7 @@ const Index = () => {
   // Se estiver logado, mostra a Grid de Módulos
   return (
     <div className="min-h-screen bg-background">
-      <Navigation />
+      <Navbar />
       <main className="container mx-auto px-4 py-8">
         <DashboardWelcome />
         <DashboardModuleGrid />

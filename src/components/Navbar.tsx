@@ -7,9 +7,9 @@ import {
   NavNotifications,
   NavUserMenu,
   NavMobileMenu,
-} from "./navigation";
+} from "./navigation/index";
 
-export function Navigation() {
+export function Navbar() {
   const { user, signOut } = useAuth();
   const navigate = useNavigate();
 

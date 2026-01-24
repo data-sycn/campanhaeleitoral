@@ -29,13 +29,8 @@ const SelectCandidate = () => {
   const MASTER_ADMIN_EMAIL = "nailton.alsampaio@gmail.com";
 
   useEffect(() => {
-    if (!user) {
-      navigate("/auth");
-      return;
-    }
-
     // Se for o master admin, redirecionar direto
-    if (user.email === MASTER_ADMIN_EMAIL) {
+    if (user?.email === MASTER_ADMIN_EMAIL) {
       navigate("/");
       return;
     }
@@ -46,7 +41,10 @@ const SelectCandidate = () => {
       return;
     }
 
-    fetchAvailableCandidates();
+    // Só busca candidatos se o usuário estiver logado
+    if (user) {
+      fetchAvailableCandidates();
+    }
   }, [user, profile, navigate]);
 
   const fetchAvailableCandidates = async () => {

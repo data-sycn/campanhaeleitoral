@@ -26,8 +26,11 @@ export function useDashboardData() {
   useEffect(() => {
     if (profile?.candidate_id) {
       fetchStats();
+    } else if (profile !== undefined) {
+      // Profile loaded but no candidate_id - stop loading
+      setLoading(false);
     }
-  }, [profile?.candidate_id]);
+  }, [profile, profile?.candidate_id]);
 
   const fetchStats = async () => {
     if (!profile?.candidate_id) return;

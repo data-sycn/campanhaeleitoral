@@ -9,6 +9,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { PlusCircle, Receipt, Calendar } from "lucide-react";
+import { Database } from "@/integrations/supabase/types";
 
 interface Expense {
   id: string;
@@ -21,25 +22,24 @@ interface Expense {
   created_at: string;
 }
 
+// Using database enum values
 const categories = [
-  { value: 'marketing', label: 'Marketing' },
-  { value: 'eventos', label: 'Eventos' },
-  { value: 'material_grafico', label: 'Material Gráfico' },
-  { value: 'combustivel', label: 'Combustível' },
+  { value: 'publicidade', label: 'Publicidade' },
+  { value: 'transporte', label: 'Transporte' },
   { value: 'alimentacao', label: 'Alimentação' },
-  { value: 'hospedagem', label: 'Hospedagem' },
-  { value: 'servicos_profissionais', label: 'Serviços Profissionais' },
+  { value: 'material', label: 'Material' },
+  { value: 'eventos', label: 'Eventos' },
+  { value: 'pessoal', label: 'Pessoal' },
   { value: 'outros', label: 'Outros' }
-];
+] as const;
 
 const paymentMethods = [
-  { value: 'dinheiro', label: 'Dinheiro' },
-  { value: 'cartao_credito', label: 'Cartão de Crédito' },
-  { value: 'cartao_debito', label: 'Cartão de Débito' },
   { value: 'pix', label: 'PIX' },
+  { value: 'cartao', label: 'Cartão' },
+  { value: 'dinheiro', label: 'Dinheiro' },
   { value: 'transferencia', label: 'Transferência' },
-  { value: 'cheque', label: 'Cheque' }
-];
+  { value: 'boleto', label: 'Boleto' }
+] as const;
 
 const Expenses = () => {
   const { user } = useAuth();
@@ -110,15 +110,15 @@ const Expenses = () => {
 
       const { error } = await supabase
         .from('expenses')
-        .insert([{
+        .insert({
           candidate_id: profile.candidate_id,
           date: form.date,
-          category: form.category as any,
+          category: form.category as Database["public"]["Enums"]["expense_category"],
           description: form.description,
           amount: parseFloat(form.amount),
-          payment_method: form.payment_method as any,
+          payment_method: form.payment_method as Database["public"]["Enums"]["payment_method"],
           created_by: user.id
-        }]);
+        });
 
       if (error) {
         toast({

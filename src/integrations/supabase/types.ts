@@ -10,69 +10,72 @@ export type Database = {
   // Allows to automatically instantiate createClient with right options
   // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
   __InternalSupabase: {
-    PostgrestVersion: "13.0.5"
+    PostgrestVersion: "14.1"
   }
   public: {
     Tables: {
       audit_log: {
         Row: {
           action: string
-          details: Json | null
-          entity: string
-          entity_id: string | null
+          created_at: string
           id: string
-          timestamp: string | null
+          new_data: Json | null
+          old_data: Json | null
+          record_id: string | null
+          table_name: string
           user_id: string | null
         }
         Insert: {
           action: string
-          details?: Json | null
-          entity: string
-          entity_id?: string | null
+          created_at?: string
           id?: string
-          timestamp?: string | null
+          new_data?: Json | null
+          old_data?: Json | null
+          record_id?: string | null
+          table_name: string
           user_id?: string | null
         }
         Update: {
           action?: string
-          details?: Json | null
-          entity?: string
-          entity_id?: string | null
+          created_at?: string
           id?: string
-          timestamp?: string | null
+          new_data?: Json | null
+          old_data?: Json | null
+          record_id?: string | null
+          table_name?: string
           user_id?: string | null
         }
         Relationships: []
       }
       budgets: {
         Row: {
-          active: boolean | null
+          active: boolean
           candidate_id: string
-          created_at: string | null
+          created_at: string
           id: string
           notes: string | null
           total_planned: number
-          updated_at: string | null
+          updated_at: string
           year: number
         }
         Insert: {
-          active?: boolean | null
+          active?: boolean
           candidate_id: string
-          created_at?: string | null
-          id?: string
-          notes?: string | null
-          total_planned: number
-          updated_at?: string | null
-          year: number
-        }
-        Update: {
-          active?: boolean | null
-          candidate_id?: string
-          created_at?: string | null
+          created_at?: string
           id?: string
           notes?: string | null
           total_planned?: number
-          updated_at?: string | null
+          updated_at?: string
+          year: number
+        }
+        Update: {
+          active?: boolean
+          candidate_id?: string
+          created_at?: string
+          id?: string
+          notes?: string | null
+          total_planned?: number
+          updated_at?: string
           year?: number
         }
         Relationships: [
@@ -87,34 +90,28 @@ export type Database = {
       }
       candidates: {
         Row: {
-          avatar_url: string | null
-          created_at: string | null
+          created_at: string
           id: string
           name: string
-          number: string | null
           party: string | null
-          uf: string
-          updated_at: string | null
+          position: string | null
+          updated_at: string
         }
         Insert: {
-          avatar_url?: string | null
-          created_at?: string | null
+          created_at?: string
           id?: string
           name: string
-          number?: string | null
           party?: string | null
-          uf: string
-          updated_at?: string | null
+          position?: string | null
+          updated_at?: string
         }
         Update: {
-          avatar_url?: string | null
-          created_at?: string | null
+          created_at?: string
           id?: string
           name?: string
-          number?: string | null
           party?: string | null
-          uf?: string
-          updated_at?: string | null
+          position?: string | null
+          updated_at?: string
         }
         Relationships: []
       }
@@ -123,40 +120,40 @@ export type Database = {
           amount: number
           candidate_id: string
           category: Database["public"]["Enums"]["expense_category"]
-          created_at: string | null
-          created_by: string
+          created_at: string
+          created_by: string | null
           date: string
           description: string
-          document_url: string | null
           id: string
           payment_method: Database["public"]["Enums"]["payment_method"]
-          updated_at: string | null
+          receipt_url: string | null
+          updated_at: string
         }
         Insert: {
           amount: number
           candidate_id: string
           category: Database["public"]["Enums"]["expense_category"]
-          created_at?: string | null
-          created_by: string
+          created_at?: string
+          created_by?: string | null
           date: string
           description: string
-          document_url?: string | null
           id?: string
           payment_method: Database["public"]["Enums"]["payment_method"]
-          updated_at?: string | null
+          receipt_url?: string | null
+          updated_at?: string
         }
         Update: {
           amount?: number
           candidate_id?: string
           category?: Database["public"]["Enums"]["expense_category"]
-          created_at?: string | null
-          created_by?: string
+          created_at?: string
+          created_by?: string | null
           date?: string
           description?: string
-          document_url?: string | null
           id?: string
           payment_method?: Database["public"]["Enums"]["payment_method"]
-          updated_at?: string | null
+          receipt_url?: string | null
+          updated_at?: string
         }
         Relationships: [
           {
@@ -171,27 +168,24 @@ export type Database = {
       profiles: {
         Row: {
           candidate_id: string | null
-          created_at: string | null
+          created_at: string
           id: string
           name: string
-          role: Database["public"]["Enums"]["app_role"]
-          updated_at: string | null
+          updated_at: string
         }
         Insert: {
           candidate_id?: string | null
-          created_at?: string | null
+          created_at?: string
           id: string
           name: string
-          role?: Database["public"]["Enums"]["app_role"]
-          updated_at?: string | null
+          updated_at?: string
         }
         Update: {
           candidate_id?: string | null
-          created_at?: string | null
+          created_at?: string
           id?: string
           name?: string
-          role?: Database["public"]["Enums"]["app_role"]
-          updated_at?: string | null
+          updated_at?: string
         }
         Relationships: [
           {
@@ -203,71 +197,42 @@ export type Database = {
           },
         ]
       }
-      supporters: {
+      user_roles: {
         Row: {
-          active: boolean | null
-          candidate_id: string
-          created_at: string | null
           id: string
-          role_note: string | null
+          role: Database["public"]["Enums"]["app_role"]
           user_id: string
         }
         Insert: {
-          active?: boolean | null
-          candidate_id: string
-          created_at?: string | null
           id?: string
-          role_note?: string | null
+          role: Database["public"]["Enums"]["app_role"]
           user_id: string
         }
         Update: {
-          active?: boolean | null
-          candidate_id?: string
-          created_at?: string | null
           id?: string
-          role_note?: string | null
+          role?: Database["public"]["Enums"]["app_role"]
           user_id?: string
         }
-        Relationships: [
-          {
-            foreignKeyName: "supporters_candidate_id_fkey"
-            columns: ["candidate_id"]
-            isOneToOne: false
-            referencedRelation: "candidates"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
       votes_agg: {
         Row: {
           candidate_id: string
-          created_at: string | null
           id: string
-          municipio: string
-          uf: string
-          updated_at: string | null
-          votos_total: number
-          year: number
+          last_updated: string
+          total_votes: number
         }
         Insert: {
           candidate_id: string
-          created_at?: string | null
           id?: string
-          municipio: string
-          uf: string
-          updated_at?: string | null
-          votos_total: number
-          year: number
+          last_updated?: string
+          total_votes?: number
         }
         Update: {
           candidate_id?: string
-          created_at?: string | null
           id?: string
-          municipio?: string
-          uf?: string
-          updated_at?: string | null
-          votos_total?: number
-          year?: number
+          last_updated?: string
+          total_votes?: number
         }
         Relationships: [
           {
@@ -281,43 +246,28 @@ export type Database = {
       }
       votes_raw: {
         Row: {
-          candidate_id: string | null
-          candidate_number: string
-          created_at: string | null
+          candidate_id: string
+          created_at: string
           id: string
-          municipio: string
-          secao: string | null
-          turno: number | null
-          uf: string
-          votos: number
-          year: number
-          zona: string | null
+          section: string | null
+          votes: number
+          zone: string | null
         }
         Insert: {
-          candidate_id?: string | null
-          candidate_number: string
-          created_at?: string | null
+          candidate_id: string
+          created_at?: string
           id?: string
-          municipio: string
-          secao?: string | null
-          turno?: number | null
-          uf: string
-          votos: number
-          year: number
-          zona?: string | null
+          section?: string | null
+          votes?: number
+          zone?: string | null
         }
         Update: {
-          candidate_id?: string | null
-          candidate_number?: string
-          created_at?: string | null
+          candidate_id?: string
+          created_at?: string
           id?: string
-          municipio?: string
-          secao?: string | null
-          turno?: number | null
-          uf?: string
-          votos?: number
-          year?: number
-          zona?: string | null
+          section?: string | null
+          votes?: number
+          zone?: string | null
         }
         Relationships: [
           {
@@ -334,33 +284,26 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      get_user_candidate_id: {
-        Args: { _user_id: string }
-        Returns: string
-      }
-      is_admin: {
-        Args: { _user_id: string }
+      get_user_candidate_id: { Args: { _user_id: string }; Returns: string }
+      has_role: {
+        Args: {
+          _role: Database["public"]["Enums"]["app_role"]
+          _user_id: string
+        }
         Returns: boolean
       }
     }
     Enums: {
       app_role: "admin" | "candidate" | "supporter"
       expense_category:
-        | "marketing"
-        | "eventos"
-        | "material_grafico"
-        | "combustivel"
+        | "publicidade"
+        | "transporte"
         | "alimentacao"
-        | "hospedagem"
-        | "servicos_profissionais"
+        | "material"
+        | "eventos"
+        | "pessoal"
         | "outros"
-      payment_method:
-        | "dinheiro"
-        | "cartao_credito"
-        | "cartao_debito"
-        | "pix"
-        | "transferencia"
-        | "cheque"
+      payment_method: "pix" | "cartao" | "dinheiro" | "transferencia" | "boleto"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -490,23 +433,15 @@ export const Constants = {
     Enums: {
       app_role: ["admin", "candidate", "supporter"],
       expense_category: [
-        "marketing",
-        "eventos",
-        "material_grafico",
-        "combustivel",
+        "publicidade",
+        "transporte",
         "alimentacao",
-        "hospedagem",
-        "servicos_profissionais",
+        "material",
+        "eventos",
+        "pessoal",
         "outros",
       ],
-      payment_method: [
-        "dinheiro",
-        "cartao_credito",
-        "cartao_debito",
-        "pix",
-        "transferencia",
-        "cheque",
-      ],
+      payment_method: ["pix", "cartao", "dinheiro", "transferencia", "boleto"],
     },
   },
 } as const

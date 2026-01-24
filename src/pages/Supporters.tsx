@@ -13,14 +13,21 @@ import { Badge } from "@/components/ui/badge";
 interface Profile {
   id: string;
   name: string;
-  role: string;
   created_at: string;
+}
+
+interface UserRole {
+  role: 'admin' | 'candidate' | 'supporter';
+}
+
+interface SupporterWithRole extends Profile {
+  user_roles?: UserRole[];
 }
 
 const Supporters = () => {
   const { user } = useAuth();
   const { toast } = useToast();
-  const [supporters, setSupporters] = useState<Profile[]>([]);
+  const [supporters, setSupporters] = useState<SupporterWithRole[]>([]);
   const [loading, setLoading] = useState(true);
   const [inviting, setInviting] = useState(false);
   const [showInviteForm, setShowInviteForm] = useState(false);
@@ -49,21 +56,36 @@ const Supporters = () => {
         return;
       }
 
-      const { data, error } = await supabase
+      // Fetch profiles for this candidate
+      const { data: profilesData, error: profilesError } = await supabase
         .from('profiles')
         .select('*')
         .eq('candidate_id', profile.candidate_id)
         .order('created_at', { ascending: false });
 
-      if (error) {
+      if (profilesError) {
         toast({
           title: "Erro ao carregar apoiadores",
-          description: error.message,
+          description: profilesError.message,
           variant: "destructive"
         });
-      } else {
-        setSupporters(data || []);
+        return;
       }
+
+      // Fetch roles for each user
+      const userIds = profilesData?.map(p => p.id) || [];
+      const { data: rolesData } = await supabase
+        .from('user_roles')
+        .select('user_id, role')
+        .in('user_id', userIds);
+
+      // Combine profiles with roles
+      const supportersWithRoles: SupporterWithRole[] = (profilesData || []).map(p => ({
+        ...p,
+        user_roles: rolesData?.filter(r => r.user_id === p.id) || []
+      }));
+
+      setSupporters(supportersWithRoles);
     } catch (error) {
       console.error('Error fetching supporters:', error);
     } finally {
@@ -98,13 +120,14 @@ const Supporters = () => {
     }
   };
 
-  const getRoleLabel = (role: string) => {
+  const getRoleLabel = (supporter: SupporterWithRole) => {
+    const role = supporter.user_roles?.[0]?.role || 'supporter';
     const roles = {
       admin: { label: 'Administrador', color: 'bg-destructive text-destructive-foreground' },
       candidate: { label: 'Candidato', color: 'bg-primary text-primary-foreground' },
       supporter: { label: 'Apoiador', color: 'bg-secondary text-secondary-foreground' }
     };
-    return roles[role as keyof typeof roles] || { label: role, color: 'bg-muted' };
+    return roles[role] || { label: role, color: 'bg-muted' };
   };
 
   if (loading) {
@@ -213,7 +236,7 @@ const Supporters = () => {
           </Card>
         ) : (
           supporters.map((supporter) => {
-            const roleInfo = getRoleLabel(supporter.role);
+            const roleInfo = getRoleLabel(supporter);
             return (
               <Card key={supporter.id}>
                 <CardContent className="p-6">

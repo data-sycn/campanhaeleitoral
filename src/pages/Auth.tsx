@@ -12,11 +12,6 @@ const Auth = () => {
   const { user, signIn, signUp } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
 
-  // Redirect if already authenticated
-  if (user) {
-    return <Navigate to="/" replace />;
-  }
-
   const [loginForm, setLoginForm] = useState({
     email: "",
     password: ""
@@ -28,6 +23,11 @@ const Auth = () => {
     password: "",
     confirmPassword: ""
   });
+
+  // Redirect if already authenticated - AFTER all hooks
+  if (user) {
+    return <Navigate to="/" replace />;
+  }
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();

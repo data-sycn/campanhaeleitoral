@@ -12,6 +12,7 @@ import Budget from "./pages/Budget";
 import Expenses from "./pages/Expenses";
 import Supporters from "./pages/Supporters";
 import Reports from "./pages/Reports";
+import Admin from "./pages/Admin";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -54,6 +55,11 @@ const App = () => (
             <Route path="/reports" element={
               <ProtectedRoute>
                 <Reports />
+              </ProtectedRoute>
+            } />
+            <Route path="/admin" element={
+              <ProtectedRoute>
+                <Admin />
               </ProtectedRoute>
             } />
 

@@ -1,12 +1,11 @@
 import { useState } from "react";
 import { Navbar } from "@/components/Navbar";
-import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { ArrowLeft, TrendingUp, DollarSign, Users, FileText, BarChart3, PieChart } from "lucide-react";
-import { useNavigate } from "react-router-dom";
+import { TrendingUp, DollarSign, Users, FileText, BarChart3, PieChart } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { useDashboardData } from "@/components/dashboard/useDashboardData";
+import { ModuleSwitcher } from "@/components/navigation/ModuleSwitcher";
 import {
   BarChart,
   Bar,
@@ -24,7 +23,6 @@ import {
 const COLORS = ["#0088FE", "#00C49F", "#FFBB28", "#FF8042", "#8884d8", "#82ca9d"];
 
 const Dashboard = () => {
-  const navigate = useNavigate();
   const { profile } = useAuth();
   const { stats, loading } = useDashboardData();
   const [activeTab, setActiveTab] = useState("overview");
@@ -110,14 +108,9 @@ const Dashboard = () => {
     <div className="min-h-screen bg-background">
       <Navbar />
       <div className="container mx-auto px-4 py-8">
-        <Button 
-          variant="ghost" 
-          className="mb-4 gap-2"
-          onClick={() => navigate("/")}
-        >
-          <ArrowLeft className="w-4 h-4" />
-          Voltar aos Módulos
-        </Button>
+        <div className="mb-6">
+          <ModuleSwitcher />
+        </div>
 
         <div className="mb-8">
           <h1 className="text-3xl font-bold">Dashboard</h1>

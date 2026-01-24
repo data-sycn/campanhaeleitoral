@@ -47,6 +47,41 @@ export type Database = {
         }
         Relationships: []
       }
+      budget_allocations: {
+        Row: {
+          budget_id: string
+          category: Database["public"]["Enums"]["expense_category"]
+          created_at: string
+          id: string
+          planned_amount: number
+          updated_at: string
+        }
+        Insert: {
+          budget_id: string
+          category: Database["public"]["Enums"]["expense_category"]
+          created_at?: string
+          id?: string
+          planned_amount?: number
+          updated_at?: string
+        }
+        Update: {
+          budget_id?: string
+          category?: Database["public"]["Enums"]["expense_category"]
+          created_at?: string
+          id?: string
+          planned_amount?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "budget_allocations_budget_id_fkey"
+            columns: ["budget_id"]
+            isOneToOne: false
+            referencedRelation: "budgets"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       budgets: {
         Row: {
           active: boolean

@@ -2,6 +2,9 @@ import { useState, useEffect, createContext, useContext, ReactNode } from 'react
 import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+import { Database } from '@/integrations/supabase/types';
+
+type AppRole = Database['public']['Enums']['app_role'];
 
 interface Profile {
   id: string;
@@ -15,20 +18,26 @@ interface AuthContextType {
   user: User | null;
   session: Session | null;
   profile: Profile | null;
+  userRoles: AppRole[];
   loading: boolean;
+  isAdmin: boolean;
   signUp: (email: string, password: string, name: string) => Promise<{ error: any }>;
   signIn: (email: string, password: string) => Promise<{ error: any }>;
   signOut: () => Promise<void>;
+  refetchRoles: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType>({
   user: null,
   session: null,
   profile: null,
+  userRoles: [],
   loading: true,
+  isAdmin: false,
   signUp: async () => ({ error: null }),
   signIn: async () => ({ error: null }),
   signOut: async () => {},
+  refetchRoles: async () => {},
 });
 
 export const useAuth = () => {
@@ -43,6 +52,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
   const [session, setSession] = useState<Session | null>(null);
   const [profile, setProfile] = useState<Profile | null>(null);
+  const [userRoles, setUserRoles] = useState<AppRole[]>([]);
   const [loading, setLoading] = useState(true);
   const { toast } = useToast();
 
@@ -62,18 +72,39 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     }
   };
 
+  const fetchUserRoles = async (userId: string) => {
+    try {
+      const { data, error } = await supabase
+        .from('user_roles')
+        .select('role')
+        .eq('user_id', userId);
+
+      if (error) throw error;
+      setUserRoles(data?.map(r => r.role) || []);
+    } catch (error) {
+      console.error('Erro ao buscar roles:', error);
+      setUserRoles([]);
+    }
+  };
+
+  const refetchRoles = async () => {
+    if (user) {
+      await fetchUserRoles(user.id);
+    }
+  };
+
   useEffect(() => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
         setSession(session);
         setUser(session?.user ?? null);
 
-        // Never block the UI on profile fetch. Auth state should resolve even if
-        // the profile query is slow, fails, or RLS denies access.
         if (session?.user) {
           fetchProfile(session.user.id);
+          fetchUserRoles(session.user.id);
         } else {
           setProfile(null);
+          setUserRoles([]);
         }
 
         setLoading(false);
@@ -86,8 +117,10 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
       if (session?.user) {
         fetchProfile(session.user.id);
+        fetchUserRoles(session.user.id);
       } else {
         setProfile(null);
+        setUserRoles([]);
       }
 
       setLoading(false);
@@ -149,15 +182,20 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     }
   };
 
+  const isAdmin = userRoles.includes('admin');
+
   return (
     <AuthContext.Provider value={{
       user,
       session,
       profile,
+      userRoles,
       loading,
+      isAdmin,
       signUp,
       signIn,
-      signOut
+      signOut,
+      refetchRoles
     }}>
       {children}
     </AuthContext.Provider>

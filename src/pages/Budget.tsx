@@ -9,6 +9,7 @@ import {
   BudgetLoadingSkeleton,
   useBudgetData
 } from "@/components/budget";
+import { ModuleSwitcher } from "@/components/navigation/ModuleSwitcher";
 
 const Budget = () => {
   const [activeModule, setActiveModule] = useState<string>("overview");
@@ -36,6 +37,10 @@ const Budget = () => {
 
   return (
     <div className="container mx-auto px-4 py-8">
+      <div className="mb-6">
+        <ModuleSwitcher />
+      </div>
+
       <div className="mb-6">
         <h1 className="text-3xl font-bold">Orçamento</h1>
         <p className="text-muted-foreground">Gerencie o orçamento da campanha</p>

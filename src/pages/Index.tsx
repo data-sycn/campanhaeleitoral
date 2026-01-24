@@ -1,3 +1,4 @@
+import { useEffect } from "react";
 import { Navbar } from "@/components/Navbar";
 import { CampaignHero } from "@/components/CampaignHero";
 import { DashboardModuleGrid, DashboardWelcome } from "@/components/dashboard/index";
@@ -8,6 +9,13 @@ import { useNavigate } from "react-router-dom";
 const Index = () => {
   const { user, loading, needsCandidateSelection } = useAuth();
   const navigate = useNavigate();
+
+  // Redireciona para seleção de candidato dentro do useEffect
+  useEffect(() => {
+    if (!loading && needsCandidateSelection) {
+      navigate("/select-candidate");
+    }
+  }, [loading, needsCandidateSelection, navigate]);
 
   if (loading) {
     return (
@@ -20,10 +28,16 @@ const Index = () => {
     );
   }
 
-  // Se precisa selecionar candidato, redireciona
+  // Se precisa selecionar candidato, mostra loading enquanto redireciona
   if (needsCandidateSelection) {
-    navigate("/select-candidate");
-    return null;
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="flex flex-col items-center gap-4">
+          <div className="w-10 h-10 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
+          <p className="text-sm text-muted-foreground">Redirecionando...</p>
+        </div>
+      </div>
+    );
   }
 
   // Se não estiver logado, mostra a Landing Page

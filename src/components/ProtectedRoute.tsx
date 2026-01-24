@@ -6,7 +6,7 @@ interface ProtectedRouteProps {
 }
 
 export const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
-  const { user, loading } = useAuth();
+  const { user, loading, needsCandidateSelection } = useAuth();
   const location = useLocation();
 
   if (loading) {
@@ -23,6 +23,11 @@ export const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
   if (!user) {
     // Redireciona para login, mas salva a página que o usuário tentou acessar
     return <Navigate to="/auth" state={{ from: location }} replace />;
+  }
+
+  // Se precisa selecionar candidato, redireciona
+  if (needsCandidateSelection) {
+    return <Navigate to="/select-candidate" state={{ from: location }} replace />;
   }
 
   return <>{children}</>;

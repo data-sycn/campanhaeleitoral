@@ -10,8 +10,13 @@ import {
 } from "./navigation/index";
 
 export function Navbar() {
-  const { user, signOut } = useAuth();
+  const { user, signOut, selectedCandidate, clearCandidateSelection } = useAuth();
   const navigate = useNavigate();
+
+  const handleSwitchCandidate = async () => {
+    await clearCandidateSelection();
+    navigate("/select-candidate");
+  };
 
   return (
     <nav className="border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 sticky top-0 z-50">
@@ -27,7 +32,12 @@ export function Navbar() {
           {user ? (
             <>
               <NavNotifications count={1} />
-              <NavUserMenu user={user} onSignOut={signOut} />
+              <NavUserMenu 
+                user={user} 
+                onSignOut={signOut}
+                selectedCandidate={selectedCandidate}
+                onSwitchCandidate={handleSwitchCandidate}
+              />
               <NavMobileMenu />
             </>
           ) : (

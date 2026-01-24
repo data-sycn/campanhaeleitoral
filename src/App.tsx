@@ -7,6 +7,7 @@ import { AuthProvider } from "@/hooks/useAuth";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
 import Index from "./pages/Index";
 import Auth from "./pages/Auth";
+import SelectCandidate from "./pages/SelectCandidate";
 import Dashboard from "./pages/Dashboard";
 import Budget from "./pages/Budget";
 import Expenses from "./pages/Expenses";
@@ -30,6 +31,9 @@ const App = () => (
             
             {/* Rota de Autenticação */}
             <Route path="/auth" element={<Auth />} />
+            
+            {/* Rota de Seleção de Candidato */}
+            <Route path="/select-candidate" element={<SelectCandidate />} />
             
             {/* Rotas Protegidas */}
             <Route path="/dashboard" element={

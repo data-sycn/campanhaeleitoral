@@ -29,15 +29,15 @@ const SelectCandidate = () => {
   const MASTER_ADMIN_EMAIL = "nailton.alsampaio@gmail.com";
 
   useEffect(() => {
-    // Se for o master admin, redirecionar direto
+    // Se for o master admin, redirecionar direto para o dashboard
     if (user?.email === MASTER_ADMIN_EMAIL) {
-      navigate("/");
+      navigate("/dashboard");
       return;
     }
 
-    // Se já tem candidato selecionado, redirecionar
+    // Se já tem candidato selecionado, redirecionar para o dashboard
     if (profile?.candidate_id) {
-      navigate("/");
+      navigate("/dashboard");
       return;
     }
 
@@ -77,7 +77,7 @@ const SelectCandidate = () => {
         title: "Candidato selecionado!",
         description: "Você está agora trabalhando com este candidato."
       });
-      navigate("/");
+      navigate("/dashboard");
     } catch (error) {
       console.error("Erro ao selecionar candidato:", error);
       toast({

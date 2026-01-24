@@ -14,16 +14,296 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      audit_log: {
+        Row: {
+          action: string
+          created_at: string
+          id: string
+          new_data: Json | null
+          old_data: Json | null
+          record_id: string | null
+          table_name: string
+          user_id: string | null
+        }
+        Insert: {
+          action: string
+          created_at?: string
+          id?: string
+          new_data?: Json | null
+          old_data?: Json | null
+          record_id?: string | null
+          table_name: string
+          user_id?: string | null
+        }
+        Update: {
+          action?: string
+          created_at?: string
+          id?: string
+          new_data?: Json | null
+          old_data?: Json | null
+          record_id?: string | null
+          table_name?: string
+          user_id?: string | null
+        }
+        Relationships: []
+      }
+      budgets: {
+        Row: {
+          active: boolean
+          candidate_id: string
+          created_at: string
+          id: string
+          notes: string | null
+          total_planned: number
+          updated_at: string
+          year: number
+        }
+        Insert: {
+          active?: boolean
+          candidate_id: string
+          created_at?: string
+          id?: string
+          notes?: string | null
+          total_planned?: number
+          updated_at?: string
+          year: number
+        }
+        Update: {
+          active?: boolean
+          candidate_id?: string
+          created_at?: string
+          id?: string
+          notes?: string | null
+          total_planned?: number
+          updated_at?: string
+          year?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "budgets_candidate_id_fkey"
+            columns: ["candidate_id"]
+            isOneToOne: false
+            referencedRelation: "candidates"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      candidates: {
+        Row: {
+          created_at: string
+          id: string
+          name: string
+          party: string | null
+          position: string | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          name: string
+          party?: string | null
+          position?: string | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          name?: string
+          party?: string | null
+          position?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      expenses: {
+        Row: {
+          amount: number
+          candidate_id: string
+          category: Database["public"]["Enums"]["expense_category"]
+          created_at: string
+          created_by: string | null
+          date: string
+          description: string
+          id: string
+          payment_method: Database["public"]["Enums"]["payment_method"]
+          receipt_url: string | null
+          updated_at: string
+        }
+        Insert: {
+          amount: number
+          candidate_id: string
+          category: Database["public"]["Enums"]["expense_category"]
+          created_at?: string
+          created_by?: string | null
+          date: string
+          description: string
+          id?: string
+          payment_method: Database["public"]["Enums"]["payment_method"]
+          receipt_url?: string | null
+          updated_at?: string
+        }
+        Update: {
+          amount?: number
+          candidate_id?: string
+          category?: Database["public"]["Enums"]["expense_category"]
+          created_at?: string
+          created_by?: string | null
+          date?: string
+          description?: string
+          id?: string
+          payment_method?: Database["public"]["Enums"]["payment_method"]
+          receipt_url?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "expenses_candidate_id_fkey"
+            columns: ["candidate_id"]
+            isOneToOne: false
+            referencedRelation: "candidates"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      profiles: {
+        Row: {
+          candidate_id: string | null
+          created_at: string
+          id: string
+          name: string
+          updated_at: string
+        }
+        Insert: {
+          candidate_id?: string | null
+          created_at?: string
+          id: string
+          name: string
+          updated_at?: string
+        }
+        Update: {
+          candidate_id?: string | null
+          created_at?: string
+          id?: string
+          name?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "profiles_candidate_id_fkey"
+            columns: ["candidate_id"]
+            isOneToOne: false
+            referencedRelation: "candidates"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      user_roles: {
+        Row: {
+          id: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Insert: {
+          id?: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Update: {
+          id?: string
+          role?: Database["public"]["Enums"]["app_role"]
+          user_id?: string
+        }
+        Relationships: []
+      }
+      votes_agg: {
+        Row: {
+          candidate_id: string
+          id: string
+          last_updated: string
+          total_votes: number
+        }
+        Insert: {
+          candidate_id: string
+          id?: string
+          last_updated?: string
+          total_votes?: number
+        }
+        Update: {
+          candidate_id?: string
+          id?: string
+          last_updated?: string
+          total_votes?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "votes_agg_candidate_id_fkey"
+            columns: ["candidate_id"]
+            isOneToOne: false
+            referencedRelation: "candidates"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      votes_raw: {
+        Row: {
+          candidate_id: string
+          created_at: string
+          id: string
+          section: string | null
+          votes: number
+          zone: string | null
+        }
+        Insert: {
+          candidate_id: string
+          created_at?: string
+          id?: string
+          section?: string | null
+          votes?: number
+          zone?: string | null
+        }
+        Update: {
+          candidate_id?: string
+          created_at?: string
+          id?: string
+          section?: string | null
+          votes?: number
+          zone?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "votes_raw_candidate_id_fkey"
+            columns: ["candidate_id"]
+            isOneToOne: false
+            referencedRelation: "candidates"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      get_user_candidate_id: { Args: { _user_id: string }; Returns: string }
+      has_role: {
+        Args: {
+          _role: Database["public"]["Enums"]["app_role"]
+          _user_id: string
+        }
+        Returns: boolean
+      }
     }
     Enums: {
-      [_ in never]: never
+      app_role: "admin" | "candidate" | "supporter"
+      expense_category:
+        | "publicidade"
+        | "transporte"
+        | "alimentacao"
+        | "material"
+        | "eventos"
+        | "pessoal"
+        | "outros"
+      payment_method: "pix" | "cartao" | "dinheiro" | "transferencia" | "boleto"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -150,6 +430,18 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      app_role: ["admin", "candidate", "supporter"],
+      expense_category: [
+        "publicidade",
+        "transporte",
+        "alimentacao",
+        "material",
+        "eventos",
+        "pessoal",
+        "outros",
+      ],
+      payment_method: ["pix", "cartao", "dinheiro", "transferencia", "boleto"],
+    },
   },
 } as const

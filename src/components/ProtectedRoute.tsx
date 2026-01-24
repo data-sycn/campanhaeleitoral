@@ -3,11 +3,10 @@ import { useAuth } from "@/hooks/useAuth";
 
 interface ProtectedRouteProps {
   children: React.ReactNode;
-  requiredRole?: 'admin' | 'candidate' | 'supporter';
 }
 
-export const ProtectedRoute = ({ children, requiredRole }: ProtectedRouteProps) => {
-  const { user, profile, loading } = useAuth();
+export const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
+  const { user, loading } = useAuth();
   const location = useLocation();
 
   if (loading) {
@@ -24,11 +23,6 @@ export const ProtectedRoute = ({ children, requiredRole }: ProtectedRouteProps) 
   if (!user) {
     // Redireciona para login, mas salva a página que o usuário tentou acessar
     return <Navigate to="/auth" state={{ from: location }} replace />;
-  }
-
-  if (requiredRole && profile?.role !== requiredRole && profile?.role !== 'admin') {
-    // Se o usuário não tem o cargo necessário (e não é admin), manda para o dashboard
-    return <Navigate to="/" replace />;
   }
 
   return <>{children}</>;

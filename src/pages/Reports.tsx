@@ -33,13 +33,12 @@ const Reports = () => {
   ];
 
   const categoryLabels: Record<string, string> = {
-    marketing: 'Marketing',
-    eventos: 'Eventos',
-    material_grafico: 'Material Gráfico',
-    combustivel: 'Combustível',
+    publicidade: 'Publicidade',
+    transporte: 'Transporte',
     alimentacao: 'Alimentação',
-    hospedagem: 'Hospedagem',
-    servicos_profissionais: 'Serviços Profissionais',
+    material: 'Material',
+    eventos: 'Eventos',
+    pessoal: 'Pessoal',
     outros: 'Outros'
   };
 

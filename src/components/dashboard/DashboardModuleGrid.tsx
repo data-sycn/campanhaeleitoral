@@ -23,7 +23,7 @@ export function DashboardModuleGrid() {
       title: "Dashboard",
       description: "Visão geral da campanha com KPIs, atividades recentes e métricas de desempenho",
       icon: BarChart3,
-      route: "/",
+      route: "/dashboard",
       color: "blue" as const,
       stats: "4 KPIs ativos",
     },

@@ -1,9 +1,12 @@
 import { BarChart3, DollarSign, Receipt, Users, FileText } from "lucide-react";
 import { DashboardModuleCard } from "./DashboardModuleCard";
 import { useDashboardData } from "./useDashboardData";
+import { useAuth } from "@/hooks/useAuth";
 
 export function DashboardModuleGrid() {
   const { stats, loading } = useDashboardData();
+  const { profile } = useAuth();
+  const hasCandidate = !!profile?.candidate_id;
 
   const formatCurrency = (value: number) => {
     return value.toLocaleString("pt-BR", {
@@ -31,7 +34,7 @@ export function DashboardModuleGrid() {
       icon: DollarSign,
       route: "/budget",
       color: "green" as const,
-      stats: loading ? "Carregando..." : `${formatCurrency(stats.totalBudget)} planejado`,
+      stats: loading ? "Carregando..." : hasCandidate ? `${formatCurrency(stats.totalBudget)} planejado` : "Configure seu candidato",
     },
     {
       id: "expenses",
@@ -40,7 +43,7 @@ export function DashboardModuleGrid() {
       icon: Receipt,
       route: "/expenses",
       color: "red" as const,
-      stats: loading ? "Carregando..." : `${stats.expensesCount} despesas registradas`,
+      stats: loading ? "Carregando..." : hasCandidate ? `${stats.expensesCount} despesas registradas` : "Configure seu candidato",
     },
     {
       id: "supporters",
@@ -49,7 +52,7 @@ export function DashboardModuleGrid() {
       icon: Users,
       route: "/supporters",
       color: "purple" as const,
-      stats: loading ? "Carregando..." : `${stats.supportersCount} apoiadores`,
+      stats: loading ? "Carregando..." : hasCandidate ? `${stats.supportersCount} apoiadores` : "Configure seu candidato",
     },
     {
       id: "reports",

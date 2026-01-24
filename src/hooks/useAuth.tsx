@@ -6,8 +6,9 @@ import { useToast } from '@/hooks/use-toast';
 interface Profile {
   id: string;
   name: string;
-  role: 'admin' | 'candidate' | 'supporter';
   candidate_id: string | null;
+  created_at: string;
+  updated_at: string;
 }
 
 interface AuthContextType {

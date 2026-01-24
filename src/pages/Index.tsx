@@ -1,6 +1,6 @@
 import { Navigation } from "@/components/Navigation";
 import { CampaignHero } from "@/components/CampaignHero";
-import { Dashboard } from "@/components/Dashboard";
+import { DashboardModuleGrid, DashboardWelcome } from "@/components/dashboard";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/useAuth";
 import { useNavigate } from "react-router-dom";
@@ -55,12 +55,13 @@ const Index = () => {
     );
   }
 
-  // Se estiver logado, mostra o Dashboard
+  // Se estiver logado, mostra a Grid de Módulos
   return (
     <div className="min-h-screen bg-background">
       <Navigation />
       <main className="container mx-auto px-4 py-8">
-        <Dashboard />
+        <DashboardWelcome />
+        <DashboardModuleGrid />
       </main>
     </div>
   );

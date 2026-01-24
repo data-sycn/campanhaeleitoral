@@ -4,6 +4,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "@/hooks/useAuth";
+import { ProtectedRoute } from "@/components/ProtectedRoute";
 import Index from "./pages/Index";
 import Auth from "./pages/Auth";
 import Budget from "./pages/Budget";
@@ -22,13 +23,35 @@ const App = () => (
         <Sonner />
         <BrowserRouter>
           <Routes>
+            {/* Rota Pública / Dashboard Inteligente */}
             <Route path="/" element={<Index />} />
+            
+            {/* Rota de Autenticação */}
             <Route path="/auth" element={<Auth />} />
-            <Route path="/budget" element={<Budget />} />
-            <Route path="/expenses" element={<Expenses />} />
-            <Route path="/supporters" element={<Supporters />} />
-            <Route path="/reports" element={<Reports />} />
-            {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+            
+            {/* Rotas Protegidas */}
+            <Route path="/budget" element={
+              <ProtectedRoute>
+                <Budget />
+              </ProtectedRoute>
+            } />
+            <Route path="/expenses" element={
+              <ProtectedRoute>
+                <Expenses />
+              </ProtectedRoute>
+            } />
+            <Route path="/supporters" element={
+              <ProtectedRoute>
+                <Supporters />
+              </ProtectedRoute>
+            } />
+            <Route path="/reports" element={
+              <ProtectedRoute>
+                <Reports />
+              </ProtectedRoute>
+            } />
+
+            {/* Catch-all */}
             <Route path="*" element={<NotFound />} />
           </Routes>
         </BrowserRouter>

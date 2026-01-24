@@ -75,9 +75,11 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [userRoles, setUserRoles] = useState<AppRole[]>([]);
   const [selectedCandidate, setSelectedCandidate] = useState<SelectedCandidate | null>(null);
   const [loading, setLoading] = useState(true);
+  const [profileLoading, setProfileLoading] = useState(true);
   const { toast } = useToast();
 
   const fetchProfile = useCallback(async (userId: string) => {
+    setProfileLoading(true);
     try {
       const { data, error } = await supabase
         .from('profiles')
@@ -106,6 +108,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       console.error('Erro ao buscar perfil:', error);
       setProfile(null);
       setSelectedCandidate(null);
+    } finally {
+      setProfileLoading(false);
     }
   }, []);
 
@@ -188,6 +192,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
           setProfile(null);
           setUserRoles([]);
           setSelectedCandidate(null);
+          setProfileLoading(false);
         }
 
         setLoading(false);
@@ -205,6 +210,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         setProfile(null);
         setUserRoles([]);
         setSelectedCandidate(null);
+        setProfileLoading(false);
       }
 
       setLoading(false);
@@ -269,11 +275,13 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const isAdmin = userRoles.includes('admin');
   
   // Determinar se precisa selecionar candidato
+  // Só avalia depois que o profile terminar de carregar
   const needsCandidateSelection = 
     user !== null && 
+    !loading &&
+    !profileLoading &&
     user.email !== MASTER_ADMIN_EMAIL && 
-    !profile?.candidate_id && 
-    !loading;
+    !profile?.candidate_id;
 
   return (
     <AuthContext.Provider value={{
@@ -281,7 +289,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       session,
       profile,
       userRoles,
-      loading,
+      loading: loading || profileLoading, // loading inclui profile
       isAdmin,
       selectedCandidate,
       needsCandidateSelection,

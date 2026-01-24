@@ -6,7 +6,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { useNavigate } from "react-router-dom";
 
 const Index = () => {
-  const { user, loading } = useAuth();
+  const { user, loading, needsCandidateSelection } = useAuth();
   const navigate = useNavigate();
 
   if (loading) {
@@ -18,6 +18,12 @@ const Index = () => {
         </div>
       </div>
     );
+  }
+
+  // Se precisa selecionar candidato, redireciona
+  if (needsCandidateSelection) {
+    navigate("/select-candidate");
+    return null;
   }
 
   // Se não estiver logado, mostra a Landing Page

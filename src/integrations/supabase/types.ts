@@ -197,6 +197,38 @@ export type Database = {
           },
         ]
       }
+      user_candidates: {
+        Row: {
+          candidate_id: string
+          created_at: string
+          id: string
+          is_default: boolean | null
+          user_id: string
+        }
+        Insert: {
+          candidate_id: string
+          created_at?: string
+          id?: string
+          is_default?: boolean | null
+          user_id: string
+        }
+        Update: {
+          candidate_id?: string
+          created_at?: string
+          id?: string
+          is_default?: boolean | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_candidates_candidate_id_fkey"
+            columns: ["candidate_id"]
+            isOneToOne: false
+            referencedRelation: "candidates"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       user_roles: {
         Row: {
           id: string
@@ -284,6 +316,16 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      get_user_available_candidates: {
+        Args: { _user_id: string }
+        Returns: {
+          candidate_id: string
+          candidate_name: string
+          candidate_party: string
+          candidate_position: string
+          is_default: boolean
+        }[]
+      }
       get_user_candidate_id: { Args: { _user_id: string }; Returns: string }
       has_role: {
         Args: {

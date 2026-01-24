@@ -32,8 +32,12 @@ const App = () => (
             {/* Rota de Autenticação */}
             <Route path="/auth" element={<Auth />} />
             
-            {/* Rota de Seleção de Candidato */}
-            <Route path="/select-candidate" element={<SelectCandidate />} />
+            {/* Rota de Seleção de Candidato - Protegida mas sem verificar candidato */}
+            <Route path="/select-candidate" element={
+              <ProtectedRoute skipCandidateCheck>
+                <SelectCandidate />
+              </ProtectedRoute>
+            } />
             
             {/* Rotas Protegidas */}
             <Route path="/dashboard" element={

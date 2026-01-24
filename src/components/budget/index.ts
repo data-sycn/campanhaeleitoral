@@ -1,6 +1,5 @@
 export { BudgetHeader } from "./BudgetHeader";
 export { BudgetModuleTabs } from "./BudgetModuleTabs";
-export { BudgetModuleGrid } from "./BudgetModuleGrid";
 export { BudgetOverview } from "./BudgetOverview";
 export { BudgetForm } from "./BudgetForm";
 export { BudgetList } from "./BudgetList";

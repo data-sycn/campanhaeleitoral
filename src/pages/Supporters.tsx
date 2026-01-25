@@ -18,7 +18,8 @@ interface Profile {
 }
 
 interface UserRole {
-  role: 'admin' | 'candidate' | 'supporter';
+  role: 'master' | 'admin' | 'coordinator' | 'candidate' | 'supporter';
+  user_id: string;
 }
 
 interface SupporterWithRole extends Profile {
@@ -123,8 +124,10 @@ const Supporters = () => {
 
   const getRoleLabel = (supporter: SupporterWithRole) => {
     const role = supporter.user_roles?.[0]?.role || 'supporter';
-    const roles = {
+    const roles: Record<string, { label: string; color: string }> = {
+      master: { label: 'Master', color: 'bg-destructive text-destructive-foreground' },
       admin: { label: 'Administrador', color: 'bg-destructive text-destructive-foreground' },
+      coordinator: { label: 'Coordenador', color: 'bg-primary text-primary-foreground' },
       candidate: { label: 'Candidato', color: 'bg-primary text-primary-foreground' },
       supporter: { label: 'Apoiador', color: 'bg-secondary text-secondary-foreground' }
     };

@@ -128,7 +128,9 @@ export function AdminPermissions() {
 
   const getRoleBadgeVariant = (role: AppRole) => {
     switch (role) {
+      case 'master': return 'destructive';
       case 'admin': return 'destructive';
+      case 'coordinator': return 'default';
       case 'candidate': return 'default';
       default: return 'secondary';
     }
@@ -136,7 +138,9 @@ export function AdminPermissions() {
 
   const getRoleLabel = (role: AppRole) => {
     switch (role) {
+      case 'master': return 'Master';
       case 'admin': return 'Administrador';
+      case 'coordinator': return 'Coordenador';
       case 'candidate': return 'Candidato';
       default: return 'Apoiador';
     }
@@ -198,8 +202,10 @@ export function AdminPermissions() {
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="supporter">Apoiador</SelectItem>
+                    <SelectItem value="coordinator">Coordenador</SelectItem>
                     <SelectItem value="candidate">Candidato</SelectItem>
                     <SelectItem value="admin">Administrador</SelectItem>
+                    <SelectItem value="master">Master</SelectItem>
                   </SelectContent>
                 </Select>
               </div>

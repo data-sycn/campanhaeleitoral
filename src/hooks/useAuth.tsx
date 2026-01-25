@@ -207,15 +207,17 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     setProfile(prev => prev ? { ...prev, candidate_id: null } : null);
   };
 
-  // Admin é determinado APENAS pela tabela user_roles (sem bypass por email)
-  const isAdmin = userRoles.includes('admin');
+  // Master é o super usuário que passa direto
+  const isMaster = userRoles.includes('master');
+  // Admin inclui tanto 'admin' quanto 'master' para permissões administrativas
+  const isAdmin = userRoles.includes('admin') || isMaster;
   
-  // Admins não precisam selecionar candidato; usuários normais precisam se não tiverem candidate_id
+  // Apenas MASTER passa direto; outros precisam selecionar candidato se não tiverem candidate_id
   const needsCandidateSelection = 
     !!user && 
     !loading && 
     !profileLoading && 
-    !isAdmin && 
+    !isMaster && 
     !profile?.candidate_id;
 
   return (

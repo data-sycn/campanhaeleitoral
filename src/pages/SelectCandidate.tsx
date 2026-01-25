@@ -25,28 +25,16 @@ const SelectCandidate = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
 
-  // ProtectedRoute já cuida de redirecionar para /auth se não autenticado
-  // e não redireciona para cá se profile.candidate_id já existe
   useEffect(() => {
-<<<<<<< HEAD
     if (!authLoading && !user) {
       navigate("/auth");
       return;
     }
 
-    // Removido o redirecionamento automático para permitir que o usuário sempre veja a tela de seleção
-    // se ele for explicitamente para esta rota ou se o sistema o mandar para cá após o login.
-
-    if (user) {
-      fetchAvailableCandidates();
-    }
-  }, [user, authLoading, navigate]);
-=======
     if (user && !authLoading) {
       fetchAvailableCandidates();
     }
-  }, [user, authLoading]);
->>>>>>> 2717423c34ef21b22f045184ff8cbc437f4848d5
+  }, [user, authLoading, navigate]);
 
   const fetchAvailableCandidates = async () => {
     try {

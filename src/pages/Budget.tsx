@@ -7,14 +7,21 @@ import {
   BudgetList,
   BudgetAllocations,
   BudgetLoadingSkeleton,
-  useBudgetData
+  NewAllocationDialog,
+  useBudgetData,
+  useBudgetAllocations
 } from "@/components/budget";
 import { ModuleSwitcher } from "@/components/navigation/ModuleSwitcher";
 
 const Budget = () => {
   const [activeModule, setActiveModule] = useState<string>("overview");
   const [showForm, setShowForm] = useState(false);
-  const { budgets, loading, creating, activeBudget, totalPlanned, createBudget } = useBudgetData();
+  const [isAllocationDialogOpen, setIsAllocationDialogOpen] = useState(false);
+  
+  const { budgets, loading, creating, activeBudget, createBudget } = useBudgetData();
+  
+  // Hook para gerenciar alocações (usado para o botão global de Nova Alocação)
+  const { saveAllocation, saving: savingAllocation } = useBudgetAllocations(activeBudget?.id);
 
   const handleCreateBudget = async (formData: Parameters<typeof createBudget>[0]) => {
     const success = await createBudget(formData);
@@ -27,9 +34,10 @@ const Budget = () => {
   const handleAction = () => {
     if (activeModule === "budgets") {
       setShowForm(!showForm);
+    } else if (activeModule === "allocations") {
+      setIsAllocationDialogOpen(true);
     }
   };
-
 
   if (loading) {
     return <BudgetLoadingSkeleton />;
@@ -70,7 +78,17 @@ const Budget = () => {
         </>
       )}
 
-      {activeModule === "allocations" && <BudgetAllocations />}
+      {activeModule === "allocations" && (
+        <>
+          <BudgetAllocations />
+          <NewAllocationDialog 
+            isOpen={isAllocationDialogOpen}
+            onOpenChange={setIsAllocationDialogOpen}
+            onSave={saveAllocation}
+            isSaving={savingAllocation}
+          />
+        </>
+      )}
     </div>
   );
 };

@@ -39,26 +39,9 @@ interface AuthContextType {
   refetchProfile: () => Promise<void>;
 }
 
-// Master admin que não precisa selecionar candidato
 const MASTER_ADMIN_EMAIL = "nailton.alsampaio@gmail.com";
 
-const AuthContext = createContext<AuthContextType>({
-  user: null,
-  session: null,
-  profile: null,
-  userRoles: [],
-  loading: true,
-  isAdmin: false,
-  selectedCandidate: null,
-  needsCandidateSelection: false,
-  signUp: async () => ({ error: null }),
-  signIn: async () => ({ error: null }),
-  signOut: async () => {},
-  refetchRoles: async () => {},
-  selectCandidate: async () => {},
-  clearCandidateSelection: async () => {},
-  refetchProfile: async () => {},
-});
+const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const useAuth = () => {
   const context = useContext(AuthContext);
@@ -75,43 +58,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [userRoles, setUserRoles] = useState<AppRole[]>([]);
   const [selectedCandidate, setSelectedCandidate] = useState<SelectedCandidate | null>(null);
   const [loading, setLoading] = useState(true);
-  const [profileLoading, setProfileLoading] = useState(true);
+  const [profileLoading, setProfileLoading] = useState(false);
   const { toast } = useToast();
-
-  const fetchProfile = useCallback(async (userId: string) => {
-    setProfileLoading(true);
-    try {
-      const { data, error } = await supabase
-        .from('profiles')
-        .select('*')
-        .eq('id', userId)
-        .single();
-
-      if (error) throw error;
-      setProfile(data);
-
-      // Se tem candidate_id, buscar dados do candidato
-      if (data?.candidate_id) {
-        const { data: candidateData } = await supabase
-          .from('candidates')
-          .select('id, name, party, position')
-          .eq('id', data.candidate_id)
-          .single();
-
-        if (candidateData) {
-          setSelectedCandidate(candidateData);
-        }
-      } else {
-        setSelectedCandidate(null);
-      }
-    } catch (error) {
-      console.error('Erro ao buscar perfil:', error);
-      setProfile(null);
-      setSelectedCandidate(null);
-    } finally {
-      setProfileLoading(false);
-    }
-  }, []);
 
   const fetchUserRoles = async (userId: string) => {
     try {
@@ -128,91 +76,74 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     }
   };
 
-  const refetchRoles = async () => {
-    if (user) {
-      await fetchUserRoles(user.id);
+  const fetchProfile = useCallback(async (userId: string) => {
+    setProfileLoading(true);
+    try {
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('id', userId)
+        .single();
+
+      if (error) throw error;
+      setProfile(data);
+
+      if (data?.candidate_id) {
+        const { data: candidateData, error: candidateError } = await supabase
+          .from('candidates')
+          .select('id, name, party, position')
+          .eq('id', data.candidate_id)
+          .single();
+
+        if (!candidateError && candidateData) {
+          setSelectedCandidate(candidateData);
+        } else {
+          setSelectedCandidate(null);
+        }
+      } else {
+        setSelectedCandidate(null);
+      }
+    } catch (error) {
+      console.error('Erro ao buscar perfil:', error);
+      setProfile(null);
+      setSelectedCandidate(null);
+    } finally {
+      setProfileLoading(false);
     }
-  };
-
-  const refetchProfile = async () => {
-    if (user) {
-      await fetchProfile(user.id);
-    }
-  };
-
-  const selectCandidate = useCallback(async (candidateId: string) => {
-    if (!user) return;
-
-    const { error } = await supabase
-      .from('profiles')
-      .update({ candidate_id: candidateId })
-      .eq('id', user.id);
-
-    if (error) throw error;
-
-    // Buscar dados do candidato
-    const { data: candidateData } = await supabase
-      .from('candidates')
-      .select('id, name, party, position')
-      .eq('id', candidateId)
-      .single();
-
-    if (candidateData) {
-      setSelectedCandidate(candidateData);
-      setProfile(prev => prev ? { ...prev, candidate_id: candidateId } : null);
-    }
-  }, [user]);
-
-  const clearCandidateSelection = useCallback(async () => {
-    if (!user) return;
-
-    const { error } = await supabase
-      .from('profiles')
-      .update({ candidate_id: null })
-      .eq('id', user.id);
-
-    if (error) throw error;
-
-    setSelectedCandidate(null);
-    setProfile(prev => prev ? { ...prev, candidate_id: null } : null);
-  }, [user]);
+  }, []);
 
   useEffect(() => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      (event, session) => {
+      async (event, session) => {
         setSession(session);
-        setUser(session?.user ?? null);
+        const currentUser = session?.user ?? null;
+        setUser(currentUser);
 
-        if (session?.user) {
-          setTimeout(() => {
-            fetchProfile(session.user.id);
-            fetchUserRoles(session.user.id);
-          }, 0);
+        if (currentUser) {
+          await Promise.all([
+            fetchProfile(currentUser.id),
+            fetchUserRoles(currentUser.id)
+          ]);
         } else {
           setProfile(null);
           setUserRoles([]);
           setSelectedCandidate(null);
-          setProfileLoading(false);
         }
-
         setLoading(false);
       }
     );
 
     supabase.auth.getSession().then(async ({ data: { session } }) => {
       setSession(session);
-      setUser(session?.user ?? null);
+      const currentUser = session?.user ?? null;
+      setUser(currentUser);
 
-      if (session?.user) {
-        fetchProfile(session.user.id);
-        fetchUserRoles(session.user.id);
-      } else {
-        setProfile(null);
-        setUserRoles([]);
-        setSelectedCandidate(null);
-        setProfileLoading(false);
+      if (currentUser) {
+        await Promise.all([
+          fetchProfile(currentUser.id),
+          fetchUserRoles(currentUser.id)
+        ]);
       }
-
       setLoading(false);
     });
 
@@ -223,64 +154,63 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     const { error } = await supabase.auth.signUp({
       email,
       password,
-      options: {
-        data: { name }
-      }
+      options: { data: { name } }
     });
 
     if (error) {
-      toast({
-        title: "Erro no cadastro",
-        description: error.message,
-        variant: "destructive"
-      });
+      toast({ title: "Erro no cadastro", description: error.message, variant: "destructive" });
     } else {
-      toast({
-        title: "Conta criada!",
-        description: "Verifique seu email para confirmar sua conta."
-      });
+      toast({ title: "Conta criada!", description: "Verifique seu email para confirmar sua conta." });
     }
-
     return { error };
   };
 
   const signIn = async (email: string, password: string) => {
-    const { error } = await supabase.auth.signInWithPassword({
-      email,
-      password
-    });
-
+    const { error } = await supabase.auth.signInWithPassword({ email, password });
     if (error) {
-      toast({
-        title: "Erro no login",
-        description: "E-mail ou senha incorretos.",
-        variant: "destructive"
-      });
+      toast({ title: "Erro no login", description: "E-mail ou senha incorretos.", variant: "destructive" });
     }
-
     return { error };
   };
 
   const signOut = async () => {
-    const { error } = await supabase.auth.signOut();
-    if (error) {
-      toast({
-        title: "Erro ao sair",
-        description: error.message,
-        variant: "destructive"
-      });
-    }
+    await supabase.auth.signOut();
+    setSelectedCandidate(null);
+    setProfile(null);
+    setUserRoles([]);
+  };
+
+  const selectCandidate = async (candidateId: string) => {
+    if (!user) return;
+    const { error } = await supabase
+      .from('profiles')
+      .update({ candidate_id: candidateId })
+      .eq('id', user.id);
+
+    if (error) throw error;
+    await fetchProfile(user.id);
+  };
+
+  const clearCandidateSelection = async () => {
+    if (!user) return;
+    const { error } = await supabase
+      .from('profiles')
+      .update({ candidate_id: null })
+      .eq('id', user.id);
+
+    if (error) throw error;
+    setSelectedCandidate(null);
+    setProfile(prev => prev ? { ...prev, candidate_id: null } : null);
   };
 
   const isAdmin = userRoles.includes('admin');
+  const isMaster = user?.email === MASTER_ADMIN_EMAIL;
   
-  // Determinar se precisa selecionar candidato
-  // Só avalia depois que o profile terminar de carregar
   const needsCandidateSelection = 
-    user !== null && 
-    !loading &&
-    !profileLoading &&
-    user.email !== MASTER_ADMIN_EMAIL && 
+    !!user && 
+    !loading && 
+    !profileLoading && 
+    !isMaster && 
     !profile?.candidate_id;
 
   return (
@@ -289,17 +219,17 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       session,
       profile,
       userRoles,
-      loading: loading || profileLoading, // loading inclui profile
-      isAdmin,
+      loading: loading || profileLoading,
+      isAdmin: isAdmin || isMaster,
       selectedCandidate,
       needsCandidateSelection,
       signUp,
       signIn,
       signOut,
-      refetchRoles,
+      refetchRoles: () => user ? fetchUserRoles(user.id) : Promise.resolve(),
       selectCandidate,
       clearCandidateSelection,
-      refetchProfile
+      refetchProfile: () => user ? fetchProfile(user.id) : Promise.resolve(),
     }}>
       {children}
     </AuthContext.Provider>

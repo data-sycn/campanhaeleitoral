@@ -15,19 +15,19 @@ export const ProtectedRoute = ({ children, skipCandidateCheck = false }: Protect
       <div className="min-h-screen flex items-center justify-center bg-background">
         <div className="flex flex-col items-center gap-4">
           <div className="w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
-          <p className="text-muted-foreground font-medium">Verificando acesso...</p>
+          <p className="text-muted-foreground font-medium">Validando credenciais...</p>
         </div>
       </div>
     );
   }
 
   if (!user) {
-    // Redireciona para login, mas salva a página que o usuário tentou acessar
     return <Navigate to="/auth" state={{ from: location }} replace />;
   }
 
-  // Se precisa selecionar candidato e não está pulando a verificação
+  // Se o usuário precisa selecionar um candidato e não estamos em uma rota que pula essa checagem
   if (needsCandidateSelection && !skipCandidateCheck) {
+    console.log("ProtectedRoute: Redirecionando para seleção de candidato");
     return <Navigate to="/select-candidate" state={{ from: location }} replace />;
   }
 

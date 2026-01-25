@@ -4,11 +4,13 @@ import {
   DollarSign, 
   Receipt, 
   Users, 
-  FileText 
+  FileText,
+  Settings
 } from "lucide-react";
+import { useAuth } from "@/hooks/useAuth";
 
 const navItems = [
-  { icon: BarChart3, label: "Dashboard", path: "/" },
+  { icon: BarChart3, label: "Dashboard", path: "/dashboard" },
   { icon: DollarSign, label: "Orçamento", path: "/budget" },
   { icon: Receipt, label: "Despesas", path: "/expenses" },
   { icon: Users, label: "Apoiadores", path: "/supporters" },
@@ -16,6 +18,8 @@ const navItems = [
 ];
 
 export function NavLinks() {
+  const { isAdmin } = useAuth();
+
   return (
     <div className="hidden md:flex items-center gap-1">
       {navItems.map((item) => (
@@ -26,6 +30,13 @@ export function NavLinks() {
           path={item.path}
         />
       ))}
+      {isAdmin && (
+        <NavItem
+          icon={Settings}
+          label="Admin"
+          path="/admin"
+        />
+      )}
     </div>
   );
 }

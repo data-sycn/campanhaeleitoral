@@ -1,11 +1,11 @@
-import { BarChart3, DollarSign, Receipt, Users, FileText } from "lucide-react";
+import { BarChart3, DollarSign, Receipt, Users, FileText, Settings } from "lucide-react";
 import { DashboardModuleCard } from "./DashboardModuleCard";
 import { useDashboardData } from "./useDashboardData";
 import { useAuth } from "@/hooks/useAuth";
 
 export function DashboardModuleGrid() {
   const { stats, loading } = useDashboardData();
-  const { profile } = useAuth();
+  const { profile, isAdmin } = useAuth();
   const hasCandidate = !!profile?.candidate_id;
 
   const formatCurrency = (value: number) => {
@@ -64,6 +64,19 @@ export function DashboardModuleGrid() {
       stats: `${stats.reportsCount} relatórios disponíveis`,
     },
   ];
+
+  // Adiciona o módulo admin se o usuário for administrador (incluindo master)
+  if (isAdmin) {
+    modules.push({
+      id: "admin",
+      title: "Administrador",
+      description: "Gerencie usuários, permissões, candidatos e configurações globais do sistema",
+      icon: Settings,
+      route: "/admin",
+      color: "blue" as const,
+      stats: "Gestão Global",
+    });
+  }
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">

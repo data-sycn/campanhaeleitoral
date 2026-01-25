@@ -32,9 +32,8 @@ const adminModule = { id: "admin", title: "Administrador", icon: Settings, route
 export function ModuleSwitcher() {
   const navigate = useNavigate();
   const location = useLocation();
-  const { userRoles } = useAuth();
+  const { isAdmin } = useAuth();
   
-  const isAdmin = userRoles?.includes("admin");
   const allModules = isAdmin ? [...modules, adminModule] : modules;
   
   const currentModule = allModules.find(m => location.pathname.startsWith(m.route));

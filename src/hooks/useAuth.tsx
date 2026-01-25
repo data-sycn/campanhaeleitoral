@@ -39,8 +39,6 @@ interface AuthContextType {
   refetchProfile: () => Promise<void>;
 }
 
-const MASTER_ADMIN_EMAIL = "nailton.alsampaio@gmail.com";
-
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const useAuth = () => {
@@ -113,38 +111,44 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   }, []);
 
   useEffect(() => {
+    // Setup auth state listener FIRST (sync callback to avoid deadlock)
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (event, session) => {
+      (event, session) => {
         setSession(session);
         const currentUser = session?.user ?? null;
         setUser(currentUser);
 
         if (currentUser) {
-          await Promise.all([
-            fetchProfile(currentUser.id),
-            fetchUserRoles(currentUser.id)
-          ]);
+          // Defer Supabase calls with setTimeout to avoid deadlock
+          setTimeout(() => {
+            Promise.all([
+              fetchProfile(currentUser.id),
+              fetchUserRoles(currentUser.id)
+            ]).finally(() => setLoading(false));
+          }, 0);
         } else {
           setProfile(null);
           setUserRoles([]);
           setSelectedCandidate(null);
+          setLoading(false);
         }
-        setLoading(false);
       }
     );
 
-    supabase.auth.getSession().then(async ({ data: { session } }) => {
+    // THEN check for existing session
+    supabase.auth.getSession().then(({ data: { session } }) => {
       setSession(session);
       const currentUser = session?.user ?? null;
       setUser(currentUser);
 
       if (currentUser) {
-        await Promise.all([
+        Promise.all([
           fetchProfile(currentUser.id),
           fetchUserRoles(currentUser.id)
-        ]);
+        ]).finally(() => setLoading(false));
+      } else {
+        setLoading(false);
       }
-      setLoading(false);
     });
 
     return () => subscription.unsubscribe();
@@ -203,14 +207,15 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     setProfile(prev => prev ? { ...prev, candidate_id: null } : null);
   };
 
+  // Admin é determinado APENAS pela tabela user_roles (sem bypass por email)
   const isAdmin = userRoles.includes('admin');
-  const isMaster = user?.email === MASTER_ADMIN_EMAIL;
   
+  // Admins não precisam selecionar candidato; usuários normais precisam se não tiverem candidate_id
   const needsCandidateSelection = 
     !!user && 
     !loading && 
     !profileLoading && 
-    !isMaster && 
+    !isAdmin && 
     !profile?.candidate_id;
 
   return (
@@ -220,7 +225,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       profile,
       userRoles,
       loading: loading || profileLoading,
-      isAdmin: isAdmin || isMaster,
+      isAdmin,
       selectedCandidate,
       needsCandidateSelection,
       signUp,

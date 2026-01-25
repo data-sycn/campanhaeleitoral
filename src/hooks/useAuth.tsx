@@ -39,8 +39,6 @@ interface AuthContextType {
   refetchProfile: () => Promise<void>;
 }
 
-const MASTER_ADMIN_EMAIL = "nailton.alsampaio@gmail.com";
-
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const useAuth = () => {
@@ -113,38 +111,44 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   }, []);
 
   useEffect(() => {
+    // Setup auth state listener FIRST (sync callback to avoid deadlock)
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (event, session) => {
+      (event, session) => {
         setSession(session);
         const currentUser = session?.user ?? null;
         setUser(currentUser);
 
         if (currentUser) {
-          await Promise.all([
-            fetchProfile(currentUser.id),
-            fetchUserRoles(currentUser.id)
-          ]);
+          // Defer Supabase calls with setTimeout to avoid deadlock
+          setTimeout(() => {
+            Promise.all([
+              fetchProfile(currentUser.id),
+              fetchUserRoles(currentUser.id)
+            ]).finally(() => setLoading(false));
+          }, 0);
         } else {
           setProfile(null);
           setUserRoles([]);
           setSelectedCandidate(null);
+          setLoading(false);
         }
-        setLoading(false);
       }
     );
 
-    supabase.auth.getSession().then(async ({ data: { session } }) => {
+    // THEN check for existing session
+    supabase.auth.getSession().then(({ data: { session } }) => {
       setSession(session);
       const currentUser = session?.user ?? null;
       setUser(currentUser);
 
       if (currentUser) {
-        await Promise.all([
+        Promise.all([
           fetchProfile(currentUser.id),
           fetchUserRoles(currentUser.id)
-        ]);
+        ]).finally(() => setLoading(false));
+      } else {
+        setLoading(false);
       }
-      setLoading(false);
     });
 
     return () => subscription.unsubscribe();
@@ -210,9 +214,12 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     setProfile(prev => prev ? { ...prev, candidate_id: null } : null);
   };
 
-  const isAdmin = userRoles.includes('admin');
-  const isMaster = user?.email === MASTER_ADMIN_EMAIL;
+  // Master é o super usuário que passa direto
+  const isMaster = userRoles.includes('master');
+  // Admin inclui tanto 'admin' quanto 'master' para permissões administrativas
+  const isAdmin = userRoles.includes('admin') || isMaster;
   
+  // Apenas MASTER passa direto; outros precisam selecionar candidato se não tiverem candidate_id
   const needsCandidateSelection = 
     !!user && 
     !loading && 
@@ -227,7 +234,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       profile,
       userRoles,
       loading: loading || profileLoading,
-      isAdmin: isAdmin || isMaster,
+      isAdmin,
       selectedCandidate,
       needsCandidateSelection,
       signUp,

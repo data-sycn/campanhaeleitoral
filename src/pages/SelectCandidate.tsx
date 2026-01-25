@@ -25,7 +25,10 @@ const SelectCandidate = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
 
+  // ProtectedRoute já cuida de redirecionar para /auth se não autenticado
+  // e não redireciona para cá se profile.candidate_id já existe
   useEffect(() => {
+<<<<<<< HEAD
     if (!authLoading && !user) {
       navigate("/auth");
       return;
@@ -38,6 +41,12 @@ const SelectCandidate = () => {
       fetchAvailableCandidates();
     }
   }, [user, authLoading, navigate]);
+=======
+    if (user && !authLoading) {
+      fetchAvailableCandidates();
+    }
+  }, [user, authLoading]);
+>>>>>>> 2717423c34ef21b22f045184ff8cbc437f4848d5
 
   const fetchAvailableCandidates = async () => {
     try {

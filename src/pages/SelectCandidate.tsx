@@ -31,15 +31,13 @@ const SelectCandidate = () => {
       return;
     }
 
-    if (profile?.candidate_id) {
-      navigate("/dashboard");
-      return;
-    }
+    // Removido o redirecionamento automático para permitir que o usuário sempre veja a tela de seleção
+    // se ele for explicitamente para esta rota ou se o sistema o mandar para cá após o login.
 
     if (user) {
       fetchAvailableCandidates();
     }
-  }, [user, profile, authLoading, navigate]);
+  }, [user, authLoading, navigate]);
 
   const fetchAvailableCandidates = async () => {
     try {

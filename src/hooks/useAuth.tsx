@@ -174,6 +174,13 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   };
 
   const signOut = async () => {
+    if (user) {
+      // Limpa o candidato no banco ao sair para forçar nova seleção no próximo login
+      await supabase
+        .from('profiles')
+        .update({ candidate_id: null })
+        .eq('id', user.id);
+    }
     await supabase.auth.signOut();
     setSelectedCandidate(null);
     setProfile(null);

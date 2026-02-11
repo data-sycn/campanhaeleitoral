@@ -446,6 +446,60 @@ export type Database = {
           },
         ]
       }
+      route_assignments: {
+        Row: {
+          assigned_by: string
+          assigned_to: string
+          campanha_id: string
+          created_at: string
+          data_planejada: string
+          id: string
+          notes: string | null
+          status: string
+          street_id: string
+          updated_at: string
+        }
+        Insert: {
+          assigned_by: string
+          assigned_to: string
+          campanha_id: string
+          created_at?: string
+          data_planejada: string
+          id?: string
+          notes?: string | null
+          status?: string
+          street_id: string
+          updated_at?: string
+        }
+        Update: {
+          assigned_by?: string
+          assigned_to?: string
+          campanha_id?: string
+          created_at?: string
+          data_planejada?: string
+          id?: string
+          notes?: string | null
+          status?: string
+          street_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "route_assignments_campanha_id_fkey"
+            columns: ["campanha_id"]
+            isOneToOne: false
+            referencedRelation: "campanhas"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "route_assignments_street_id_fkey"
+            columns: ["street_id"]
+            isOneToOne: false
+            referencedRelation: "streets"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       spatial_ref_sys: {
         Row: {
           auth_name: string | null

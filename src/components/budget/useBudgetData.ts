@@ -62,10 +62,10 @@ export function useBudgetData() {
     setCreating(true);
 
     try {
-      if (!profile?.candidate_id) {
+      if (!campanhaId) {
         toast({
           title: "Erro",
-          description: "Você precisa estar vinculado a um candidato para criar orçamentos",
+          description: "Você precisa estar vinculado a uma campanha para criar orçamentos",
           variant: "destructive"
         });
         return false;
@@ -74,7 +74,7 @@ export function useBudgetData() {
       const { error } = await supabase
         .from('budgets')
         .insert({
-          candidate_id: profile.candidate_id,
+          candidate_id: profile?.candidate_id || undefined,
           campanha_id: campanhaId,
           year: formData.year,
           total_planned: parseFloat(formData.total_planned),

@@ -93,7 +93,7 @@ export type Database = {
         Row: {
           active: boolean
           campanha_id: string | null
-          candidate_id: string
+          candidate_id: string | null
           created_at: string
           id: string
           notes: string | null
@@ -104,7 +104,7 @@ export type Database = {
         Insert: {
           active?: boolean
           campanha_id?: string | null
-          candidate_id: string
+          candidate_id?: string | null
           created_at?: string
           id?: string
           notes?: string | null
@@ -115,7 +115,7 @@ export type Database = {
         Update: {
           active?: boolean
           campanha_id?: string | null
-          candidate_id?: string
+          candidate_id?: string | null
           created_at?: string
           id?: string
           notes?: string | null
@@ -216,7 +216,7 @@ export type Database = {
         Row: {
           amount: number
           campanha_id: string | null
-          candidate_id: string
+          candidate_id: string | null
           category: Database["public"]["Enums"]["expense_category"]
           created_at: string
           created_by: string | null
@@ -230,7 +230,7 @@ export type Database = {
         Insert: {
           amount: number
           campanha_id?: string | null
-          candidate_id: string
+          candidate_id?: string | null
           category: Database["public"]["Enums"]["expense_category"]
           created_at?: string
           created_by?: string | null
@@ -244,7 +244,7 @@ export type Database = {
         Update: {
           amount?: number
           campanha_id?: string | null
-          candidate_id?: string
+          candidate_id?: string | null
           category?: Database["public"]["Enums"]["expense_category"]
           created_at?: string
           created_by?: string | null

@@ -89,13 +89,13 @@ const Expenses = () => {
     setCreating(true);
 
     try {
-      if (!campanhaId || !profile?.candidate_id) {
+      if (!campanhaId) {
         toast({ title: "Erro", description: "Você precisa estar vinculado a uma campanha para registrar despesas", variant: "destructive" });
         return;
       }
 
       const { error } = await supabase.from('expenses').insert({
-        candidate_id: profile.candidate_id,
+        candidate_id: profile?.candidate_id || undefined,
         campanha_id: campanhaId,
         date: form.date,
         category: form.category as Database["public"]["Enums"]["expense_category"],

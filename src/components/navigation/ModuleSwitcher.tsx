@@ -15,7 +15,9 @@ import {
   FileText, 
   ChevronDown,
   Settings,
-  Home
+  Home,
+  MapPin,
+  Package
 } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 
@@ -24,6 +26,8 @@ const modules = [
   { id: "budget", title: "Orçamento", icon: DollarSign, route: "/budget" },
   { id: "expenses", title: "Despesas", icon: Receipt, route: "/expenses" },
   { id: "supporters", title: "Apoiadores", icon: Users, route: "/supporters" },
+  { id: "checkin", title: "Check-in de Rua", icon: MapPin, route: "/checkin" },
+  { id: "resources", title: "Recursos", icon: Package, route: "/resources" },
   { id: "reports", title: "Relatórios", icon: FileText, route: "/reports" },
 ];
 

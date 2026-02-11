@@ -5,7 +5,9 @@ import {
   Receipt, 
   Users, 
   FileText,
-  Settings
+  Settings,
+  MapPin,
+  Package
 } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 
@@ -14,6 +16,8 @@ const navItems = [
   { icon: DollarSign, label: "Orçamento", path: "/budget" },
   { icon: Receipt, label: "Despesas", path: "/expenses" },
   { icon: Users, label: "Apoiadores", path: "/supporters" },
+  { icon: MapPin, label: "Check-in", path: "/checkin" },
+  { icon: Package, label: "Recursos", path: "/resources" },
   { icon: FileText, label: "Relatórios", path: "/reports" },
 ];
 

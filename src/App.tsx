@@ -15,6 +15,8 @@ import Expenses from "./pages/Expenses";
 import Supporters from "./pages/Supporters";
 import Reports from "./pages/Reports";
 import Admin from "./pages/Admin";
+import StreetCheckin from "./pages/StreetCheckin";
+import Resources from "./pages/Resources";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -27,52 +29,19 @@ const App = () => (
         <Sonner />
         <BrowserRouter>
           <Routes>
-            {/* Rota Pública / Dashboard Inteligente */}
             <Route path="/" element={<Index />} />
-            
-            {/* Rota de Autenticação */}
             <Route path="/auth" element={<Auth />} />
-            
-            {/* Rota de Seleção de Candidato - Protegida mas sem verificar candidato */}
             <Route path="/select-candidate" element={
-              <ProtectedRoute skipCandidateCheck>
-                <SelectCandidate />
-              </ProtectedRoute>
+              <ProtectedRoute skipCandidateCheck><SelectCandidate /></ProtectedRoute>
             } />
-            
-            {/* Rotas Protegidas */}
-            <Route path="/dashboard" element={
-              <ProtectedRoute>
-                <Dashboard />
-              </ProtectedRoute>
-            } />
-            <Route path="/budget" element={
-              <ProtectedRoute>
-                <Budget />
-              </ProtectedRoute>
-            } />
-            <Route path="/expenses" element={
-              <ProtectedRoute>
-                <Expenses />
-              </ProtectedRoute>
-            } />
-            <Route path="/supporters" element={
-              <ProtectedRoute>
-                <Supporters />
-              </ProtectedRoute>
-            } />
-            <Route path="/reports" element={
-              <ProtectedRoute>
-                <Reports />
-              </ProtectedRoute>
-            } />
-            <Route path="/admin" element={
-              <ProtectedRoute>
-                <Admin />
-              </ProtectedRoute>
-            } />
-
-            {/* Catch-all */}
+            <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
+            <Route path="/budget" element={<ProtectedRoute><Budget /></ProtectedRoute>} />
+            <Route path="/expenses" element={<ProtectedRoute><Expenses /></ProtectedRoute>} />
+            <Route path="/supporters" element={<ProtectedRoute><Supporters /></ProtectedRoute>} />
+            <Route path="/reports" element={<ProtectedRoute><Reports /></ProtectedRoute>} />
+            <Route path="/admin" element={<ProtectedRoute><Admin /></ProtectedRoute>} />
+            <Route path="/checkin" element={<ProtectedRoute><StreetCheckin /></ProtectedRoute>} />
+            <Route path="/resources" element={<ProtectedRoute><Resources /></ProtectedRoute>} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </BrowserRouter>

@@ -272,6 +272,53 @@ export type Database = {
           },
         ]
       }
+      material_inventory: {
+        Row: {
+          campanha_id: string
+          cidade: string
+          created_at: string
+          created_by: string | null
+          descricao: string | null
+          id: string
+          quantidade_enviada: number
+          quantidade_reportada: number
+          tipo: string
+          updated_at: string
+        }
+        Insert: {
+          campanha_id: string
+          cidade: string
+          created_at?: string
+          created_by?: string | null
+          descricao?: string | null
+          id?: string
+          quantidade_enviada?: number
+          quantidade_reportada?: number
+          tipo: string
+          updated_at?: string
+        }
+        Update: {
+          campanha_id?: string
+          cidade?: string
+          created_at?: string
+          created_by?: string | null
+          descricao?: string | null
+          id?: string
+          quantidade_enviada?: number
+          quantidade_reportada?: number
+          tipo?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "material_inventory_campanha_id_fkey"
+            columns: ["campanha_id"]
+            isOneToOne: false
+            referencedRelation: "campanhas"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
           campanha_id: string | null

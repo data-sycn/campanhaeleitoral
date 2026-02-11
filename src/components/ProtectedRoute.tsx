@@ -3,11 +3,10 @@ import { useAuth } from "@/hooks/useAuth";
 
 interface ProtectedRouteProps {
   children: React.ReactNode;
-  skipCandidateCheck?: boolean;
 }
 
-export const ProtectedRoute = ({ children, skipCandidateCheck = false }: ProtectedRouteProps) => {
-  const { user, loading, needsCandidateSelection } = useAuth();
+export const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
+  const { user, loading } = useAuth();
   const location = useLocation();
 
   if (loading) {
@@ -23,12 +22,6 @@ export const ProtectedRoute = ({ children, skipCandidateCheck = false }: Protect
 
   if (!user) {
     return <Navigate to="/auth" state={{ from: location }} replace />;
-  }
-
-  // Se o usuário precisa selecionar um candidato e não estamos em uma rota que pula essa checagem
-  if (needsCandidateSelection && !skipCandidateCheck) {
-    console.log("ProtectedRoute: Redirecionando para seleção de candidato");
-    return <Navigate to="/select-candidate" state={{ from: location }} replace />;
   }
 
   return <>{children}</>;

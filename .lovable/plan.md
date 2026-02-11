@@ -2,27 +2,27 @@
 
 # Fase 1.2 + 2.1 — Hierarquia de Liderancas + Inventario de Materiais
 
-Vamos implementar os proximos dois itens do plano em sequencia.
-
 ---
 
 ## 1. Hierarquia de Liderancas (UI)
 
-O campo `parent_id` ja existe na tabela `profiles`. Falta apenas a interface.
+O campo `parent_id` ja existe na tabela `profiles`. Nao ha mudancas no banco.
 
 ### O que sera feito
 
-- Criar componente `src/components/admin/AdminHierarchy.tsx`
-  - Lista todos os perfis da campanha com seus papeis
-  - Mostra arvore visual: Lider > membros da equipe
-  - Permite definir `parent_id` de um usuario (quem ele responde)
-  - Dropdown para selecionar o lider de cada membro
-- Editar `src/pages/Admin.tsx`
-  - Adicionar quinta aba "Hierarquia" com icone `GitBranch`
-  - Atualizar grid de 4 para 5 colunas
+- **Criar** `src/components/admin/AdminHierarchy.tsx`
+  - Busca todos os perfis da campanha atual (via profiles + user_roles)
+  - Exibe arvore visual agrupada: Lider no topo, membros abaixo (usando Collapsible)
+  - Dropdown (Select) em cada membro para definir/alterar o `parent_id`
+  - Atualiza `profiles.parent_id` via Supabase ao selecionar lider
 
-### Sem mudancas no banco
-A tabela `profiles` ja possui `parent_id` e a RLS permite admins verem todos os perfis e usuarios atualizarem o proprio perfil. Admins poderao atualizar via funcao ou ajuste de RLS se necessario.
+- **Editar** `src/pages/Admin.tsx`
+  - Importar AdminHierarchy e icone GitBranch
+  - Adicionar quinta aba "Hierarquia"
+  - Alterar grid de `grid-cols-4` para `grid-cols-5`
+
+- **Editar** `src/components/admin/index.ts`
+  - Exportar AdminHierarchy
 
 ---
 
@@ -30,47 +30,47 @@ A tabela `profiles` ja possui `parent_id` e a RLS permite admins verem todos os 
 
 ### Banco de dados (nova tabela)
 
-Criar tabela `material_inventory` com:
-- `id` (UUID, PK)
-- `campanha_id` (UUID, not null)
-- `tipo` (TEXT — santinhos, adesivos, bandeiras, etc.)
-- `descricao` (TEXT)
-- `cidade` (TEXT)
-- `quantidade_enviada` (INTEGER, default 0)
-- `quantidade_reportada` (INTEGER, default 0)
-- `created_by` (UUID)
-- `created_at`, `updated_at` (TIMESTAMPTZ)
+Criar migration com tabela `material_inventory`:
 
-RLS: mesmo padrao — master acessa tudo, usuarios acessam pela campanha.
+| Coluna | Tipo | Detalhes |
+|---|---|---|
+| id | UUID | PK, gen_random_uuid() |
+| campanha_id | UUID | NOT NULL |
+| tipo | TEXT | NOT NULL (santinhos, adesivos, bandeiras, etc.) |
+| descricao | TEXT | |
+| cidade | TEXT | NOT NULL |
+| quantidade_enviada | INTEGER | DEFAULT 0 |
+| quantidade_reportada | INTEGER | DEFAULT 0 |
+| created_by | UUID | |
+| created_at | TIMESTAMPTZ | DEFAULT now() |
+| updated_at | TIMESTAMPTZ | DEFAULT now() |
+
+RLS: master acessa tudo, demais usuarios filtram por campanha_id (mesmo padrao das demais tabelas).
 
 ### Interface
 
-- Editar `src/pages/Resources.tsx` para adicionar sistema de abas:
-  - Aba "Solicitacoes" (conteudo atual)
-  - Aba "Inventario" (novo)
-- Criar `src/components/resources/MaterialInventory.tsx`
-  - Formulario para registrar envio de materiais por cidade
-  - Lista de materiais com indicador visual: enviado vs. reportado
-  - Barra de progresso mostrando uso percentual
-  - Equipe de campo pode atualizar `quantidade_reportada`
+- **Editar** `src/pages/Resources.tsx`
+  - Envolver o conteudo atual em Tabs com duas abas: "Solicitacoes" (atual) e "Inventario" (novo)
+  - O botao "Nova Solicitacao" fica visivel apenas na aba Solicitacoes
+
+- **Criar** `src/components/resources/MaterialInventory.tsx`
+  - Formulario para registrar envio de material (tipo, descricao, cidade, quantidade_enviada)
+  - Lista de materiais com barra de progresso (Progress) mostrando quantidade_reportada / quantidade_enviada
+  - Botao para equipe de campo atualizar `quantidade_reportada`
+  - Tipos pre-definidos: Santinhos, Adesivos, Bandeiras, Camisetas, Outros
 
 ---
 
-## Detalhes Tecnicos
+## Resumo de Arquivos
 
-### Arquivos a criar
-| Arquivo | Descricao |
+| Arquivo | Acao |
 |---|---|
-| Migration SQL | Tabela `material_inventory` + RLS |
-| `src/components/admin/AdminHierarchy.tsx` | Arvore de hierarquia |
-| `src/components/resources/MaterialInventory.tsx` | Inventario de materiais |
-
-### Arquivos a editar
-| Arquivo | Mudanca |
-|---|---|
-| `src/pages/Admin.tsx` | Adicionar aba Hierarquia (5 abas) |
-| `src/components/admin/index.ts` | Exportar AdminHierarchy |
-| `src/pages/Resources.tsx` | Adicionar Tabs com Solicitacoes + Inventario |
+| Migration SQL | Criar tabela `material_inventory` + RLS |
+| `src/components/admin/AdminHierarchy.tsx` | Criar |
+| `src/components/admin/index.ts` | Editar (exportar) |
+| `src/pages/Admin.tsx` | Editar (5a aba) |
+| `src/components/resources/MaterialInventory.tsx` | Criar |
+| `src/pages/Resources.tsx` | Editar (adicionar Tabs) |
 
 ### Ordem de execucao
 1. Migration para `material_inventory`

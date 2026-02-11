@@ -1,88 +1,96 @@
-import { BarChart3, DollarSign, Receipt, Users, FileText, Settings } from "lucide-react";
-import { DashboardModuleCard } from "./DashboardModuleCard";
+import { useNavigate } from "react-router-dom";
+import { BarChart3, DollarSign, Users, FileText, Settings, MapPin, Package } from "lucide-react";
+import { Card, CardContent } from "@/components/ui/card";
 import { useDashboardData } from "./useDashboardData";
 import { useAuth } from "@/hooks/useAuth";
+import { cn } from "@/lib/utils";
 
 export function DashboardModuleGrid() {
   const { stats, loading } = useDashboardData();
   const { profile, isAdmin } = useAuth();
+  const navigate = useNavigate();
   const hasCandidate = !!profile?.candidate_id;
 
-  const formatCurrency = (value: number) => {
-    return value.toLocaleString("pt-BR", {
-      style: "currency",
-      currency: "BRL",
-      minimumFractionDigits: 0,
-      maximumFractionDigits: 0,
-    });
-  };
+  const formatCurrency = (value: number) =>
+    value.toLocaleString("pt-BR", { style: "currency", currency: "BRL", minimumFractionDigits: 0, maximumFractionDigits: 0 });
 
   const modules = [
     {
-      id: "dashboard",
-      title: "Dashboard",
-      description: "Visão geral da campanha com KPIs, atividades recentes e métricas de desempenho",
-      icon: BarChart3,
-      route: "/dashboard",
-      color: "blue" as const,
-      stats: "4 KPIs ativos",
-    },
-    {
-      id: "budget",
-      title: "Orçamento",
-      description: "Crie e gerencie os orçamentos da campanha, alocações e planejamento financeiro",
+      id: "financeiro",
+      title: "Financeiro",
       icon: DollarSign,
       route: "/budget",
-      color: "green" as const,
-      stats: loading ? "Carregando..." : hasCandidate ? `${formatCurrency(stats.totalBudget)} planejado` : "Configure seu candidato",
-    },
-    {
-      id: "expenses",
-      title: "Despesas",
-      description: "Controle de gastos, categorização e acompanhamento de todas as despesas",
-      icon: Receipt,
-      route: "/expenses",
-      color: "red" as const,
-      stats: loading ? "Carregando..." : hasCandidate ? `${stats.expensesCount} despesas registradas` : "Configure seu candidato",
+      stat: loading ? "..." : hasCandidate ? formatCurrency(stats.totalBudget) : "Configurar",
+      gradient: "from-green-500 to-emerald-600",
     },
     {
       id: "supporters",
       title: "Apoiadores",
-      description: "Gestão de equipe, convites e acompanhamento dos membros da campanha",
       icon: Users,
       route: "/supporters",
-      color: "purple" as const,
-      stats: loading ? "Carregando..." : hasCandidate ? `${stats.supportersCount} apoiadores` : "Configure seu candidato",
+      stat: loading ? "..." : hasCandidate ? `${stats.supportersCount}` : "Configurar",
+      gradient: "from-purple-500 to-violet-600",
+    },
+    {
+      id: "checkin",
+      title: "Check-in",
+      icon: MapPin,
+      route: "/checkin",
+      stat: "Ações de rua",
+      gradient: "from-blue-500 to-cyan-600",
+    },
+    {
+      id: "resources",
+      title: "Recursos",
+      icon: Package,
+      route: "/resources",
+      stat: "Solicitações",
+      gradient: "from-amber-500 to-orange-600",
     },
     {
       id: "reports",
       title: "Relatórios",
-      description: "Documentos, análises e relatórios para prestação de contas eleitorais",
       icon: FileText,
       route: "/reports",
-      color: "orange" as const,
-      stats: `${stats.reportsCount} relatórios disponíveis`,
+      stat: `${stats.reportsCount} disponíveis`,
+      gradient: "from-orange-500 to-red-500",
     },
   ];
 
-  // Adiciona o módulo admin se o usuário for administrador (incluindo master)
   if (isAdmin) {
     modules.push({
       id: "admin",
-      title: "Administrador",
-      description: "Gerencie usuários, permissões, candidatos e configurações globais do sistema",
+      title: "Admin",
       icon: Settings,
       route: "/admin",
-      color: "blue" as const,
-      stats: "Gestão Global",
+      stat: "Gestão",
+      gradient: "from-slate-500 to-slate-700",
     });
   }
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-      {modules.map((module) => (
-        <DashboardModuleCard key={module.id} {...module} />
-      ))}
+    <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 mb-8">
+      {modules.map((mod) => {
+        const Icon = mod.icon;
+        return (
+          <Card
+            key={mod.id}
+            onClick={() => navigate(mod.route)}
+            className={cn(
+              "cursor-pointer transition-all hover:shadow-lg hover:scale-[1.02]",
+              "border border-border/50 hover:border-primary/30"
+            )}
+          >
+            <CardContent className="p-4 flex flex-col items-center text-center gap-2">
+              <div className={cn("w-10 h-10 rounded-xl flex items-center justify-center bg-gradient-to-br", mod.gradient)}>
+                <Icon className="w-5 h-5 text-white" />
+              </div>
+              <span className="font-semibold text-sm">{mod.title}</span>
+              <span className="text-xs text-muted-foreground">{mod.stat}</span>
+            </CardContent>
+          </Card>
+        );
+      })}
     </div>
   );
 }

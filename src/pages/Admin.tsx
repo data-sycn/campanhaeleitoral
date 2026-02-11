@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Navigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
-import { ModuleSwitcher } from "@/components/navigation/ModuleSwitcher";
+
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Users, Shield, Building2, Link2 } from "lucide-react";
 import { AdminUsers } from "@/components/admin/AdminUsers";
@@ -30,10 +30,6 @@ const Admin = () => {
 
   return (
     <div className="container mx-auto px-4 py-8">
-      <div className="mb-6">
-        <ModuleSwitcher />
-      </div>
-
       <div className="mb-6">
         <h1 className="text-3xl font-bold">Administrador</h1>
         <p className="text-muted-foreground">Gerencie usuários, permissões e candidatos</p>

@@ -9,7 +9,7 @@ import { useToast } from "@/hooks/use-toast";
 import { Users, UserPlus, Phone, Mail, MapPin } from "lucide-react";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
-import { ModuleSwitcher } from "@/components/navigation/ModuleSwitcher";
+
 import { Navbar } from "@/components/Navbar";
 
 interface Supporter {
@@ -113,10 +113,6 @@ const Supporters = () => {
     <div className="min-h-screen bg-background">
       <Navbar />
       <div className="container mx-auto px-4 py-8">
-        <div className="mb-6">
-          <ModuleSwitcher />
-        </div>
-
         <div className="flex items-center justify-between mb-8">
           <div>
             <h1 className="text-3xl font-bold">Apoiadores</h1>

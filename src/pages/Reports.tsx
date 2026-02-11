@@ -6,7 +6,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { FileText, Download, BarChart3, PieChart, TrendingUp } from "lucide-react";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart as RechartsPieChart, Cell } from 'recharts';
-import { ModuleSwitcher } from "@/components/navigation/ModuleSwitcher";
+
 import { Navbar } from "@/components/Navbar";
 
 interface ExpenseData {
@@ -145,10 +145,6 @@ const Reports = () => {
     <div className="min-h-screen bg-background">
       <Navbar />
       <div className="container mx-auto px-4 py-8">
-        <div className="mb-6">
-          <ModuleSwitcher />
-        </div>
-
       <div className="flex items-center justify-between mb-8">
         <div>
           <h1 className="text-3xl font-bold">Relatórios</h1>

@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
-import { ModuleSwitcher } from "@/components/navigation/ModuleSwitcher";
+
 import { MapPin, Users, MessageSquare, ArrowLeft, TrendingUp } from "lucide-react";
 
 interface DossieData {
@@ -134,8 +134,6 @@ const DossieVisita = () => {
     <div className="min-h-screen bg-background">
       <Navbar />
       <div className="container mx-auto px-4 py-8">
-        <div className="mb-6"><ModuleSwitcher /></div>
-
         <div className="flex items-center gap-4 mb-8">
           <Button variant="ghost" size="icon" onClick={() => navigate(-1)}>
             <ArrowLeft className="w-5 h-5" />

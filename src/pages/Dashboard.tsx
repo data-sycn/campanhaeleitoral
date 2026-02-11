@@ -8,7 +8,7 @@ import { DollarSign, Users, FileText, BarChart3, PieChart, Shield, TrendingUp, A
 import { useAuth } from "@/hooks/useAuth";
 import { useDashboardData } from "@/components/dashboard/useDashboardData";
 import { useRecurrenceAlerts, useEffectivenessRanking } from "@/components/dashboard/useDashboardAlerts";
-import { ModuleSwitcher } from "@/components/navigation/ModuleSwitcher";
+import { DashboardModuleGrid } from "@/components/dashboard/DashboardModuleGrid";
 import { CampaignSelector } from "@/components/dashboard/CampaignSelector";
 import { BudgetExecutionChart } from "@/components/dashboard/BudgetExecutionChart";
 import { SupportersHeatmap } from "@/components/dashboard/SupportersHeatmap";
@@ -73,8 +73,6 @@ const Dashboard = () => {
     <div className="min-h-screen bg-background">
       <Navbar />
       <div className="container mx-auto px-4 py-8">
-        <div className="mb-6"><ModuleSwitcher /></div>
-
         <div className="mb-8 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div>
             <h1 className="text-3xl font-bold">Dossiê de Bolso</h1>
@@ -82,6 +80,8 @@ const Dashboard = () => {
           </div>
           {isMaster && <CampaignSelector value={campanhaId} onChange={setCampanhaId} />}
         </div>
+
+        <DashboardModuleGrid />
 
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
           <TabsList>

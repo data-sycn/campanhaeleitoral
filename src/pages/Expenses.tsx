@@ -10,7 +10,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { PlusCircle, Receipt, Calendar } from "lucide-react";
 import { Database } from "@/integrations/supabase/types";
-import { ModuleSwitcher } from "@/components/navigation/ModuleSwitcher";
+
 import { Navbar } from "@/components/Navbar";
 
 interface Expense {
@@ -140,8 +140,6 @@ const Expenses = () => {
     <div className="min-h-screen bg-background">
       <Navbar />
       <div className="container mx-auto px-4 py-8">
-        <div className="mb-6"><ModuleSwitcher /></div>
-
       <div className="flex items-center justify-between mb-8">
         <div>
           <h1 className="text-3xl font-bold">Despesas</h1>

@@ -80,6 +80,13 @@ export type Database = {
             referencedRelation: "budgets"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "budget_allocations_budget_id_fkey"
+            columns: ["budget_id"]
+            isOneToOne: false
+            referencedRelation: "v_execucao_orcamentaria"
+            referencedColumns: ["budget_id"]
+          },
         ]
       }
       budgets: {
@@ -622,6 +629,34 @@ export type Database = {
           nome: string | null
         }
         Relationships: []
+      }
+      v_execucao_orcamentaria: {
+        Row: {
+          budget_id: string | null
+          campanha_id: string | null
+          candidate_id: string | null
+          percentual_executado: number | null
+          saldo: number | null
+          total_planned: number | null
+          total_spent: number | null
+          year: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "budgets_campanha_id_fkey"
+            columns: ["campanha_id"]
+            isOneToOne: false
+            referencedRelation: "campanhas"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "budgets_candidate_id_fkey"
+            columns: ["candidate_id"]
+            isOneToOne: false
+            referencedRelation: "candidates"
+            referencedColumns: ["id"]
+          },
+        ]
       }
     }
     Functions: {

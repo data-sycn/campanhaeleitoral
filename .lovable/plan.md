@@ -1,84 +1,52 @@
 
 
-# Plano: Completar Migração campanha_id nos Módulos Pendentes
+# Correcao Final: Remover dependencia de candidate_id nos inserts
 
-## Resumo
+## Problema
 
-Tres modulos ainda usam o modelo antigo de `candidate_id` e precisam ser migrados para filtrar por `campanha_id`: **Supporters**, **Budget (useBudgetData)** e **Reports**. Alem disso, o modulo **Expenses** precisa de ajuste no insert. Quatro paginas estao sem o componente `<Navbar />`.
+Os modulos **Expenses** e **Budget** ainda exigem `profile.candidate_id` para criar registros. Usuarios que possuem apenas `campanha_id` (modelo novo) ficam bloqueados ao tentar registrar despesas ou criar orcamentos.
 
----
+## Mudancas
 
-## 1. Migrar Supporters.tsx
+### 1. Expenses.tsx (src/pages/Expenses.tsx)
 
-**Problema**: Busca apoiadores via `profiles.candidate_id` (modelo antigo). Deveria consultar a tabela `supporters` filtrada por `campanha_id`.
+- **Linha 92**: Remover `!profile?.candidate_id` da validacao. Manter apenas `if (!campanhaId)`.
+- **Linha 98**: Tornar `candidate_id` opcional. Se `profile.candidate_id` existir, envia-lo; caso contrario, usar um valor placeholder ou omitir (depende se a coluna e NOT NULL no banco).
 
-**Solucao**:
-- Importar `campanhaId` do `useAuth()`
-- Substituir a query de `profiles` pela tabela `supporters` com filtro `.eq("campanha_id", campanhaId)`
-- Atualizar a interface para refletir os campos da tabela `supporters` (nome, telefone, email, bairro, cidade, geolocation)
-- Adicionar `<Navbar />` no topo da pagina
+Como a coluna `candidate_id` na tabela `expenses` e `NOT NULL`, sera necessario uma de duas abordagens:
+  - **Opcao A (recomendada)**: Criar uma migration que torne `candidate_id` nullable em `expenses` e `budgets`
+  - **Opcao B (paliativa)**: Usar um UUID fixo como fallback temporario
 
----
+Recomendo a **Opcao A** com uma migration SQL:
 
-## 2. Migrar useBudgetData.ts
+```sql
+ALTER TABLE expenses ALTER COLUMN candidate_id DROP NOT NULL;
+ALTER TABLE budgets ALTER COLUMN candidate_id DROP NOT NULL;
+```
 
-**Problema**: Nao filtra por `campanha_id` na leitura; usa `candidate_id` no insert.
+### 2. useBudgetData.ts (src/components/budget/useBudgetData.ts)
 
-**Solucao**:
-- Receber `campanhaId` como parametro ou obte-lo via `useAuth()`
-- Adicionar `.eq("campanha_id", campanhaId)` na query de leitura
-- No `createBudget`, usar `campanha_id` no insert ao inves de buscar `candidate_id` do profile
-- Adicionar `<Navbar />` na pagina Budget.tsx
+- **Linha 65**: Remover `if (!profile?.candidate_id)`. Validar apenas `if (!campanhaId)`.
+- **Linha 77**: Tornar `candidate_id` opcional no insert, usando `profile?.candidate_id || null`.
 
----
+### 3. Migration SQL
 
-## 3. Migrar Reports.tsx
+Uma nova migration para tornar `candidate_id` nullable nas tabelas que ja migraram para `campanha_id`:
 
-**Problema**: Queries de `expenses` e `budgets` nao filtram por `campanha_id`.
-
-**Solucao**:
-- Importar `campanhaId` do `useAuth()`
-- Adicionar `.eq("campanha_id", campanhaId)` nas queries de expenses e budgets
-- Adicionar `<Navbar />` no topo da pagina
-
----
-
-## 4. Corrigir Insert do Expenses.tsx
-
-**Problema**: O insert ainda busca `candidate_id` do profile (linha 91). Deveria usar apenas `campanha_id`.
-
-**Solucao**:
-- Remover a dependencia de `profile.candidate_id` para validacao
-- Manter `candidate_id` no insert se a coluna ainda for obrigatoria no banco, mas usar `campanhaId` como filtro principal
-- Adicionar `<Navbar />` no topo da pagina
-
----
-
-## 5. Adicionar Navbar nas Paginas
-
-As seguintes paginas nao possuem o componente `<Navbar />`:
-- `Supporters.tsx` (linha 148 - falta wrapper)
-- `Expenses.tsx` (linha 136 - falta Navbar)
-- `Budget.tsx` (linha 47 - falta Navbar)
-- `Reports.tsx` (linha 142 - falta Navbar)
-
-Todas receberao o wrapper `<div className="min-h-screen bg-background"><Navbar />...</div>`.
-
----
+```sql
+ALTER TABLE expenses ALTER COLUMN candidate_id DROP NOT NULL;
+ALTER TABLE budgets ALTER COLUMN candidate_id DROP NOT NULL;
+```
 
 ## Arquivos a Modificar
 
 | Arquivo | Mudanca |
 |---------|---------|
-| `src/pages/Supporters.tsx` | Migrar para `supporters` table + `campanha_id` + Navbar |
-| `src/components/budget/useBudgetData.ts` | Adicionar filtro `campanha_id` |
-| `src/pages/Budget.tsx` | Adicionar Navbar |
-| `src/pages/Reports.tsx` | Adicionar filtro `campanha_id` + Navbar |
-| `src/pages/Expenses.tsx` | Corrigir insert + Navbar |
+| `src/pages/Expenses.tsx` | Remover validacao de candidate_id no insert |
+| `src/components/budget/useBudgetData.ts` | Remover validacao de candidate_id no insert |
+| Nova migration SQL | Tornar candidate_id nullable em expenses e budgets |
 
----
+## Resultado
 
-## Resultado Esperado
-
-Apos essa implementacao, **100% dos modulos** estarao filtrando por `campanha_id`, completando a migracao para o modelo Multi-Candidato (SaaS). Todas as paginas terao navegacao consistente com Navbar.
+Apos essa correcao, todos os modulos estarao 100% funcionais usando apenas `campanha_id`, sem dependencia residual de `candidate_id`.
 

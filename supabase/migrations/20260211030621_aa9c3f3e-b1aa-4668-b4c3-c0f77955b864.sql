@@ -1,0 +1,2 @@
+ALTER TABLE expenses ALTER COLUMN candidate_id DROP NOT NULL;
+ALTER TABLE budgets ALTER COLUMN candidate_id DROP NOT NULL;

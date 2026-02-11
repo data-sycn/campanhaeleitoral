@@ -6,6 +6,7 @@ import {
   BudgetForm,
   BudgetList,
   BudgetAllocations,
+  BudgetExpenses,
   BudgetLoadingSkeleton,
   NewAllocationDialog,
   useBudgetData,
@@ -92,6 +93,10 @@ const Budget = () => {
             isSaving={savingAllocation}
           />
         </>
+      )}
+
+      {activeModule === "expenses" && (
+        <BudgetExpenses />
       )}
     </div>
     </div>

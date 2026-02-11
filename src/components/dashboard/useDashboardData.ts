@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { Json } from "@/integrations/supabase/types";
@@ -55,7 +55,6 @@ export function useDashboardData(overrideCampanhaId?: string | null) {
   const { profile, userRoles, campanhaId: profileCampanhaId } = useAuth();
   const isMaster = userRoles.includes("master");
 
-  // Primary filter: override (for master selector) > profile campanha_id
   const campanhaId = isMaster && overrideCampanhaId ? overrideCampanhaId : profileCampanhaId;
 
   const [stats, setStats] = useState<DashboardStats>({
@@ -69,122 +68,106 @@ export function useDashboardData(overrideCampanhaId?: string | null) {
   const [activeCheckins, setActiveCheckins] = useState<ActiveCheckin[]>([]);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    if (isMaster || campanhaId) {
-      fetchAll();
-    } else if (profile !== undefined) {
-      setLoading(false);
-    }
-  }, [profile, campanhaId, overrideCampanhaId, isMaster]);
+  const fetchStats = useCallback(async (cid: string) => {
+    const [budgetsRes, expensesRes, supportersRes, reportsRes] = await Promise.all([
+      supabase.from("budgets").select("total_planned").eq("campanha_id", cid),
+      supabase.from("expenses").select("amount").eq("campanha_id", cid),
+      supabase.from("supporters").select("id").eq("campanha_id", cid),
+      supabase.from("reports").select("id").eq("campanha_id", cid),
+    ]);
 
-  const fetchAll = async () => {
+    const totalBudget = budgetsRes.data?.reduce((s, b) => s + Number(b.total_planned), 0) || 0;
+    const totalExpenses = expensesRes.data?.reduce((s, e) => s + Number(e.amount), 0) || 0;
+
+    setStats({
+      totalBudget,
+      budgetCount: budgetsRes.data?.length || 0,
+      totalExpenses,
+      expensesCount: expensesRes.data?.length || 0,
+      supportersCount: supportersRes.data?.length || 0,
+      reportsCount: reportsRes.data?.length || 0,
+    });
+  }, []);
+
+  const fetchExecution = useCallback(async (cid: string) => {
+    const { data } = await supabase
+      .from("v_execucao_orcamentaria")
+      .select("*")
+      .eq("campanha_id", cid);
+    setBudgetExecution((data as any) || []);
+  }, []);
+
+  const fetchSupporters = useCallback(async (cid: string) => {
+    const { data } = await supabase
+      .from("supporters")
+      .select("latitude, longitude, nome, bairro, cidade")
+      .eq("campanha_id", cid);
+    
+    if (data) {
+      setSupporterPoints(data as SupporterPoint[]);
+      const map = new Map<string, HeatmapEntry>();
+      data.forEach((s) => {
+        const key = `${s.cidade || ""}|${s.bairro || ""}`;
+        const existing = map.get(key);
+        if (existing) existing.total++;
+        else map.set(key, { cidade: s.cidade, bairro: s.bairro, total: 1 });
+      });
+      setHeatmapData(Array.from(map.values()).sort((a, b) => b.total - a.total));
+    }
+  }, []);
+
+  const fetchAudit = useCallback(async () => {
+    const { data } = await supabase
+      .from("audit_log")
+      .select("*")
+      .order("created_at", { ascending: false })
+      .limit(50);
+    setAuditData((data as AuditEntry[]) || []);
+  }, []);
+
+  const fetchActiveCheckins = useCallback(async (cid: string) => {
+    const { data } = await supabase
+      .from("street_checkins")
+      .select("streets(cidade, bairro)")
+      .eq("status", "active")
+      .eq("campanha_id", cid);
+
+    if (data) {
+      const map = new Map<string, ActiveCheckin>();
+      data.forEach((row: any) => {
+        const street = row.streets;
+        if (!street) return;
+        const key = `${street.cidade || ""}|${street.bairro || ""}`;
+        const existing = map.get(key);
+        if (existing) existing.count++;
+        else map.set(key, { cidade: street.cidade, bairro: street.bairro, count: 1 });
+      });
+      setActiveCheckins(Array.from(map.values()).sort((a, b) => b.count - a.count));
+    }
+  }, []);
+
+  const fetchAll = useCallback(async () => {
+    if (!campanhaId) {
+      if (profile !== undefined) setLoading(false);
+      return;
+    }
     setLoading(true);
     try {
       await Promise.all([
-        fetchStats(),
-        fetchBudgetExecution(),
-        fetchSupporters(),
+        fetchStats(campanhaId),
+        fetchExecution(campanhaId),
+        fetchSupporters(campanhaId),
         fetchAudit(),
-        fetchActiveCheckins(),
+        fetchActiveCheckins(campanhaId),
       ]);
     } finally {
       setLoading(false);
     }
-  };
+  }, [campanhaId, profile, fetchStats, fetchExecution, fetchSupporters, fetchAudit, fetchActiveCheckins]);
 
-  const addCampanhaFilter = (query: any) => {
-    if (campanhaId) return query.eq("campanha_id", campanhaId);
-    return query;
-  };
-
-  const fetchStats = async () => {
-    let budgetQuery = supabase.from("budgets").select("total_planned");
-    budgetQuery = addCampanhaFilter(budgetQuery);
-    const { data: budgets } = await budgetQuery;
-    const totalBudget = budgets?.reduce((s: number, b: any) => s + Number(b.total_planned), 0) || 0;
-
-    let expenseQuery = supabase.from("expenses").select("amount");
-    expenseQuery = addCampanhaFilter(expenseQuery);
-    const { data: expenses } = await expenseQuery;
-    const totalExpenses = expenses?.reduce((s: number, e: any) => s + Number(e.amount), 0) || 0;
-
-    let supporterQuery = supabase.from("supporters").select("id");
-    supporterQuery = addCampanhaFilter(supporterQuery);
-    const { data: supporters } = await supporterQuery;
-
-    let reportQuery = supabase.from("reports").select("id");
-    reportQuery = addCampanhaFilter(reportQuery);
-    const { data: reports } = await reportQuery;
-
-    setStats({
-      totalBudget, budgetCount: budgets?.length || 0,
-      totalExpenses, expensesCount: expenses?.length || 0,
-      supportersCount: supporters?.length || 0,
-      reportsCount: reports?.length || 0,
-    });
-  };
-
-  const fetchBudgetExecution = async () => {
-    let query = supabase.from("v_execucao_orcamentaria" as any).select("*") as any;
-    if (campanhaId) query = query.eq("campanha_id", campanhaId);
-    const { data } = await query;
-    setBudgetExecution((data as unknown as BudgetExecution[] | null) || []);
-  };
-
-  const fetchSupporters = async () => {
-    let query = supabase.from("supporters").select("latitude, longitude, nome, bairro, cidade");
-    query = addCampanhaFilter(query);
-    const { data } = await query;
-    if (!data) {
-      setSupporterPoints([]);
-      setHeatmapData([]);
-      return;
-    }
-
-    setSupporterPoints(data);
-
-    // Build heatmap from city/bairro grouping
-    const map = new Map<string, HeatmapEntry>();
-    for (const s of data) {
-      const key = `${s.cidade || ""}|${s.bairro || ""}`;
-      const existing = map.get(key);
-      if (existing) existing.total++;
-      else map.set(key, { cidade: s.cidade, bairro: s.bairro, total: 1 });
-    }
-    setHeatmapData(Array.from(map.values()).sort((a, b) => b.total - a.total));
-  };
-
-  const fetchAudit = async () => {
-    const query = supabase.from("audit_log").select("*").order("created_at", { ascending: false }).limit(50);
-    const { data } = await query;
-    setAuditData((data as AuditEntry[] | null) || []);
-  };
-
-  const fetchActiveCheckins = async () => {
-    let query = supabase
-      .from("street_checkins" as any)
-      .select("streets(cidade, bairro)")
-      .eq("status", "active") as any;
-    if (campanhaId) query = query.eq("campanha_id", campanhaId);
-    const { data } = await query;
-
-    if (!data || data.length === 0) {
-      setActiveCheckins([]);
-      return;
-    }
-
-    // Group by cidade/bairro
-    const map = new Map<string, ActiveCheckin>();
-    for (const row of data as any[]) {
-      const street = row.streets;
-      if (!street) continue;
-      const key = `${street.cidade || ""}|${street.bairro || ""}`;
-      const existing = map.get(key);
-      if (existing) existing.count++;
-      else map.set(key, { cidade: street.cidade, bairro: street.bairro, count: 1 });
-    }
-    setActiveCheckins(Array.from(map.values()).sort((a, b) => b.count - a.count));
-  };
+  useEffect(() => {
+    fetchAll();
+  }, [fetchAll]);
 
   return {
     stats,

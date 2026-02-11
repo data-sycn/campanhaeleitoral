@@ -10,7 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import { MapPin, Play, Square, AlertTriangle, Plus, Search } from "lucide-react";
+import { MapPin, Play, Square, Plus, Search, Loader2 } from "lucide-react";
 import { ModuleSwitcher } from "@/components/navigation/ModuleSwitcher";
 
 interface Street {
@@ -49,8 +49,8 @@ const StreetCheckin = () => {
     if (!user || !campanhaId) { setLoading(false); return; }
     try {
       const [streetsRes, checkinsRes] = await Promise.all([
-        supabase.from("streets" as any).select("*").eq("campanha_id", campanhaId).order("nome") as any,
-        supabase.from("street_checkins" as any).select("*, streets(nome, bairro, cidade)").eq("campanha_id", campanhaId).order("started_at", { ascending: false }).limit(50) as any,
+        supabase.from("streets").select("*").eq("campanha_id", campanhaId).order("nome"),
+        supabase.from("street_checkins").select("*, streets(nome, bairro, cidade)").eq("campanha_id", campanhaId).order("started_at", { ascending: false }).limit(50),
       ]);
       setStreets((streetsRes.data as Street[]) || []);
       setCheckins((checkinsRes.data as Checkin[]) || []);
@@ -61,77 +61,78 @@ const StreetCheckin = () => {
     }
   }, [user, campanhaId]);
 
-  useEffect(() => { fetchData(); syncOfflineQueue(); }, [fetchData]);
-
-  // Offline sync
-  const syncOfflineQueue = async () => {
-    const queue = JSON.parse(localStorage.getItem(OFFLINE_KEY) || "[]");
-    if (queue.length === 0) return;
-
-    const remaining: any[] = [];
-    for (const item of queue) {
-      const { error } = await (supabase.from("street_checkins" as any) as any).insert(item);
-      if (error) remaining.push(item);
-    }
-    localStorage.setItem(OFFLINE_KEY, JSON.stringify(remaining));
-    if (remaining.length < queue.length) {
-      toast({ title: "Sincronizado!", description: `${queue.length - remaining.length} check-ins offline enviados.` });
-      fetchData();
-    }
-  };
+  useEffect(() => { 
+    fetchData(); 
+    const syncOffline = async () => {
+      const queue = JSON.parse(localStorage.getItem(OFFLINE_KEY) || "[]");
+      if (queue.length > 0) {
+        const remaining: any[] = [];
+        for (const item of queue) {
+          const { error } = await supabase.from("street_checkins").insert(item);
+          if (error) remaining.push(item);
+        }
+        localStorage.setItem(OFFLINE_KEY, JSON.stringify(remaining));
+        if (remaining.length < queue.length) {
+          toast({ title: "Sincronizado!", description: "Check-ins offline enviados." });
+          fetchData();
+        }
+      }
+    };
+    syncOffline();
+  }, [fetchData, toast]);
 
   const handleStartCheckin = async () => {
     if (!selectedStreetId || !user || !campanhaId) return;
     setCreating(true);
 
-    // Check for active checkin on this street
-    const { data: activeCheckins } = await (supabase
-      .from("street_checkins" as any)
-      .select("id")
-      .eq("street_id", selectedStreetId)
-      .eq("status", "active") as any);
-
-    if (activeCheckins && activeCheckins.length > 0) {
-      toast({
-        title: "Rua ocupada!",
-        description: "Já existe um check-in ativo nesta rua. Escolha outra.",
-        variant: "destructive",
-      });
-      setCreating(false);
-      return;
-    }
-
-    const payload = {
-      street_id: selectedStreetId,
-      campanha_id: campanhaId,
-      user_id: user.id,
-      status: "active",
-      notes: notes || null,
-    };
-
     try {
-      const { error } = await (supabase.from("street_checkins" as any) as any).insert(payload);
+      // 1. Double check concurrency rule (Malha Única)
+      const { data: activeCheckins, error: checkError } = await supabase
+        .from("street_checkins")
+        .select("id")
+        .eq("street_id", selectedStreetId)
+        .eq("status", "active");
+
+      if (checkError) throw checkError;
+
+      if (activeCheckins && activeCheckins.length > 0) {
+        toast({
+          title: "Conflito detectado",
+          description: "Já existe uma equipe trabalhando nesta rua no momento.",
+          variant: "destructive",
+        });
+        setCreating(false);
+        return;
+      }
+
+      const payload = {
+        street_id: selectedStreetId,
+        campanha_id: campanhaId,
+        user_id: user.id,
+        status: "active",
+        notes: notes || null,
+      };
+
+      const { error } = await supabase.from("street_checkins").insert(payload);
       if (error) throw error;
-      toast({ title: "Check-in iniciado!", description: "Boa sorte na ação de rua!" });
+
+      toast({ title: "Check-in iniciado!", description: "Ação de rua registrada com sucesso." });
       setNotes("");
       setSelectedStreetId("");
       fetchData();
-    } catch {
-      // Offline fallback
-      const queue = JSON.parse(localStorage.getItem(OFFLINE_KEY) || "[]");
-      queue.push(payload);
-      localStorage.setItem(OFFLINE_KEY, JSON.stringify(queue));
-      toast({ title: "Salvo offline", description: "Será sincronizado quando houver conexão.", variant: "default" });
+    } catch (err: any) {
+      console.error(err);
+      toast({ title: "Erro", description: "Não foi possível iniciar o check-in.", variant: "destructive" });
     } finally {
       setCreating(false);
     }
   };
 
   const handleEndCheckin = async (checkinId: string) => {
-    const { error } = await (supabase
-      .from("street_checkins" as any)
+    const { error } = await supabase
+      .from("street_checkins")
       .update({ status: "completed", ended_at: new Date().toISOString() })
-      .eq("id", checkinId) as any);
+      .eq("id", checkinId);
 
     if (error) {
       toast({ title: "Erro", description: error.message, variant: "destructive" });
@@ -143,7 +144,8 @@ const StreetCheckin = () => {
 
   const handleAddStreet = async () => {
     if (!newStreet.nome || !campanhaId) return;
-    const { error } = await (supabase.from("streets" as any) as any).insert({
+    setCreating(true);
+    const { error } = await supabase.from("streets").insert({
       campanha_id: campanhaId,
       nome: newStreet.nome,
       bairro: newStreet.bairro || null,
@@ -151,13 +153,18 @@ const StreetCheckin = () => {
     });
 
     if (error) {
-      toast({ title: "Erro ao cadastrar rua", description: error.message, variant: "destructive" });
+      if (error.code === '23505') {
+        toast({ title: "Rua já cadastrada", description: "Este logradouro já existe nesta campanha.", variant: "destructive" });
+      } else {
+        toast({ title: "Erro ao cadastrar rua", description: error.message, variant: "destructive" });
+      }
     } else {
       toast({ title: "Rua cadastrada!" });
       setNewStreet({ nome: "", bairro: "", cidade: "" });
       setShowAddStreet(false);
       fetchData();
     }
+    setCreating(false);
   };
 
   const filteredStreets = streets.filter((s) =>
@@ -191,24 +198,24 @@ const StreetCheckin = () => {
         <div className="flex items-center justify-between mb-8">
           <div>
             <h1 className="text-3xl font-bold">Check-in de Rua</h1>
-            <p className="text-muted-foreground">Registro de ações de campo</p>
+            <p className="text-muted-foreground">Registro de ações de campo em tempo real</p>
           </div>
           <Button onClick={() => setShowAddStreet(!showAddStreet)} variant="outline" className="gap-2">
             <Plus className="w-4 h-4" /> Nova Rua
           </Button>
         </div>
 
-        {/* Add Street Form */}
         {showAddStreet && (
           <Card className="mb-6">
             <CardHeader>
               <CardTitle>Cadastrar Nova Rua</CardTitle>
+              <CardDescription>Evite cadastrar ruas duplicadas</CardDescription>
             </CardHeader>
             <CardContent>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div className="space-y-2">
                   <Label>Nome da Rua *</Label>
-                  <Input value={newStreet.nome} onChange={(e) => setNewStreet((p) => ({ ...p, nome: e.target.value }))} placeholder="Rua das Flores" />
+                  <Input value={newStreet.nome} onChange={(e) => setNewStreet((p) => ({ ...p, nome: e.target.value }))} placeholder="Ex: Av. Brasil" />
                 </div>
                 <div className="space-y-2">
                   <Label>Bairro</Label>
@@ -216,40 +223,42 @@ const StreetCheckin = () => {
                 </div>
                 <div className="space-y-2">
                   <Label>Cidade</Label>
-                  <Input value={newStreet.cidade} onChange={(e) => setNewStreet((p) => ({ ...p, cidade: e.target.value }))} placeholder="São Paulo" />
+                  <Input value={newStreet.cidade} onChange={(e) => setNewStreet((p) => ({ ...p, cidade: e.target.value }))} placeholder="Sua Cidade" />
                 </div>
               </div>
               <div className="flex gap-2 mt-4">
-                <Button onClick={handleAddStreet} disabled={!newStreet.nome}>Cadastrar</Button>
+                <Button onClick={handleAddStreet} disabled={!newStreet.nome || creating}>
+                  {creating && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
+                  Cadastrar
+                </Button>
                 <Button variant="outline" onClick={() => setShowAddStreet(false)}>Cancelar</Button>
               </div>
             </CardContent>
           </Card>
         )}
 
-        {/* Active Checkins Alert */}
         {activeCheckinsList.length > 0 && (
-          <Card className="mb-6 border-green-500/50">
+          <Card className="mb-6 border-green-500/50 shadow-sm">
             <CardHeader className="pb-3">
               <CardTitle className="text-base flex items-center gap-2 text-green-600">
                 <span className="relative flex h-3 w-3">
                   <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75" />
                   <span className="relative inline-flex rounded-full h-3 w-3 bg-green-500" />
                 </span>
-                Check-ins Ativos ({activeCheckinsList.length})
+                Atividades em Curso ({activeCheckinsList.length})
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-3">
               {activeCheckinsList.map((c) => (
-                <div key={c.id} className="flex items-center justify-between p-3 bg-green-500/10 rounded-lg">
+                <div key={c.id} className="flex items-center justify-between p-4 bg-green-50/50 rounded-lg border border-green-100">
                   <div>
-                    <p className="font-medium">{(c as any).streets?.nome || "Rua"}</p>
-                    <p className="text-sm text-muted-foreground">
-                      Início: {new Date(c.started_at).toLocaleString("pt-BR")}
+                    <p className="font-semibold">{(c as any).streets?.nome || "Rua"}</p>
+                    <p className="text-xs text-muted-foreground">
+                      Iniciado em: {new Date(c.started_at).toLocaleString("pt-BR")}
                     </p>
                   </div>
-                  <Button size="sm" variant="destructive" onClick={() => handleEndCheckin(c.id)} className="gap-1">
-                    <Square className="w-3 h-3" /> Encerrar
+                  <Button size="sm" variant="destructive" onClick={() => handleEndCheckin(c.id)} className="gap-2">
+                    <Square className="w-3 h-3 fill-current" /> Encerrar
                   </Button>
                 </div>
               ))}
@@ -257,66 +266,67 @@ const StreetCheckin = () => {
           </Card>
         )}
 
-        {/* New Checkin */}
-        <Card className="mb-6">
+        <Card className="mb-6 shadow-sm">
           <CardHeader>
-            <CardTitle>Iniciar Check-in</CardTitle>
-            <CardDescription>Selecione uma rua e inicie a ação de campo</CardDescription>
+            <CardTitle>Iniciar Nova Ação</CardTitle>
+            <CardDescription>Escolha um logradouro livre para iniciar os trabalhos</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
-            <div className="space-y-2">
-              <Label>Buscar Rua</Label>
-              <div className="relative">
-                <Search className="absolute left-3 top-3 w-4 h-4 text-muted-foreground" />
-                <Input className="pl-9" value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} placeholder="Pesquisar por nome ou bairro..." />
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label>Pesquisar Logradouro</Label>
+                <div className="relative">
+                  <Search className="absolute left-3 top-3 w-4 h-4 text-muted-foreground" />
+                  <Input className="pl-9" value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} placeholder="Nome ou bairro..." />
+                </div>
+              </div>
+              <div className="space-y-2">
+                <Label>Selecionar Rua</Label>
+                <Select value={selectedStreetId} onValueChange={setSelectedStreetId}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Selecione..." />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {filteredStreets.map((s) => (
+                      <SelectItem key={s.id} value={s.id}>
+                        {s.nome} {s.bairro ? `— ${s.bairro}` : ""}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
             </div>
             <div className="space-y-2">
-              <Label>Rua</Label>
-              <Select value={selectedStreetId} onValueChange={setSelectedStreetId}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Selecione a rua" />
-                </SelectTrigger>
-                <SelectContent>
-                  {filteredStreets.map((s) => (
-                    <SelectItem key={s.id} value={s.id}>
-                      {s.nome} {s.bairro ? `— ${s.bairro}` : ""} {s.cidade ? `(${s.cidade})` : ""}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <Label>Notas do Início (Opcional)</Label>
+              <Textarea value={notes} onChange={(e) => setNotes(e.target.value)} placeholder="Ex: Ponto de encontro em frente à farmácia..." />
             </div>
-            <div className="space-y-2">
-              <Label>Observações (opcional)</Label>
-              <Textarea value={notes} onChange={(e) => setNotes(e.target.value)} placeholder="Notas sobre a ação..." />
-            </div>
-            <Button onClick={handleStartCheckin} disabled={!selectedStreetId || creating} className="gap-2">
-              <Play className="w-4 h-4" /> {creating ? "Iniciando..." : "Iniciar Check-in"}
+            <Button onClick={handleStartCheckin} disabled={!selectedStreetId || creating} className="w-full sm:w-auto gap-2" variant="campaign">
+              {creating ? <Loader2 className="w-4 h-4 animate-spin" /> : <Play className="w-4 h-4 fill-current" />}
+              Iniciar Trabalho de Campo
             </Button>
           </CardContent>
         </Card>
 
-        {/* Recent Checkins */}
         {recentCheckins.length > 0 && (
-          <Card>
+          <Card className="shadow-none border-dashed">
             <CardHeader>
-              <CardTitle>Histórico Recente</CardTitle>
+              <CardTitle className="text-lg">Histórico de Hoje</CardTitle>
             </CardHeader>
             <CardContent>
               <div className="space-y-3">
                 {recentCheckins.map((c) => (
-                  <div key={c.id} className="flex items-center justify-between p-3 bg-muted/50 rounded-lg">
+                  <div key={c.id} className="flex items-center justify-between p-3 bg-muted/30 rounded-lg">
                     <div className="flex items-center gap-3">
                       <MapPin className="w-4 h-4 text-muted-foreground" />
                       <div>
                         <p className="font-medium text-sm">{(c as any).streets?.nome || "Rua"}</p>
                         <p className="text-xs text-muted-foreground">
-                          {new Date(c.started_at).toLocaleString("pt-BR")}
+                          {new Date(c.started_at).toLocaleTimeString("pt-BR")} - {c.ended_at ? new Date(c.ended_at).toLocaleTimeString("pt-BR") : "Em aberto"}
                         </p>
                       </div>
                     </div>
-                    <Badge variant={c.status === "completed" ? "default" : "secondary"}>
-                      {c.status === "completed" ? "Concluído" : "Cancelado"}
+                    <Badge variant="outline">
+                      Concluido
                     </Badge>
                   </div>
                 ))}

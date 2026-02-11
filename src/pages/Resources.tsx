@@ -7,10 +7,11 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import { Package, PlusCircle, CheckCircle, XCircle, Clock } from "lucide-react";
+import { Package, PlusCircle, CheckCircle, XCircle, Clock, Edit } from "lucide-react";
 import { ModuleSwitcher } from "@/components/navigation/ModuleSwitcher";
 
 interface ResourceRequest {
@@ -18,6 +19,7 @@ interface ResourceRequest {
   tipo: string;
   descricao: string;
   quantidade: number;
+  quantidade_utilizada: number;
   valor_estimado: number;
   localidade: string;
   bairro: string | null;
@@ -58,6 +60,11 @@ const Resources = () => {
     cidade: "",
     notes: "",
   });
+
+  // Usage dialog
+  const [usageDialog, setUsageDialog] = useState<{ open: boolean; request: ResourceRequest | null }>({ open: false, request: null });
+  const [usageAmount, setUsageAmount] = useState("");
+  const [savingUsage, setSavingUsage] = useState(false);
 
   const fetchRequests = useCallback(async () => {
     if (!user || !campanhaId) { setLoading(false); return; }
@@ -118,6 +125,24 @@ const Resources = () => {
       toast({ title: `Status atualizado para ${STATUS_CONFIG[newStatus]?.label}` });
       fetchRequests();
     }
+  };
+
+  const handleSaveUsage = async () => {
+    if (!usageDialog.request) return;
+    setSavingUsage(true);
+    const { error } = await (supabase
+      .from("resource_requests" as any)
+      .update({ quantidade_utilizada: parseFloat(usageAmount) })
+      .eq("id", usageDialog.request.id) as any);
+
+    if (error) {
+      toast({ title: "Erro", description: error.message, variant: "destructive" });
+    } else {
+      toast({ title: "Uso registrado!" });
+      setUsageDialog({ open: false, request: null });
+      fetchRequests();
+    }
+    setSavingUsage(false);
   };
 
   const formatCurrency = (v: number) =>
@@ -228,6 +253,7 @@ const Resources = () => {
             requests.map((req) => {
               const statusCfg = STATUS_CONFIG[req.status] || STATUS_CONFIG.pendente;
               const StatusIcon = statusCfg.icon;
+              const usagePercent = req.quantidade > 0 ? Math.round((req.quantidade_utilizada / req.quantidade) * 100) : 0;
               return (
                 <Card key={req.id}>
                   <CardContent className="p-6">
@@ -248,27 +274,38 @@ const Resources = () => {
                         </p>
                         <div className="flex gap-4 text-sm">
                           <span>Qtd: {req.quantidade}</span>
+                          <span>Usado: {req.quantidade_utilizada} ({usagePercent}%)</span>
                           <span className="font-medium">{formatCurrency(req.valor_estimado)}</span>
                         </div>
                         <p className="text-xs text-muted-foreground">
                           {new Date(req.created_at).toLocaleString("pt-BR")}
                         </p>
                       </div>
-                      {isAdmin && req.status === "pendente" && (
-                        <div className="flex gap-2 ml-4">
-                          <Button size="sm" variant="outline" onClick={() => handleUpdateStatus(req.id, "aprovado")} className="text-green-600">
-                            <CheckCircle className="w-4 h-4" />
+                      <div className="flex gap-2 ml-4 flex-col sm:flex-row">
+                        {isAdmin && req.status === "pendente" && (
+                          <>
+                            <Button size="sm" variant="outline" onClick={() => handleUpdateStatus(req.id, "aprovado")} className="text-green-600">
+                              <CheckCircle className="w-4 h-4" />
+                            </Button>
+                            <Button size="sm" variant="outline" onClick={() => handleUpdateStatus(req.id, "recusado")} className="text-red-600">
+                              <XCircle className="w-4 h-4" />
+                            </Button>
+                          </>
+                        )}
+                        {isAdmin && req.status === "aprovado" && (
+                          <Button size="sm" variant="outline" onClick={() => handleUpdateStatus(req.id, "entregue")}>
+                            <Package className="w-4 h-4 mr-1" /> Entregar
                           </Button>
-                          <Button size="sm" variant="outline" onClick={() => handleUpdateStatus(req.id, "recusado")} className="text-red-600">
-                            <XCircle className="w-4 h-4" />
+                        )}
+                        {(req.status === "entregue" || req.status === "aprovado") && (
+                          <Button size="sm" variant="outline" onClick={() => {
+                            setUsageDialog({ open: true, request: req });
+                            setUsageAmount(String(req.quantidade_utilizada || 0));
+                          }}>
+                            <Edit className="w-4 h-4 mr-1" /> Uso
                           </Button>
-                        </div>
-                      )}
-                      {isAdmin && req.status === "aprovado" && (
-                        <Button size="sm" variant="outline" onClick={() => handleUpdateStatus(req.id, "entregue")} className="ml-4">
-                          <Package className="w-4 h-4 mr-1" /> Entregar
-                        </Button>
-                      )}
+                        )}
+                      </div>
                     </div>
                   </CardContent>
                 </Card>
@@ -277,6 +314,30 @@ const Resources = () => {
           )}
         </div>
       </div>
+
+      {/* Usage Dialog */}
+      <Dialog open={usageDialog.open} onOpenChange={(open) => !open && setUsageDialog({ open: false, request: null })}>
+        <DialogContent className="sm:max-w-sm">
+          <DialogHeader>
+            <DialogTitle>Registrar Uso</DialogTitle>
+            <DialogDescription>
+              {usageDialog.request && `Quantidade total: ${usageDialog.request.quantidade}`}
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 py-2">
+            <div className="space-y-2">
+              <Label>Quantidade Utilizada</Label>
+              <Input type="number" value={usageAmount} onChange={(e) => setUsageAmount(e.target.value)} placeholder="Ex: 30" />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setUsageDialog({ open: false, request: null })}>Cancelar</Button>
+            <Button onClick={handleSaveUsage} disabled={savingUsage}>
+              {savingUsage ? "Salvando..." : "Salvar"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };

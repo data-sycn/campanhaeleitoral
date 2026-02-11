@@ -8,6 +8,7 @@ import { AuthProvider } from "@/hooks/useAuth";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
 import Index from "./pages/Index";
 import Auth from "./pages/Auth";
+import DossieVisita from "./pages/DossieVisita";
 import Dashboard from "./pages/Dashboard";
 import Budget from "./pages/Budget";
 import Expenses from "./pages/Expenses";
@@ -29,7 +30,9 @@ const App = () => (
         <BrowserRouter>
           <Routes>
             <Route path="/" element={<Index />} />
+            <Route path="/auth" element={<Auth />} />
             <Route path="/select-candidate" element={<Navigate to="/dashboard" replace />} />
+            <Route path="/dossie/:cidade" element={<ProtectedRoute><DossieVisita /></ProtectedRoute>} />
             <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
             <Route path="/budget" element={<ProtectedRoute><Budget /></ProtectedRoute>} />
             <Route path="/expenses" element={<ProtectedRoute><Expenses /></ProtectedRoute>} />

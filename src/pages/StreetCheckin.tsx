@@ -7,10 +7,11 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import { MapPin, Play, Square, Plus, Search, Loader2 } from "lucide-react";
+import { MapPin, Play, Square, Plus, Search, Loader2, MessageSquare } from "lucide-react";
 import { ModuleSwitcher } from "@/components/navigation/ModuleSwitcher";
 
 interface Street {
@@ -18,6 +19,7 @@ interface Street {
   nome: string;
   bairro: string | null;
   cidade: string | null;
+  status_cobertura?: string;
 }
 
 interface Checkin {
@@ -36,6 +38,13 @@ interface Checkin {
 
 const OFFLINE_KEY = "checkin_offline_queue";
 
+const STATUS_COBERTURA_LABELS: Record<string, { label: string; color: string }> = {
+  nao_visitada: { label: "Não visitada", color: "bg-muted text-muted-foreground" },
+  em_visitacao: { label: "Em visitação", color: "bg-yellow-500/10 text-yellow-700" },
+  concluida: { label: "Concluída", color: "bg-green-500/10 text-green-700" },
+  necessita_retorno: { label: "Retorno necessário", color: "bg-orange-500/10 text-orange-700" },
+};
+
 const StreetCheckin = () => {
   const { user, campanhaId } = useAuth();
   const { toast } = useToast();
@@ -49,6 +58,13 @@ const StreetCheckin = () => {
   const [newStreet, setNewStreet] = useState({ nome: "", bairro: "", cidade: "" });
   const [creating, setCreating] = useState(false);
 
+  // Feedback dialog state
+  const [feedbackDialog, setFeedbackDialog] = useState<{ open: boolean; checkinId: string }>({ open: false, checkinId: "" });
+  const [feedbackClima, setFeedbackClima] = useState<string>("");
+  const [feedbackDemandas, setFeedbackDemandas] = useState("");
+  const [liderancas, setLiderancas] = useState("");
+  const [submittingFeedback, setSubmittingFeedback] = useState(false);
+
   const fetchData = useCallback(async () => {
     if (!user || !campanhaId) { setLoading(false); return; }
     try {
@@ -56,7 +72,7 @@ const StreetCheckin = () => {
         supabase.from("streets").select("*").eq("campanha_id", campanhaId).order("nome"),
         supabase.from("street_checkins").select("*, streets(nome, bairro, cidade)").eq("campanha_id", campanhaId).order("started_at", { ascending: false }).limit(50),
       ]);
-      setStreets((streetsRes.data as Street[]) || []);
+      setStreets((streetsRes.data as any[]) || []);
       setCheckins((checkinsRes.data as any[]) || []);
     } catch (err) {
       console.error("Error fetching checkin data:", err);
@@ -90,7 +106,6 @@ const StreetCheckin = () => {
     setCreating(true);
 
     try {
-      // 1. Double check concurrency rule (Malha Única)
       const { data: activeCheckins, error: checkError } = await supabase
         .from("street_checkins")
         .select("id")
@@ -132,18 +147,36 @@ const StreetCheckin = () => {
     }
   };
 
-  const handleEndCheckin = async (checkinId: string) => {
+  const handleEndCheckin = (checkinId: string) => {
+    setFeedbackDialog({ open: true, checkinId });
+    setFeedbackClima("");
+    setFeedbackDemandas("");
+    setLiderancas("");
+  };
+
+  const submitFeedbackAndEnd = async () => {
+    setSubmittingFeedback(true);
+    const updatePayload: any = {
+      status: "completed",
+      ended_at: new Date().toISOString(),
+    };
+    if (feedbackClima) updatePayload.feedback_clima = feedbackClima;
+    if (feedbackDemandas) updatePayload.feedback_demandas = feedbackDemandas;
+    if (liderancas) updatePayload.liderancas_identificadas = liderancas;
+
     const { error } = await supabase
       .from("street_checkins")
-      .update({ status: "completed", ended_at: new Date().toISOString() })
-      .eq("id", checkinId);
+      .update(updatePayload)
+      .eq("id", feedbackDialog.checkinId);
 
     if (error) {
       toast({ title: "Erro", description: error.message, variant: "destructive" });
     } else {
-      toast({ title: "Ação encerrada!" });
+      toast({ title: "Ação encerrada com feedback!" });
+      setFeedbackDialog({ open: false, checkinId: "" });
       fetchData();
     }
+    setSubmittingFeedback(false);
   };
 
   const handleAddStreet = async () => {
@@ -291,11 +324,19 @@ const StreetCheckin = () => {
                     <SelectValue placeholder="Selecione..." />
                   </SelectTrigger>
                   <SelectContent>
-                    {filteredStreets.map((s) => (
-                      <SelectItem key={s.id} value={s.id}>
-                        {s.nome} {s.bairro ? `— ${s.bairro}` : ""}
-                      </SelectItem>
-                    ))}
+                    {filteredStreets.map((s) => {
+                      const statusCfg = STATUS_COBERTURA_LABELS[s.status_cobertura || "nao_visitada"];
+                      return (
+                        <SelectItem key={s.id} value={s.id}>
+                          <span className="flex items-center gap-2">
+                            {s.nome} {s.bairro ? `— ${s.bairro}` : ""}
+                            <Badge variant="outline" className={`text-[10px] px-1 py-0 ${statusCfg.color}`}>
+                              {statusCfg.label}
+                            </Badge>
+                          </span>
+                        </SelectItem>
+                      );
+                    })}
                   </SelectContent>
                 </Select>
               </div>
@@ -339,6 +380,63 @@ const StreetCheckin = () => {
           </Card>
         )}
       </div>
+
+      {/* Feedback Dialog */}
+      <Dialog open={feedbackDialog.open} onOpenChange={(open) => !open && setFeedbackDialog({ open: false, checkinId: "" })}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <MessageSquare className="w-5 h-5" />
+              Feedback da Visita
+            </DialogTitle>
+            <DialogDescription>
+              Registre informações de inteligência de campo antes de encerrar
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 py-2">
+            <div className="space-y-2">
+              <Label>Clima da Recepção</Label>
+              <Select value={feedbackClima} onValueChange={setFeedbackClima}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Como foi a recepção?" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="receptivo">😊 Receptivo</SelectItem>
+                  <SelectItem value="neutro">😐 Neutro</SelectItem>
+                  <SelectItem value="hostil">😠 Hostil</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-2">
+              <Label>Demandas da População</Label>
+              <Textarea
+                value={feedbackDemandas}
+                onChange={(e) => setFeedbackDemandas(e.target.value)}
+                placeholder="O que o povo pediu? Ex: Calçamento, iluminação, posto de saúde..."
+                rows={3}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label>Lideranças Identificadas</Label>
+              <Textarea
+                value={liderancas}
+                onChange={(e) => setLiderancas(e.target.value)}
+                placeholder="Nomes de lideranças locais encontradas..."
+                rows={2}
+              />
+            </div>
+          </div>
+          <DialogFooter className="gap-2">
+            <Button variant="outline" onClick={() => setFeedbackDialog({ open: false, checkinId: "" })}>
+              Cancelar
+            </Button>
+            <Button onClick={submitFeedbackAndEnd} disabled={submittingFeedback}>
+              {submittingFeedback && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
+              Encerrar com Feedback
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };

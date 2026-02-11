@@ -382,6 +382,7 @@ export type Database = {
           localidade: string
           notes: string | null
           quantidade: number
+          quantidade_utilizada: number
           status: string
           tipo: string
           updated_at: string
@@ -401,6 +402,7 @@ export type Database = {
           localidade: string
           notes?: string | null
           quantidade?: number
+          quantidade_utilizada?: number
           status?: string
           tipo: string
           updated_at?: string
@@ -420,6 +422,7 @@ export type Database = {
           localidade?: string
           notes?: string | null
           quantidade?: number
+          quantidade_utilizada?: number
           status?: string
           tipo?: string
           updated_at?: string
@@ -472,8 +475,13 @@ export type Database = {
           campanha_id: string
           created_at: string
           ended_at: string | null
+          feedback_clima:
+            | Database["public"]["Enums"]["feedback_clima_type"]
+            | null
+          feedback_demandas: string | null
           geolocation: unknown
           id: string
+          liderancas_identificadas: string | null
           notes: string | null
           started_at: string
           status: string
@@ -485,8 +493,13 @@ export type Database = {
           campanha_id: string
           created_at?: string
           ended_at?: string | null
+          feedback_clima?:
+            | Database["public"]["Enums"]["feedback_clima_type"]
+            | null
+          feedback_demandas?: string | null
           geolocation?: unknown
           id?: string
+          liderancas_identificadas?: string | null
           notes?: string | null
           started_at?: string
           status?: string
@@ -498,8 +511,13 @@ export type Database = {
           campanha_id?: string
           created_at?: string
           ended_at?: string | null
+          feedback_clima?:
+            | Database["public"]["Enums"]["feedback_clima_type"]
+            | null
+          feedback_demandas?: string | null
           geolocation?: unknown
           id?: string
+          liderancas_identificadas?: string | null
           notes?: string | null
           started_at?: string
           status?: string
@@ -534,6 +552,7 @@ export type Database = {
           estado: string | null
           id: string
           nome: string
+          status_cobertura: Database["public"]["Enums"]["status_cobertura_type"]
         }
         Insert: {
           bairro?: string | null
@@ -544,6 +563,7 @@ export type Database = {
           estado?: string | null
           id?: string
           nome: string
+          status_cobertura?: Database["public"]["Enums"]["status_cobertura_type"]
         }
         Update: {
           bairro?: string | null
@@ -554,6 +574,7 @@ export type Database = {
           estado?: string | null
           id?: string
           nome?: string
+          status_cobertura?: Database["public"]["Enums"]["status_cobertura_type"]
         }
         Relationships: [
           {
@@ -1755,7 +1776,13 @@ export type Database = {
         | "eventos"
         | "pessoal"
         | "outros"
+      feedback_clima_type: "receptivo" | "neutro" | "hostil"
       payment_method: "pix" | "cartao" | "dinheiro" | "transferencia" | "boleto"
+      status_cobertura_type:
+        | "nao_visitada"
+        | "em_visitacao"
+        | "concluida"
+        | "necessita_retorno"
     }
     CompositeTypes: {
       geometry_dump: {
@@ -1901,7 +1928,14 @@ export const Constants = {
         "pessoal",
         "outros",
       ],
+      feedback_clima_type: ["receptivo", "neutro", "hostil"],
       payment_method: ["pix", "cartao", "dinheiro", "transferencia", "boleto"],
+      status_cobertura_type: [
+        "nao_visitada",
+        "em_visitacao",
+        "concluida",
+        "necessita_retorno",
+      ],
     },
   },
 } as const

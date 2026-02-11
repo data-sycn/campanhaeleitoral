@@ -27,7 +27,11 @@ interface Checkin {
   started_at: string;
   ended_at: string | null;
   notes: string | null;
-  streets?: Street;
+  streets?: {
+    nome: string;
+    bairro: string | null;
+    cidade: string | null;
+  };
 }
 
 const OFFLINE_KEY = "checkin_offline_queue";
@@ -53,7 +57,7 @@ const StreetCheckin = () => {
         supabase.from("street_checkins").select("*, streets(nome, bairro, cidade)").eq("campanha_id", campanhaId).order("started_at", { ascending: false }).limit(50),
       ]);
       setStreets((streetsRes.data as Street[]) || []);
-      setCheckins((checkinsRes.data as Checkin[]) || []);
+      setCheckins((checkinsRes.data as any[]) || []);
     } catch (err) {
       console.error("Error fetching checkin data:", err);
     } finally {
@@ -252,7 +256,7 @@ const StreetCheckin = () => {
               {activeCheckinsList.map((c) => (
                 <div key={c.id} className="flex items-center justify-between p-4 bg-green-50/50 rounded-lg border border-green-100">
                   <div>
-                    <p className="font-semibold">{(c as any).streets?.nome || "Rua"}</p>
+                    <p className="font-semibold">{c.streets?.nome || "Rua"}</p>
                     <p className="text-xs text-muted-foreground">
                       Iniciado em: {new Date(c.started_at).toLocaleString("pt-BR")}
                     </p>
@@ -319,7 +323,7 @@ const StreetCheckin = () => {
                     <div className="flex items-center gap-3">
                       <MapPin className="w-4 h-4 text-muted-foreground" />
                       <div>
-                        <p className="font-medium text-sm">{(c as any).streets?.nome || "Rua"}</p>
+                        <p className="font-medium text-sm">{c.streets?.nome || "Rua"}</p>
                         <p className="text-xs text-muted-foreground">
                           {new Date(c.started_at).toLocaleTimeString("pt-BR")} - {c.ended_at ? new Date(c.ended_at).toLocaleTimeString("pt-BR") : "Em aberto"}
                         </p>

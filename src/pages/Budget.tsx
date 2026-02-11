@@ -12,6 +12,7 @@ import {
   useBudgetAllocations
 } from "@/components/budget";
 import { ModuleSwitcher } from "@/components/navigation/ModuleSwitcher";
+import { Navbar } from "@/components/Navbar";
 
 const Budget = () => {
   const [activeModule, setActiveModule] = useState<string>("overview");
@@ -40,11 +41,18 @@ const Budget = () => {
   };
 
   if (loading) {
-    return <BudgetLoadingSkeleton />;
+    return (
+      <div className="min-h-screen bg-background">
+        <Navbar />
+        <BudgetLoadingSkeleton />
+      </div>
+    );
   }
 
   return (
-    <div className="container mx-auto px-4 py-8">
+    <div className="min-h-screen bg-background">
+      <Navbar />
+      <div className="container mx-auto px-4 py-8">
       <div className="mb-6">
         <ModuleSwitcher />
       </div>
@@ -89,6 +97,7 @@ const Budget = () => {
           />
         </>
       )}
+    </div>
     </div>
   );
 };

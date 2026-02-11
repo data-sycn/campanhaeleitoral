@@ -11,6 +11,7 @@ import { useToast } from "@/hooks/use-toast";
 import { PlusCircle, Receipt, Calendar } from "lucide-react";
 import { Database } from "@/integrations/supabase/types";
 import { ModuleSwitcher } from "@/components/navigation/ModuleSwitcher";
+import { Navbar } from "@/components/Navbar";
 
 interface Expense {
   id: string;
@@ -88,8 +89,8 @@ const Expenses = () => {
     setCreating(true);
 
     try {
-      if (!profile?.candidate_id) {
-        toast({ title: "Erro", description: "Você precisa estar vinculado a um candidato para registrar despesas", variant: "destructive" });
+      if (!campanhaId || !profile?.candidate_id) {
+        toast({ title: "Erro", description: "Você precisa estar vinculado a uma campanha para registrar despesas", variant: "destructive" });
         return;
       }
 
@@ -123,18 +124,23 @@ const Expenses = () => {
 
   if (loading) {
     return (
-      <div className="container mx-auto px-4 py-8">
-        <div className="animate-pulse space-y-4">
-          <div className="h-8 bg-muted rounded w-1/4" />
-          <div className="h-32 bg-muted rounded" />
+      <div className="min-h-screen bg-background">
+        <Navbar />
+        <div className="container mx-auto px-4 py-8">
+          <div className="animate-pulse space-y-4">
+            <div className="h-8 bg-muted rounded w-1/4" />
+            <div className="h-32 bg-muted rounded" />
+          </div>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="container mx-auto px-4 py-8">
-      <div className="mb-6"><ModuleSwitcher /></div>
+    <div className="min-h-screen bg-background">
+      <Navbar />
+      <div className="container mx-auto px-4 py-8">
+        <div className="mb-6"><ModuleSwitcher /></div>
 
       <div className="flex items-center justify-between mb-8">
         <div>
@@ -252,6 +258,7 @@ const Expenses = () => {
           ))
         )}
       </div>
+    </div>
     </div>
   );
 };

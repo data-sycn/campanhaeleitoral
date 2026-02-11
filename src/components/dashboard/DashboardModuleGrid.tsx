@@ -16,6 +16,14 @@ export function DashboardModuleGrid() {
 
   const modules = [
     {
+      id: "dashboard",
+      title: "Dash",
+      icon: BarChart3,
+      route: "/dashboard",
+      stat: "Visão executiva",
+      gradient: "from-indigo-500 to-blue-600",
+    },
+    {
       id: "financeiro",
       title: "Financeiro",
       icon: DollarSign,

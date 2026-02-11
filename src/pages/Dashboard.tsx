@@ -4,7 +4,7 @@ import { Navbar } from "@/components/Navbar";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
-import { DollarSign, Users, FileText, BarChart3, PieChart, Shield, TrendingUp, AlertTriangle, Trophy } from "lucide-react";
+import { BarChart3, Shield, AlertTriangle, Trophy } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { useDashboardData } from "@/components/dashboard/useDashboardData";
 import { useRecurrenceAlerts, useEffectivenessRanking } from "@/components/dashboard/useDashboardAlerts";
@@ -28,11 +28,6 @@ const Dashboard = () => {
 
   const formatCurrency = (value: number) =>
     value.toLocaleString("pt-BR", { style: "currency", currency: "BRL", minimumFractionDigits: 0, maximumFractionDigits: 0 });
-
-  const kpis = [
-    { title: "Apoiadores", value: stats.supportersCount.toString(), icon: Users, color: "text-purple-600", bgColor: "bg-purple-500/10" },
-    { title: "Relatórios", value: stats.reportsCount.toString(), icon: FileText, color: "text-orange-600", bgColor: "bg-orange-500/10" },
-  ];
 
   if (loading) {
     return (
@@ -72,22 +67,6 @@ const Dashboard = () => {
           </TabsList>
 
           <TabsContent value="overview" className="space-y-6">
-            {/* KPI Cards */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-              {kpis.map((kpi) => (
-                <Card key={kpi.title}>
-                  <CardHeader className="flex flex-row items-center justify-between pb-2">
-                    <CardTitle className="text-sm font-medium text-muted-foreground">{kpi.title}</CardTitle>
-                    <div className={`p-2 rounded-lg ${kpi.bgColor}`}>
-                      <kpi.icon className={`w-4 h-4 ${kpi.color}`} />
-                    </div>
-                  </CardHeader>
-                  <CardContent>
-                    <div className={`text-2xl font-bold ${kpi.color}`}>{kpi.value}</div>
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
 
             {/* Recurrence Alerts */}
             {recurrenceAlerts.length > 0 && (

@@ -10,34 +10,21 @@ import {
 } from "./navigation/index";
 
 export function Navbar() {
-  const { user, signOut, selectedCandidate, clearCandidateSelection } = useAuth();
+  const { user, signOut } = useAuth();
   const navigate = useNavigate();
-
-  const handleSwitchCandidate = async () => {
-    await clearCandidateSelection();
-    navigate("/select-candidate");
-  };
 
   return (
     <nav className="border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 sticky top-0 z-50">
       <div className="container flex h-16 items-center justify-between">
-        {/* Left: Logo + Navigation */}
         <div className="flex items-center gap-6">
           <NavLogo />
           {user && <NavLinks />}
         </div>
-
-        {/* Right: User Actions */}
         <div className="flex items-center gap-2">
           {user ? (
             <>
               <NavNotifications count={1} />
-              <NavUserMenu 
-                user={user} 
-                onSignOut={signOut}
-                selectedCandidate={selectedCandidate}
-                onSwitchCandidate={handleSwitchCandidate}
-              />
+              <NavUserMenu user={user} onSignOut={signOut} />
               <NavMobileMenu />
             </>
           ) : (

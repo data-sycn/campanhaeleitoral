@@ -21,7 +21,7 @@ const COLORS = [
 ];
 
 export function BudgetAllocations() {
-  const { user, selectedCandidate } = useAuth();
+  const { user, campanhaId } = useAuth();
   const { budgets, loading: budgetsLoading } = useBudgetData();
   const [selectedBudgetId, setSelectedBudgetId] = useState<string | undefined>();
   
@@ -46,30 +46,24 @@ export function BudgetAllocations() {
     }
   }, [budgets, selectedBudgetId]);
 
-  // Fetch expenses when candidate changes
+  // Fetch expenses using candidate_id from profile
   useEffect(() => {
     const fetchCandidateExpenses = async () => {
       if (!user) return;
       
-      const candidateId = selectedCandidate?.id;
-      if (candidateId) {
-        fetchExpensesByCategory(candidateId);
-      } else {
-        // Fallback: get from profile
-        const { data: profile } = await supabase
-          .from('profiles')
-          .select('candidate_id')
-          .eq('id', user.id)
-          .maybeSingle();
-        
-        if (profile?.candidate_id) {
-          fetchExpensesByCategory(profile.candidate_id);
-        }
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('candidate_id')
+        .eq('id', user.id)
+        .maybeSingle();
+      
+      if (profile?.candidate_id) {
+        fetchExpensesByCategory(profile.candidate_id);
       }
     };
 
     fetchCandidateExpenses();
-  }, [user, selectedCandidate, selectedBudgetId]);
+  }, [user, selectedBudgetId]);
 
   const formatCurrency = (value: number) => {
     return new Intl.NumberFormat('pt-BR', {

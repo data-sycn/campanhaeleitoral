@@ -20,7 +20,7 @@ export function DashboardModuleGrid() {
       title: "Financeiro",
       icon: DollarSign,
       route: "/budget",
-      stat: loading ? "..." : hasCandidate ? formatCurrency(stats.totalBudget) : "Configurar",
+      stat: loading ? "..." : hasCandidate ? `${formatCurrency(stats.totalBudget)} | ${stats.expensesCount} despesas` : "Configurar",
       gradient: "from-green-500 to-emerald-600",
     },
     {

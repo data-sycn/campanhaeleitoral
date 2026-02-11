@@ -7,6 +7,7 @@ export { BudgetCard } from "./BudgetCard";
 export { BudgetEmptyState } from "./BudgetEmptyState";
 export { BudgetLoadingSkeleton } from "./BudgetLoadingSkeleton";
 export { BudgetAllocations } from "./BudgetAllocations";
+export { BudgetExpenses } from "./BudgetExpenses";
 export { AllocationRow } from "./AllocationRow";
 export { NewAllocationDialog } from "./NewAllocationDialog";
 export { useBudgetData } from "./useBudgetData";

@@ -15,13 +15,6 @@ interface Profile {
   updated_at: string;
 }
 
-interface SelectedCandidate {
-  id: string;
-  name: string;
-  party: string | null;
-  position: string | null;
-}
-
 interface AuthContextType {
   user: User | null;
   session: Session | null;
@@ -30,14 +23,11 @@ interface AuthContextType {
   loading: boolean;
   isAdmin: boolean;
   campanhaId: string | null;
-  selectedCandidate: SelectedCandidate | null;
   needsCandidateSelection: boolean;
   signUp: (email: string, password: string, name: string) => Promise<{ error: any }>;
   signIn: (email: string, password: string) => Promise<{ error: any }>;
   signOut: () => Promise<void>;
   refetchRoles: () => Promise<void>;
-  selectCandidate: (candidateId: string) => Promise<void>;
-  clearCandidateSelection: () => Promise<void>;
   refetchProfile: () => Promise<void>;
 }
 
@@ -56,7 +46,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [session, setSession] = useState<Session | null>(null);
   const [profile, setProfile] = useState<Profile | null>(null);
   const [userRoles, setUserRoles] = useState<AppRole[]>([]);
-  const [selectedCandidate, setSelectedCandidate] = useState<SelectedCandidate | null>(null);
   const [loading, setLoading] = useState(true);
   const [profileLoading, setProfileLoading] = useState(false);
   const { toast } = useToast();
@@ -87,26 +76,9 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
       if (error) throw error;
       setProfile(data);
-
-      if (data?.candidate_id) {
-        const { data: candidateData, error: candidateError } = await supabase
-          .from('candidates')
-          .select('id, name, party, position')
-          .eq('id', data.candidate_id)
-          .single();
-
-        if (!candidateError && candidateData) {
-          setSelectedCandidate(candidateData);
-        } else {
-          setSelectedCandidate(null);
-        }
-      } else {
-        setSelectedCandidate(null);
-      }
     } catch (error) {
       console.error('Erro ao buscar perfil:', error);
       setProfile(null);
-      setSelectedCandidate(null);
     } finally {
       setProfileLoading(false);
     }
@@ -129,7 +101,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         } else {
           setProfile(null);
           setUserRoles([]);
-          setSelectedCandidate(null);
           setLoading(false);
         }
       }
@@ -177,50 +148,15 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   };
 
   const signOut = async () => {
-    if (user) {
-      await supabase
-        .from('profiles')
-        .update({ candidate_id: null })
-        .eq('id', user.id);
-    }
     await supabase.auth.signOut();
-    setSelectedCandidate(null);
     setProfile(null);
     setUserRoles([]);
-  };
-
-  const selectCandidate = async (candidateId: string) => {
-    if (!user) return;
-    const { error } = await supabase
-      .from('profiles')
-      .update({ candidate_id: candidateId })
-      .eq('id', user.id);
-
-    if (error) throw error;
-    await fetchProfile(user.id);
-  };
-
-  const clearCandidateSelection = async () => {
-    if (!user) return;
-    const { error } = await supabase
-      .from('profiles')
-      .update({ candidate_id: null })
-      .eq('id', user.id);
-
-    if (error) throw error;
-    setSelectedCandidate(null);
-    setProfile(prev => prev ? { ...prev, candidate_id: null } : null);
   };
 
   const isMaster = userRoles.includes('master');
   const isAdmin = userRoles.includes('admin') || isMaster;
   
-  const needsCandidateSelection = 
-    !!user && 
-    !loading && 
-    !profileLoading && 
-    !isMaster && 
-    !profile?.candidate_id;
+  const needsCandidateSelection = false;
 
   // campanha_id is the primary filter for all data
   const campanhaId = profile?.campanha_id ?? null;

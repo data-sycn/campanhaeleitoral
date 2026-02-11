@@ -68,7 +68,6 @@ export function AdminPermissions() {
 
   const addRoleMutation = useMutation({
     mutationFn: async ({ userId, role }: { userId: string; role: AppRole }) => {
-      // Check if role already exists
       const { data: existing } = await supabase
         .from('user_roles')
         .select('id')
@@ -88,7 +87,6 @@ export function AdminPermissions() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['admin-user-roles'] });
-      queryClient.invalidateQueries({ queryKey: ['admin-users'] });
       toast({ title: "Função adicionada com sucesso" });
       setIsDialogOpen(false);
       setSelectedUserId("");
@@ -114,7 +112,6 @@ export function AdminPermissions() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['admin-user-roles'] });
-      queryClient.invalidateQueries({ queryKey: ['admin-users'] });
       toast({ title: "Função removida com sucesso" });
     },
     onError: (error: any) => {
@@ -131,18 +128,17 @@ export function AdminPermissions() {
       case 'master': return 'destructive';
       case 'admin': return 'destructive';
       case 'coordinator': return 'default';
-      case 'candidate': return 'default';
       default: return 'secondary';
     }
   };
 
   const getRoleLabel = (role: AppRole) => {
     switch (role) {
-      case 'master': return 'Master';
-      case 'admin': return 'Administrador';
-      case 'coordinator': return 'Coordenador';
+      case 'master': return 'Coordenador Geral';
+      case 'admin': return 'Coordenador de Área';
+      case 'coordinator': return 'Supervisor de Equipe';
       case 'candidate': return 'Candidato';
-      default: return 'Apoiador';
+      default: return 'Apoiador / Voluntário';
     }
   };
 
@@ -162,22 +158,22 @@ export function AdminPermissions() {
         <div>
           <CardTitle className="flex items-center gap-2">
             <Shield className="w-5 h-5" />
-            Permissões
+            Permissões e Papéis
           </CardTitle>
-          <CardDescription>Gerencie as funções e permissões dos usuários</CardDescription>
+          <CardDescription>Gerencie as funções conforme a hierarquia do plano de campanha</CardDescription>
         </div>
         <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
           <DialogTrigger asChild>
             <Button className="gap-2">
               <ShieldPlus className="w-4 h-4" />
-              Adicionar Função
+              Atribuir Função
             </Button>
           </DialogTrigger>
           <DialogContent>
             <DialogHeader>
-              <DialogTitle>Adicionar Função</DialogTitle>
+              <DialogTitle>Atribuir Nova Função</DialogTitle>
               <DialogDescription>
-                Selecione um usuário e a função a ser atribuída
+                Selecione o nível hierárquico do membro
               </DialogDescription>
             </DialogHeader>
             <div className="space-y-4 py-4">
@@ -195,17 +191,16 @@ export function AdminPermissions() {
                 </Select>
               </div>
               <div className="space-y-2">
-                <label className="text-sm font-medium">Função</label>
+                <label className="text-sm font-medium">Função (Papel)</label>
                 <Select value={selectedRole} onValueChange={(v) => setSelectedRole(v as AppRole)}>
                   <SelectTrigger>
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="supporter">Apoiador</SelectItem>
-                    <SelectItem value="coordinator">Coordenador</SelectItem>
-                    <SelectItem value="candidate">Candidato</SelectItem>
-                    <SelectItem value="admin">Administrador</SelectItem>
-                    <SelectItem value="master">Master</SelectItem>
+                    <SelectItem value="supporter">Apoiador / Voluntário</SelectItem>
+                    <SelectItem value="coordinator">Supervisor de Equipe</SelectItem>
+                    <SelectItem value="admin">Coordenador de Área</SelectItem>
+                    <SelectItem value="master">Coordenador Geral</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -219,7 +214,7 @@ export function AdminPermissions() {
                 disabled={!selectedUserId || addRoleMutation.isPending}
               >
                 {addRoleMutation.isPending && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
-                Adicionar
+                Confirmar
               </Button>
             </DialogFooter>
           </DialogContent>
@@ -230,7 +225,7 @@ export function AdminPermissions() {
           <TableHeader>
             <TableRow>
               <TableHead>Usuário</TableHead>
-              <TableHead>Função</TableHead>
+              <TableHead>Papel no Sistema</TableHead>
               <TableHead className="w-[100px]">Ações</TableHead>
             </TableRow>
           </TableHeader>
@@ -247,7 +242,11 @@ export function AdminPermissions() {
                   <Button 
                     variant="ghost" 
                     size="icon"
-                    onClick={() => removeRoleMutation.mutate(ur.id)}
+                    onClick={() => {
+                      if (confirm('Remover esta função?')) {
+                        removeRoleMutation.mutate(ur.id);
+                      }
+                    }}
                     disabled={removeRoleMutation.isPending}
                   >
                     <Trash2 className="w-4 h-4 text-destructive" />
@@ -257,11 +256,6 @@ export function AdminPermissions() {
             ))}
           </TableBody>
         </Table>
-        {userRoles?.length === 0 && (
-          <p className="text-center text-muted-foreground py-8">
-            Nenhuma função atribuída
-          </p>
-        )}
       </CardContent>
     </Card>
   );

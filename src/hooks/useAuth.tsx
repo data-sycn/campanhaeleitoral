@@ -22,6 +22,8 @@ interface AuthContextType {
   userRoles: AppRole[];
   loading: boolean;
   isAdmin: boolean;
+  isCoordinator: boolean;
+  isMaster: boolean;
   campanhaId: string | null;
   signUp: (email: string, password: string, name: string) => Promise<{ error: any }>;
   signIn: (email: string, password: string) => Promise<{ error: any }>;
@@ -154,6 +156,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   const isMaster = userRoles.includes('master');
   const isAdmin = userRoles.includes('admin') || isMaster;
+  const isCoordinator = userRoles.includes('coordinator') || isAdmin;
   const campanhaId = profile?.campanha_id ?? null;
 
   return (
@@ -164,6 +167,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       userRoles,
       loading: loading || profileLoading,
       isAdmin,
+      isCoordinator,
+      isMaster,
       campanhaId,
       signUp,
       signIn,

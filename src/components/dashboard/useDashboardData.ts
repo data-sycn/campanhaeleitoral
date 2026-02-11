@@ -52,8 +52,8 @@ interface ActiveCheckin {
 }
 
 export function useDashboardData(overrideCampanhaId?: string | null) {
-  const { profile, userRoles, campanhaId: profileCampanhaId } = useAuth();
-  const isMaster = userRoles.includes("master");
+  const { profile, userRoles, campanhaId: profileCampanhaId, isAdmin, isMaster } = useAuth();
+  const isCoordinator = userRoles.includes("coordinator");
 
   const campanhaId = isMaster && overrideCampanhaId ? overrideCampanhaId : profileCampanhaId;
 
@@ -68,12 +68,33 @@ export function useDashboardData(overrideCampanhaId?: string | null) {
   const [activeCheckins, setActiveCheckins] = useState<ActiveCheckin[]>([]);
   const [loading, setLoading] = useState(true);
 
-  const fetchStats = useCallback(async (cid: string) => {
+  // Função para buscar IDs da equipe (subordinados diretos)
+  const getTeamIds = useCallback(async () => {
+    if (!profile?.id) return [];
+    const { data } = await supabase
+      .from("profiles")
+      .select("id")
+      .eq("parent_id", profile.id);
+    return [profile.id, ...(data?.map(p => p.id) || [])];
+  }, [profile]);
+
+  const fetchStats = useCallback(async (cid: string, teamIds?: string[]) => {
+    let budgetsQuery = supabase.from("budgets").select("total_planned").eq("campanha_id", cid);
+    let expensesQuery = supabase.from("expenses").select("amount").eq("campanha_id", cid);
+    let supportersQuery = supabase.from("supporters").select("id").eq("campanha_id", cid);
+    let reportsQuery = supabase.from("reports").select("id").eq("campanha_id", cid);
+
+    // Se for coordenador (supervisor), filtra apenas dados da equipe
+    if (isCoordinator && !isAdmin && teamIds) {
+      expensesQuery = expensesQuery.in("created_by", teamIds);
+      // Supporters não tem created_by direto na tabela, mas podemos filtrar por lógica de negócio se necessário
+    }
+
     const [budgetsRes, expensesRes, supportersRes, reportsRes] = await Promise.all([
-      supabase.from("budgets").select("total_planned").eq("campanha_id", cid),
-      supabase.from("expenses").select("amount").eq("campanha_id", cid),
-      supabase.from("supporters").select("id").eq("campanha_id", cid),
-      supabase.from("reports").select("id").eq("campanha_id", cid),
+      budgetsQuery,
+      expensesQuery,
+      supportersQuery,
+      reportsQuery,
     ]);
 
     const totalBudget = budgetsRes.data?.reduce((s, b) => s + Number(b.total_planned), 0) || 0;
@@ -87,7 +108,7 @@ export function useDashboardData(overrideCampanhaId?: string | null) {
       supportersCount: supportersRes.data?.length || 0,
       reportsCount: reportsRes.data?.length || 0,
     });
-  }, []);
+  }, [isCoordinator, isAdmin]);
 
   const fetchExecution = useCallback(async (cid: string) => {
     const { data } = await supabase
@@ -116,21 +137,33 @@ export function useDashboardData(overrideCampanhaId?: string | null) {
     }
   }, []);
 
-  const fetchAudit = useCallback(async () => {
-    const { data } = await supabase
+  const fetchAudit = useCallback(async (teamIds?: string[]) => {
+    let query = supabase
       .from("audit_log")
       .select("*")
       .order("created_at", { ascending: false })
       .limit(50);
-    setAuditData((data as AuditEntry[]) || []);
-  }, []);
 
-  const fetchActiveCheckins = useCallback(async (cid: string) => {
-    const { data } = await supabase
+    if (isCoordinator && !isAdmin && teamIds) {
+      query = query.in("user_id", teamIds);
+    }
+
+    const { data } = await query;
+    setAuditData((data as AuditEntry[]) || []);
+  }, [isCoordinator, isAdmin]);
+
+  const fetchActiveCheckins = useCallback(async (cid: string, teamIds?: string[]) => {
+    let query = supabase
       .from("street_checkins")
       .select("streets(cidade, bairro)")
       .eq("status", "active")
       .eq("campanha_id", cid);
+
+    if (isCoordinator && !isAdmin && teamIds) {
+      query = query.in("user_id", teamIds);
+    }
+
+    const { data } = await query;
 
     if (data) {
       const map = new Map<string, ActiveCheckin>();
@@ -144,7 +177,7 @@ export function useDashboardData(overrideCampanhaId?: string | null) {
       });
       setActiveCheckins(Array.from(map.values()).sort((a, b) => b.count - a.count));
     }
-  }, []);
+  }, [isCoordinator, isAdmin]);
 
   const fetchAll = useCallback(async () => {
     if (!campanhaId) {
@@ -153,17 +186,19 @@ export function useDashboardData(overrideCampanhaId?: string | null) {
     }
     setLoading(true);
     try {
+      const teamIds = isCoordinator && !isAdmin ? await getTeamIds() : undefined;
+
       await Promise.all([
-        fetchStats(campanhaId),
+        fetchStats(campanhaId, teamIds),
         fetchExecution(campanhaId),
         fetchSupporters(campanhaId),
-        fetchAudit(),
-        fetchActiveCheckins(campanhaId),
+        fetchAudit(teamIds),
+        fetchActiveCheckins(campanhaId, teamIds),
       ]);
     } finally {
       setLoading(false);
     }
-  }, [campanhaId, profile, fetchStats, fetchExecution, fetchSupporters, fetchAudit, fetchActiveCheckins]);
+  }, [campanhaId, profile, fetchStats, fetchExecution, fetchSupporters, fetchAudit, fetchActiveCheckins, isCoordinator, isAdmin, getTeamIds]);
 
   useEffect(() => {
     fetchAll();

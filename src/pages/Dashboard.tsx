@@ -4,7 +4,7 @@ import { Navbar } from "@/components/Navbar";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
-import { DollarSign, Users, FileText, BarChart3, PieChart, Shield, TrendingUp, AlertTriangle, Trophy } from "lucide-react";
+import { DollarSign, Users, FileText, BarChart3, PieChart, Shield, TrendingUp, AlertTriangle, Trophy, Receipt } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { useDashboardData } from "@/components/dashboard/useDashboardData";
 import { useRecurrenceAlerts, useEffectivenessRanking } from "@/components/dashboard/useDashboardAlerts";
@@ -15,6 +15,7 @@ import { SupportersHeatmap } from "@/components/dashboard/SupportersHeatmap";
 import { LeafletHeatmap } from "@/components/dashboard/LeafletHeatmap";
 import { SimultaneityWidget } from "@/components/dashboard/SimultaneityWidget";
 import { AuditTimeline } from "@/components/dashboard/AuditTimeline";
+import { BudgetExpenses } from "@/components/budget/BudgetExpenses";
 import {
   PieChart as RechartsPieChart,
   Pie,
@@ -86,6 +87,7 @@ const Dashboard = () => {
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
           <TabsList>
             <TabsTrigger value="overview" className="gap-2"><BarChart3 className="w-4 h-4" /> Visão Geral</TabsTrigger>
+            <TabsTrigger value="expenses" className="gap-2"><Receipt className="w-4 h-4" /> Despesas</TabsTrigger>
             <TabsTrigger value="charts" className="gap-2"><PieChart className="w-4 h-4" /> Gráficos</TabsTrigger>
             <TabsTrigger value="audit" className="gap-2"><Shield className="w-4 h-4" /> Auditoria</TabsTrigger>
           </TabsList>
@@ -194,6 +196,10 @@ const Dashboard = () => {
               <BudgetExecutionChart data={budgetExecution} loading={false} />
               <SupportersHeatmap data={heatmapData} loading={false} />
             </div>
+          </TabsContent>
+
+          <TabsContent value="expenses">
+            <BudgetExpenses />
           </TabsContent>
 
           <TabsContent value="charts" className="space-y-6">

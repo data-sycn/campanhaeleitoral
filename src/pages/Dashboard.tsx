@@ -4,7 +4,7 @@ import { Navbar } from "@/components/Navbar";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
-import { DollarSign, Users, FileText, BarChart3, PieChart, Shield, TrendingUp, AlertTriangle, Trophy, Receipt } from "lucide-react";
+import { DollarSign, Users, FileText, BarChart3, PieChart, Shield, TrendingUp, AlertTriangle, Trophy } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { useDashboardData } from "@/components/dashboard/useDashboardData";
 import { useRecurrenceAlerts, useEffectivenessRanking } from "@/components/dashboard/useDashboardAlerts";
@@ -15,17 +15,6 @@ import { SupportersHeatmap } from "@/components/dashboard/SupportersHeatmap";
 import { LeafletHeatmap } from "@/components/dashboard/LeafletHeatmap";
 import { SimultaneityWidget } from "@/components/dashboard/SimultaneityWidget";
 import { AuditTimeline } from "@/components/dashboard/AuditTimeline";
-import { BudgetExpenses } from "@/components/budget/BudgetExpenses";
-import {
-  PieChart as RechartsPieChart,
-  Pie,
-  Cell,
-  Legend,
-  Tooltip,
-  ResponsiveContainer,
-} from "recharts";
-
-const COLORS = ["hsl(var(--chart-1))", "hsl(var(--chart-2))", "hsl(var(--chart-3))", "hsl(var(--chart-4))", "hsl(var(--chart-5))"];
 
 const Dashboard = () => {
   const { userRoles } = useAuth();
@@ -42,16 +31,9 @@ const Dashboard = () => {
     value.toLocaleString("pt-BR", { style: "currency", currency: "BRL", minimumFractionDigits: 0, maximumFractionDigits: 0 });
 
   const kpis = [
-    { title: "Orçamento Total", value: formatCurrency(stats.totalBudget), icon: DollarSign, color: "text-green-600", bgColor: "bg-green-500/10" },
-    { title: "Despesas", value: formatCurrency(stats.totalExpenses), icon: TrendingUp, color: "text-red-600", bgColor: "bg-red-500/10" },
     { title: "Apoiadores", value: stats.supportersCount.toString(), icon: Users, color: "text-purple-600", bgColor: "bg-purple-500/10" },
     { title: "Relatórios", value: stats.reportsCount.toString(), icon: FileText, color: "text-orange-600", bgColor: "bg-orange-500/10" },
   ];
-
-  const categoryData = budgetExecution.map((b) => ({
-    name: `${b.year}`,
-    value: Number(b.total_spent) || 1,
-  }));
 
   if (loading) {
     return (
@@ -87,8 +69,6 @@ const Dashboard = () => {
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
           <TabsList>
             <TabsTrigger value="overview" className="gap-2"><BarChart3 className="w-4 h-4" /> Visão Geral</TabsTrigger>
-            <TabsTrigger value="expenses" className="gap-2"><Receipt className="w-4 h-4" /> Despesas</TabsTrigger>
-            <TabsTrigger value="charts" className="gap-2"><PieChart className="w-4 h-4" /> Gráficos</TabsTrigger>
             <TabsTrigger value="audit" className="gap-2"><Shield className="w-4 h-4" /> Auditoria</TabsTrigger>
           </TabsList>
 
@@ -198,59 +178,6 @@ const Dashboard = () => {
             </div>
           </TabsContent>
 
-          <TabsContent value="expenses">
-            <BudgetExpenses />
-          </TabsContent>
-
-          <TabsContent value="charts" className="space-y-6">
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              <Card>
-                <CardHeader><CardTitle>Distribuição de Gastos</CardTitle></CardHeader>
-                <CardContent>
-                  <div className="h-80">
-                    {categoryData.length > 0 ? (
-                      <ResponsiveContainer width="100%" height="100%">
-                        <RechartsPieChart>
-                          <Pie data={categoryData} cx="50%" cy="50%" labelLine={false}
-                            label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
-                            outerRadius={100} dataKey="value">
-                            {categoryData.map((_, i) => <Cell key={i} fill={COLORS[i % COLORS.length]} />)}
-                          </Pie>
-                          <Tooltip /><Legend />
-                        </RechartsPieChart>
-                      </ResponsiveContainer>
-                    ) : (
-                      <div className="flex items-center justify-center h-full text-muted-foreground text-sm">Sem dados</div>
-                    )}
-                  </div>
-                </CardContent>
-              </Card>
-
-              <Card>
-                <CardHeader><CardTitle>Resumo Financeiro</CardTitle></CardHeader>
-                <CardContent className="space-y-4">
-                  <div className="flex justify-between items-center p-4 bg-green-500/10 rounded-lg">
-                    <span className="font-medium">Orçamento Planejado</span>
-                    <span className="text-xl font-bold text-green-600">{formatCurrency(stats.totalBudget)}</span>
-                  </div>
-                  <div className="flex justify-between items-center p-4 bg-red-500/10 rounded-lg">
-                    <span className="font-medium">Total Gasto</span>
-                    <span className="text-xl font-bold text-red-600">{formatCurrency(stats.totalExpenses)}</span>
-                  </div>
-                  <div className="flex justify-between items-center p-4 bg-blue-500/10 rounded-lg">
-                    <span className="font-medium">Saldo Disponível</span>
-                    <span className="text-xl font-bold text-blue-600">{formatCurrency(stats.totalBudget - stats.totalExpenses)}</span>
-                  </div>
-                  <div className="flex justify-between items-center p-4 bg-purple-500/10 rounded-lg">
-                    <span className="font-medium">% Utilizado</span>
-                    <span className="text-xl font-bold text-purple-600">
-                      {stats.totalBudget > 0 ? ((stats.totalExpenses / stats.totalBudget) * 100).toFixed(1) : 0}%
-                    </span>
-                  </div>
-                </CardContent>
-              </Card>
-            </div>
-          </TabsContent>
 
           <TabsContent value="audit">
             <AuditTimeline data={auditData} loading={false} />

@@ -10,6 +10,7 @@ interface Profile {
   id: string;
   name: string;
   candidate_id: string | null;
+  campanha_id: string | null;
   created_at: string;
   updated_at: string;
 }
@@ -28,6 +29,7 @@ interface AuthContextType {
   userRoles: AppRole[];
   loading: boolean;
   isAdmin: boolean;
+  campanhaId: string | null;
   selectedCandidate: SelectedCandidate | null;
   needsCandidateSelection: boolean;
   signUp: (email: string, password: string, name: string) => Promise<{ error: any }>;
@@ -111,7 +113,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   }, []);
 
   useEffect(() => {
-    // Setup auth state listener FIRST (sync callback to avoid deadlock)
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       (event, session) => {
         setSession(session);
@@ -119,7 +120,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         setUser(currentUser);
 
         if (currentUser) {
-          // Defer Supabase calls with setTimeout to avoid deadlock
           setTimeout(() => {
             Promise.all([
               fetchProfile(currentUser.id),
@@ -135,7 +135,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       }
     );
 
-    // THEN check for existing session
     supabase.auth.getSession().then(({ data: { session } }) => {
       setSession(session);
       const currentUser = session?.user ?? null;
@@ -179,7 +178,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   const signOut = async () => {
     if (user) {
-      // Limpa o candidato no banco ao sair para forçar nova seleção no próximo login
       await supabase
         .from('profiles')
         .update({ candidate_id: null })
@@ -214,18 +212,18 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     setProfile(prev => prev ? { ...prev, candidate_id: null } : null);
   };
 
-  // Master é o super usuário que passa direto
   const isMaster = userRoles.includes('master');
-  // Admin inclui tanto 'admin' quanto 'master' para permissões administrativas
   const isAdmin = userRoles.includes('admin') || isMaster;
   
-  // Apenas MASTER passa direto; outros precisam selecionar candidato se não tiverem candidate_id
   const needsCandidateSelection = 
     !!user && 
     !loading && 
     !profileLoading && 
     !isMaster && 
     !profile?.candidate_id;
+
+  // campanha_id is the primary filter for all data
+  const campanhaId = profile?.campanha_id ?? null;
 
   return (
     <AuthContext.Provider value={{
@@ -235,6 +233,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       userRoles,
       loading: loading || profileLoading,
       isAdmin,
+      campanhaId,
       selectedCandidate,
       needsCandidateSelection,
       signUp,

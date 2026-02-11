@@ -9,6 +9,8 @@ import { ModuleSwitcher } from "@/components/navigation/ModuleSwitcher";
 import { CampaignSelector } from "@/components/dashboard/CampaignSelector";
 import { BudgetExecutionChart } from "@/components/dashboard/BudgetExecutionChart";
 import { SupportersHeatmap } from "@/components/dashboard/SupportersHeatmap";
+import { LeafletHeatmap } from "@/components/dashboard/LeafletHeatmap";
+import { SimultaneityWidget } from "@/components/dashboard/SimultaneityWidget";
 import { AuditTimeline } from "@/components/dashboard/AuditTimeline";
 import {
   PieChart as RechartsPieChart,
@@ -25,7 +27,7 @@ const Dashboard = () => {
   const { userRoles } = useAuth();
   const isMaster = userRoles.includes("master");
   const [campanhaId, setCampanhaId] = useState<string | null>(null);
-  const { stats, budgetExecution, heatmapData, auditData, loading } = useDashboardData(campanhaId);
+  const { stats, budgetExecution, supporterPoints, heatmapData, auditData, activeCheckins, loading } = useDashboardData(campanhaId);
   const [activeTab, setActiveTab] = useState("overview");
 
   const formatCurrency = (value: number) =>
@@ -68,8 +70,8 @@ const Dashboard = () => {
 
         <div className="mb-8 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div>
-            <h1 className="text-3xl font-bold">Dashboard</h1>
-            <p className="text-muted-foreground">Visão geral da campanha</p>
+            <h1 className="text-3xl font-bold">Dossiê de Bolso</h1>
+            <p className="text-muted-foreground">Visão executiva da campanha</p>
           </div>
           {isMaster && <CampaignSelector value={campanhaId} onChange={setCampanhaId} />}
         </div>
@@ -99,7 +101,15 @@ const Dashboard = () => {
               ))}
             </div>
 
-            {/* Budget Execution Chart + Heatmap */}
+            {/* Leaflet Map + Simultaneity Widget */}
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+              <div className="lg:col-span-2">
+                <LeafletHeatmap data={supporterPoints} loading={false} />
+              </div>
+              <SimultaneityWidget data={activeCheckins} loading={false} />
+            </div>
+
+            {/* Budget Execution + Text Heatmap */}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
               <BudgetExecutionChart data={budgetExecution} loading={false} />
               <SupportersHeatmap data={heatmapData} loading={false} />
@@ -108,7 +118,6 @@ const Dashboard = () => {
 
           <TabsContent value="charts" className="space-y-6">
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              {/* Pie Chart - Gastos por ano */}
               <Card>
                 <CardHeader><CardTitle>Distribuição de Gastos</CardTitle></CardHeader>
                 <CardContent>
@@ -131,7 +140,6 @@ const Dashboard = () => {
                 </CardContent>
               </Card>
 
-              {/* Summary Card */}
               <Card>
                 <CardHeader><CardTitle>Resumo Financeiro</CardTitle></CardHeader>
                 <CardContent className="space-y-4">

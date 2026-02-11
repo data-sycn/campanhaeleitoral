@@ -368,6 +368,81 @@ export type Database = {
           },
         ]
       }
+      resource_requests: {
+        Row: {
+          aprovado_em: string | null
+          aprovado_por: string | null
+          bairro: string | null
+          campanha_id: string
+          cidade: string | null
+          created_at: string
+          descricao: string
+          expense_id: string | null
+          id: string
+          localidade: string
+          notes: string | null
+          quantidade: number
+          status: string
+          tipo: string
+          updated_at: string
+          user_id: string
+          valor_estimado: number
+        }
+        Insert: {
+          aprovado_em?: string | null
+          aprovado_por?: string | null
+          bairro?: string | null
+          campanha_id: string
+          cidade?: string | null
+          created_at?: string
+          descricao: string
+          expense_id?: string | null
+          id?: string
+          localidade: string
+          notes?: string | null
+          quantidade?: number
+          status?: string
+          tipo: string
+          updated_at?: string
+          user_id: string
+          valor_estimado?: number
+        }
+        Update: {
+          aprovado_em?: string | null
+          aprovado_por?: string | null
+          bairro?: string | null
+          campanha_id?: string
+          cidade?: string | null
+          created_at?: string
+          descricao?: string
+          expense_id?: string | null
+          id?: string
+          localidade?: string
+          notes?: string | null
+          quantidade?: number
+          status?: string
+          tipo?: string
+          updated_at?: string
+          user_id?: string
+          valor_estimado?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "resource_requests_campanha_id_fkey"
+            columns: ["campanha_id"]
+            isOneToOne: false
+            referencedRelation: "campanhas"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "resource_requests_expense_id_fkey"
+            columns: ["expense_id"]
+            isOneToOne: false
+            referencedRelation: "expenses"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       spatial_ref_sys: {
         Row: {
           auth_name: string | null
@@ -391,6 +466,104 @@ export type Database = {
           srtext?: string | null
         }
         Relationships: []
+      }
+      street_checkins: {
+        Row: {
+          campanha_id: string
+          created_at: string
+          ended_at: string | null
+          geolocation: unknown
+          id: string
+          notes: string | null
+          started_at: string
+          status: string
+          street_id: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          campanha_id: string
+          created_at?: string
+          ended_at?: string | null
+          geolocation?: unknown
+          id?: string
+          notes?: string | null
+          started_at?: string
+          status?: string
+          street_id: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          campanha_id?: string
+          created_at?: string
+          ended_at?: string | null
+          geolocation?: unknown
+          id?: string
+          notes?: string | null
+          started_at?: string
+          status?: string
+          street_id?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "street_checkins_campanha_id_fkey"
+            columns: ["campanha_id"]
+            isOneToOne: false
+            referencedRelation: "campanhas"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "street_checkins_street_id_fkey"
+            columns: ["street_id"]
+            isOneToOne: false
+            referencedRelation: "streets"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      streets: {
+        Row: {
+          bairro: string | null
+          campanha_id: string
+          cep: string | null
+          cidade: string | null
+          created_at: string
+          estado: string | null
+          id: string
+          nome: string
+        }
+        Insert: {
+          bairro?: string | null
+          campanha_id: string
+          cep?: string | null
+          cidade?: string | null
+          created_at?: string
+          estado?: string | null
+          id?: string
+          nome: string
+        }
+        Update: {
+          bairro?: string | null
+          campanha_id?: string
+          cep?: string | null
+          cidade?: string | null
+          created_at?: string
+          estado?: string | null
+          id?: string
+          nome?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "streets_campanha_id_fkey"
+            columns: ["campanha_id"]
+            isOneToOne: false
+            referencedRelation: "campanhas"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       supporters: {
         Row: {

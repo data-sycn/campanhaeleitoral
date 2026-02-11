@@ -7,6 +7,7 @@ import { useToast } from "@/hooks/use-toast";
 import { FileText, Download, BarChart3, PieChart, TrendingUp } from "lucide-react";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart as RechartsPieChart, Cell } from 'recharts';
 import { ModuleSwitcher } from "@/components/navigation/ModuleSwitcher";
+import { Navbar } from "@/components/Navbar";
 
 interface ExpenseData {
   category: string;
@@ -20,7 +21,7 @@ interface MonthlyData {
 }
 
 const Reports = () => {
-  const { user } = useAuth();
+  const { user, campanhaId } = useAuth();
   const { toast } = useToast();
   const [loading, setLoading] = useState(true);
   const [expensesByCategory, setExpensesByCategory] = useState<ExpenseData[]>([]);
@@ -45,25 +46,23 @@ const Reports = () => {
 
   useEffect(() => {
     fetchReportData();
-  }, [user]);
+  }, [user, campanhaId]);
 
   const fetchReportData = async () => {
     if (!user) return;
 
     try {
-      // Fetch expenses data
-      const { data: expenses, error: expensesError } = await supabase
-        .from('expenses')
-        .select('category, amount, date');
+      // Fetch expenses data filtered by campanha_id
+      let expQuery = supabase.from('expenses').select('category, amount, date');
+      if (campanhaId) expQuery = expQuery.eq('campanha_id', campanhaId);
+      const { data: expenses, error: expensesError } = await expQuery;
 
       if (expensesError) throw expensesError;
 
-      // Fetch budget data
-      const { data: budgets, error: budgetsError } = await supabase
-        .from('budgets')
-        .select('total_planned')
-        .eq('active', true)
-        .single();
+      // Fetch budget data filtered by campanha_id
+      let budgetQuery = supabase.from('budgets').select('total_planned').eq('active', true);
+      if (campanhaId) budgetQuery = budgetQuery.eq('campanha_id', campanhaId);
+      const { data: budgets, error: budgetsError } = await budgetQuery.single();
 
       if (budgetsError && budgetsError.code !== 'PGRST116') throw budgetsError;
 
@@ -130,20 +129,25 @@ const Reports = () => {
 
   if (loading) {
     return (
-      <div className="container mx-auto px-4 py-8">
-        <div className="animate-pulse space-y-4">
-          <div className="h-8 bg-muted rounded w-1/4"></div>
-          <div className="h-32 bg-muted rounded"></div>
+      <div className="min-h-screen bg-background">
+        <Navbar />
+        <div className="container mx-auto px-4 py-8">
+          <div className="animate-pulse space-y-4">
+            <div className="h-8 bg-muted rounded w-1/4"></div>
+            <div className="h-32 bg-muted rounded"></div>
+          </div>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="container mx-auto px-4 py-8">
-      <div className="mb-6">
-        <ModuleSwitcher />
-      </div>
+    <div className="min-h-screen bg-background">
+      <Navbar />
+      <div className="container mx-auto px-4 py-8">
+        <div className="mb-6">
+          <ModuleSwitcher />
+        </div>
 
       <div className="flex items-center justify-between mb-8">
         <div>
@@ -330,6 +334,7 @@ const Reports = () => {
           </div>
         </CardContent>
       </Card>
+    </div>
     </div>
   );
 };

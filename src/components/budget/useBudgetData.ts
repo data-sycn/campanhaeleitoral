@@ -19,7 +19,7 @@ export interface BudgetFormData {
 }
 
 export function useBudgetData() {
-  const { user } = useAuth();
+  const { user, campanhaId, profile } = useAuth();
   const { toast } = useToast();
   const [budgets, setBudgets] = useState<Budget[]>([]);
   const [loading, setLoading] = useState(true);
@@ -29,10 +29,16 @@ export function useBudgetData() {
     if (!user) return;
 
     try {
-      const { data, error } = await supabase
+      let query = supabase
         .from('budgets')
         .select('*')
         .order('year', { ascending: false });
+
+      if (campanhaId) {
+        query = query.eq('campanha_id', campanhaId);
+      }
+
+      const { data, error } = await query;
 
       if (error) {
         toast({
@@ -56,12 +62,6 @@ export function useBudgetData() {
     setCreating(true);
 
     try {
-      const { data: profile } = await supabase
-        .from('profiles')
-        .select('candidate_id')
-        .eq('id', user.id)
-        .single();
-
       if (!profile?.candidate_id) {
         toast({
           title: "Erro",
@@ -75,6 +75,7 @@ export function useBudgetData() {
         .from('budgets')
         .insert({
           candidate_id: profile.candidate_id,
+          campanha_id: campanhaId,
           year: formData.year,
           total_planned: parseFloat(formData.total_planned),
           notes: formData.notes || null,
@@ -107,7 +108,7 @@ export function useBudgetData() {
 
   useEffect(() => {
     fetchBudgets();
-  }, [user]);
+  }, [user, campanhaId]);
 
   const activeBudget = budgets.find(b => b.active);
   const totalPlanned = budgets.reduce((sum, b) => sum + b.total_planned, 0);

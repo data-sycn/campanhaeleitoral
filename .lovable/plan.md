@@ -1,132 +1,84 @@
 
-# Reconstruir Dashboard Principal do CampanhaGov
+
+# Plano: Completar Migração campanha_id nos Módulos Pendentes
 
 ## Resumo
 
-Reestruturar o Dashboard com 4 grandes melhorias: Seletor de Campanha para Master, Mapa de Calor de apoiadores, grafico Orcamento vs Gasto Real, e Linha do Tempo de Auditoria.
+Tres modulos ainda usam o modelo antigo de `candidate_id` e precisam ser migrados para filtrar por `campanha_id`: **Supporters**, **Budget (useBudgetData)** e **Reports**. Alem disso, o modulo **Expenses** precisa de ajuste no insert. Quatro paginas estao sem o componente `<Navbar />`.
 
 ---
 
-## 1. Criar View `v_execucao_orcamentaria` no Banco de Dados
+## 1. Migrar Supporters.tsx
 
-A view nao existe ainda. Sera criada via migracao SQL:
+**Problema**: Busca apoiadores via `profiles.candidate_id` (modelo antigo). Deveria consultar a tabela `supporters` filtrada por `campanha_id`.
 
-```sql
-CREATE OR REPLACE VIEW public.v_execucao_orcamentaria AS
-SELECT 
-  b.id AS budget_id,
-  b.candidate_id,
-  b.year,
-  b.total_planned,
-  b.campanha_id,
-  COALESCE(SUM(e.amount), 0) AS total_spent,
-  b.total_planned - COALESCE(SUM(e.amount), 0) AS saldo,
-  CASE 
-    WHEN b.total_planned > 0 
-    THEN ROUND((COALESCE(SUM(e.amount), 0) / b.total_planned) * 100, 2)
-    ELSE 0 
-  END AS percentual_executado
-FROM budgets b
-LEFT JOIN expenses e ON e.candidate_id = b.candidate_id
-WHERE b.active = true
-GROUP BY b.id, b.candidate_id, b.year, b.total_planned, b.campanha_id;
-```
-
-Tambem sera necessario aplicar RLS na view ou criar uma funcao RPC para acesso seguro.
+**Solucao**:
+- Importar `campanhaId` do `useAuth()`
+- Substituir a query de `profiles` pela tabela `supporters` com filtro `.eq("campanha_id", campanhaId)`
+- Atualizar a interface para refletir os campos da tabela `supporters` (nome, telefone, email, bairro, cidade, geolocation)
+- Adicionar `<Navbar />` no topo da pagina
 
 ---
 
-## 2. Seletor de Campanha no Cabecalho (Master Only)
+## 2. Migrar useBudgetData.ts
 
-**Novo componente**: `src/components/dashboard/CampaignSelector.tsx`
+**Problema**: Nao filtra por `campanha_id` na leitura; usa `candidate_id` no insert.
 
-- Dropdown no cabecalho do Dashboard (abaixo do titulo, nao na Navbar)
-- Visivel apenas para usuarios com role `master`
-- Consulta a tabela `campanhas` para listar todas as campanhas disponiveis
-- Ao selecionar, filtra todos os dados do dashboard pela `campanha_id` escolhida
-- Estado gerenciado localmente no Dashboard com `useState`
-
-**Dados**: `SELECT id, nome, partido, municipio, uf FROM campanhas WHERE deleted_at IS NULL`
+**Solucao**:
+- Receber `campanhaId` como parametro ou obte-lo via `useAuth()`
+- Adicionar `.eq("campanha_id", campanhaId)` na query de leitura
+- No `createBudget`, usar `campanha_id` no insert ao inves de buscar `candidate_id` do profile
+- Adicionar `<Navbar />` na pagina Budget.tsx
 
 ---
 
-## 3. Widget de Mapa de Calor de Apoiadores
+## 3. Migrar Reports.tsx
 
-**Novo componente**: `src/components/dashboard/SupportersHeatmap.tsx`
+**Problema**: Queries de `expenses` e `budgets` nao filtram por `campanha_id`.
 
-- Usa a tabela `supporters` (colunas `latitude`, `longitude`)
-- Como nao podemos usar bibliotecas de mapas nativos (Leaflet, Google Maps) sem instalar dependencias, sera implementado como um **mapa visual simplificado**:
-  - Tabela agrupada por cidade/bairro com contagem de apoiadores
-  - Barras horizontais representando concentracao
-  - Indicador visual de "calor" com gradiente de cores
-- Caso futuramente queira um mapa real, sera necessario instalar `react-leaflet`
-- Consulta: `SELECT cidade, bairro, COUNT(*) as total FROM supporters WHERE campanha_id = ? GROUP BY cidade, bairro ORDER BY total DESC`
+**Solucao**:
+- Importar `campanhaId` do `useAuth()`
+- Adicionar `.eq("campanha_id", campanhaId)` nas queries de expenses e budgets
+- Adicionar `<Navbar />` no topo da pagina
 
 ---
 
-## 4. Grafico Orcamento vs Gasto Real
+## 4. Corrigir Insert do Expenses.tsx
 
-**Novo componente**: `src/components/dashboard/BudgetExecutionChart.tsx`
+**Problema**: O insert ainda busca `candidate_id` do profile (linha 91). Deveria usar apenas `campanha_id`.
 
-- Consome a view `v_execucao_orcamentaria` via Supabase
-- Grafico de barras lado a lado (Recharts - ja instalado) mostrando:
-  - Barra verde: `total_planned` (Orcamento)
-  - Barra vermelha: `total_spent` (Gasto Real)
-- Substitui o grafico atual que usa dados mockados
-- Inclui tooltips com valores formatados em BRL
+**Solucao**:
+- Remover a dependencia de `profile.candidate_id` para validacao
+- Manter `candidate_id` no insert se a coluna ainda for obrigatoria no banco, mas usar `campanhaId` como filtro principal
+- Adicionar `<Navbar />` no topo da pagina
 
 ---
 
-## 5. Aba de Linha do Tempo de Auditoria
+## 5. Adicionar Navbar nas Paginas
 
-**Novo componente**: `src/components/dashboard/AuditTimeline.tsx`
+As seguintes paginas nao possuem o componente `<Navbar />`:
+- `Supporters.tsx` (linha 148 - falta wrapper)
+- `Expenses.tsx` (linha 136 - falta Navbar)
+- `Budget.tsx` (linha 47 - falta Navbar)
+- `Reports.tsx` (linha 142 - falta Navbar)
 
-- Nova aba "Auditoria" nas tabs do Dashboard
-- Consulta as ultimas 50 acoes da tabela `audit_log`
-- Layout em timeline vertical com:
-  - Icone por tipo de acao (INSERT, UPDATE, DELETE)
-  - Tabela afetada (`table_name`)
-  - Data/hora formatada (`created_at`)
-  - Resumo dos dados alterados (campo `new_data` simplificado)
-- Master ve todos os logs; outros usuarios veem apenas os proprios
+Todas receberao o wrapper `<div className="min-h-screen bg-background"><Navbar />...</div>`.
 
 ---
 
-## 6. Reestruturar o Dashboard.tsx
+## Arquivos a Modificar
 
-O arquivo principal sera atualizado para:
-
-- Adicionar 3 abas: "Visao Geral", "Graficos", "Auditoria"
-- Integrar `CampaignSelector` no topo (condicional para Master)
-- Substituir dados mockados pelo hook atualizado
-- Adicionar os novos componentes nas abas correspondentes
-
----
-
-## 7. Atualizar `useDashboardData.ts`
-
-- Adicionar parametro opcional `campanhaId` para filtrar por campanha (Master)
-- Adicionar fetch da view `v_execucao_orcamentaria`
-- Adicionar fetch de `supporters` agrupados por cidade
-- Adicionar fetch de `audit_log`
+| Arquivo | Mudanca |
+|---------|---------|
+| `src/pages/Supporters.tsx` | Migrar para `supporters` table + `campanha_id` + Navbar |
+| `src/components/budget/useBudgetData.ts` | Adicionar filtro `campanha_id` |
+| `src/pages/Budget.tsx` | Adicionar Navbar |
+| `src/pages/Reports.tsx` | Adicionar filtro `campanha_id` + Navbar |
+| `src/pages/Expenses.tsx` | Corrigir insert + Navbar |
 
 ---
 
-## Arquivos a Criar/Modificar
+## Resultado Esperado
 
-| Arquivo | Acao |
-|---------|------|
-| Migration SQL (v_execucao_orcamentaria) | Criar |
-| `src/components/dashboard/CampaignSelector.tsx` | Criar |
-| `src/components/dashboard/SupportersHeatmap.tsx` | Criar |
-| `src/components/dashboard/BudgetExecutionChart.tsx` | Criar |
-| `src/components/dashboard/AuditTimeline.tsx` | Criar |
-| `src/components/dashboard/useDashboardData.ts` | Modificar |
-| `src/pages/Dashboard.tsx` | Modificar |
-| `src/integrations/supabase/types.ts` | Atualizar (pos-migracao) |
+Apos essa implementacao, **100% dos modulos** estarao filtrando por `campanha_id`, completando a migracao para o modelo Multi-Candidato (SaaS). Todas as paginas terao navegacao consistente com Navbar.
 
----
-
-## Observacao sobre o Mapa de Calor
-
-A tabela `supporters` possui colunas `latitude`, `longitude` e `geolocation`, porem atualmente nao ha registros. O componente sera construido pronto para funcionar assim que dados forem inseridos. Para um mapa interativo real (tipo Google Maps/Leaflet), sera necessaria a instalacao de uma biblioteca adicional em um passo futuro.

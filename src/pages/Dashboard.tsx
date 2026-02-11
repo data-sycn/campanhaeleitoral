@@ -10,7 +10,6 @@ import { useDashboardData } from "@/components/dashboard/useDashboardData";
 import { useRecurrenceAlerts, useEffectivenessRanking } from "@/components/dashboard/useDashboardAlerts";
 import { DashboardModuleGrid } from "@/components/dashboard/DashboardModuleGrid";
 import { CampaignSelector } from "@/components/dashboard/CampaignSelector";
-import { BudgetExecutionChart } from "@/components/dashboard/BudgetExecutionChart";
 import { SupportersHeatmap } from "@/components/dashboard/SupportersHeatmap";
 import { LeafletHeatmap } from "@/components/dashboard/LeafletHeatmap";
 import { SimultaneityWidget } from "@/components/dashboard/SimultaneityWidget";
@@ -20,7 +19,7 @@ const Dashboard = () => {
   const { userRoles } = useAuth();
   const isMaster = userRoles.includes("master");
   const [campanhaId, setCampanhaId] = useState<string | null>(null);
-  const { stats, budgetExecution, supporterPoints, heatmapData, auditData, activeCheckins, loading } = useDashboardData(campanhaId);
+  const { stats, supporterPoints, heatmapData, auditData, activeCheckins, loading } = useDashboardData(campanhaId);
   const [activeTab, setActiveTab] = useState("overview");
   const navigate = useNavigate();
 
@@ -171,11 +170,8 @@ const Dashboard = () => {
               <SimultaneityWidget data={activeCheckins} loading={false} />
             </div>
 
-            {/* Budget Execution + Text Heatmap */}
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              <BudgetExecutionChart data={budgetExecution} loading={false} />
-              <SupportersHeatmap data={heatmapData} loading={false} />
-            </div>
+            {/* Supporters Heatmap */}
+            <SupportersHeatmap data={heatmapData} loading={false} />
           </TabsContent>
 
 

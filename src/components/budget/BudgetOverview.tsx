@@ -2,6 +2,19 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { DollarSign, TrendingUp, TrendingDown, AlertTriangle } from "lucide-react";
 import { Budget } from "./useBudgetData";
+import { BudgetExecutionChart } from "@/components/dashboard/BudgetExecutionChart";
+import { useAuth } from "@/hooks/useAuth";
+import { useEffect, useState } from "react";
+import { supabase } from "@/integrations/supabase/client";
+
+interface BudgetExecution {
+  budget_id: string;
+  year: number;
+  total_planned: number;
+  total_spent: number;
+  saldo: number;
+  percentual_executado: number;
+}
 
 interface BudgetOverviewProps {
   budgets: Budget[];
@@ -9,6 +22,21 @@ interface BudgetOverviewProps {
 }
 
 export function BudgetOverview({ budgets, activeBudget }: BudgetOverviewProps) {
+  const { campanhaId } = useAuth();
+  const [budgetExecution, setBudgetExecution] = useState<BudgetExecution[]>([]);
+
+  useEffect(() => {
+    const fetchExecution = async () => {
+      if (!campanhaId) return;
+      const { data } = await supabase
+        .from("v_execucao_orcamentaria")
+        .select("*")
+        .eq("campanha_id", campanhaId);
+      setBudgetExecution((data as any[]) || []);
+    };
+    fetchExecution();
+  }, [campanhaId]);
+
   const totalPlanned = activeBudget?.total_planned || 0;
   // TODO: Fetch actual spent from expenses
   const totalSpent = 0;
@@ -111,6 +139,9 @@ export function BudgetOverview({ budgets, activeBudget }: BudgetOverviewProps) {
           </div>
         </CardContent>
       </Card>
+
+      {/* Budget Execution Chart */}
+      <BudgetExecutionChart data={budgetExecution} loading={false} />
 
       {/* Warning Alert */}
       {isWarning && !isOverBudget && (

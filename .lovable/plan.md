@@ -1,164 +1,79 @@
 
 
-# Plano de Implementacao - Funcionalidades Faltantes
+# Fase 1.2 + 2.1 — Hierarquia de Liderancas + Inventario de Materiais
 
-Apos analisar o documento "Sistema de Campanha" e o codigo atual, identifiquei as funcionalidades que ainda nao foram implementadas. Seguem organizadas por prioridade.
-
----
-
-## Status Atual vs. Documento
-
-| Funcionalidade | Status |
-|---|---|
-| Check-in de Rua com trava de simultaneidade | Implementado |
-| Feedback de campo (clima, demandas, liderancas) | Implementado |
-| Dossie de Visita por cidade | Implementado |
-| Solicitacao de Recursos vinculada a localidade | Implementado |
-| Mapa de Calor (Leaflet) | Implementado |
-| Alertas de Recorrencia | Implementado |
-| Monitor de Simultaneidade | Implementado |
-| Ranking de Efetividade | Implementado |
-| Orcamento + Despesas (Financeiro) | Implementado |
-| Sincronizacao offline (check-in) | Implementado (basico) |
-| **Planejamento de Roteiro** | Nao implementado |
-| **Comunicacao Direta para equipes** | Nao implementado |
-| **Hierarquia de Liderancas (UI)** | Nao implementado (DB pronto) |
-| **Inventario de Materiais** | Nao implementado |
-| **ROI Pos-Campanha (importar votacao)** | Nao implementado |
-| **Exportacao PDF real** | Nao implementado (stub) |
+Vamos implementar os proximos dois itens do plano em sequencia.
 
 ---
 
-## Fase 1 - Gestao Operacional (Coordenador)
+## 1. Hierarquia de Liderancas (UI)
 
-### 1.1 Planejamento de Roteiro
-Permite ao coordenador designar equipes para bairros/ruas especificas.
+O campo `parent_id` ja existe na tabela `profiles`. Falta apenas a interface.
 
-- Criar tabela `route_assignments` (campanha_id, user_id, street_id, data_planejada, status)
-- Nova pagina ou aba no Check-in com visao de coordenador
-- Interface: selecionar usuario + selecionar ruas/bairro + data
-- Visualizacao de quem esta alocado onde
+### O que sera feito
 
-### 1.2 Hierarquia de Liderancas (UI)
-O campo `parent_id` ja existe na tabela `profiles`. Falta a interface.
+- Criar componente `src/components/admin/AdminHierarchy.tsx`
+  - Lista todos os perfis da campanha com seus papeis
+  - Mostra arvore visual: Lider > membros da equipe
+  - Permite definir `parent_id` de um usuario (quem ele responde)
+  - Dropdown para selecionar o lider de cada membro
+- Editar `src/pages/Admin.tsx`
+  - Adicionar quinta aba "Hierarquia" com icone `GitBranch`
+  - Atualizar grid de 4 para 5 colunas
 
-- No modulo Admin, nova aba "Hierarquia"
-- Arvore visual mostrando Lider > Equipe
-- Permite definir quem responde a quem
-- Filtrar dados por equipe do lider
-
-### 1.3 Comunicacao Direta
-Envio de orientacoes do coordenador para equipes de campo.
-
-- Criar tabela `messages` (campanha_id, from_user, to_user, to_role, conteudo, lida, created_at)
-- Widget de notificacoes na Navbar (sino) com mensagens nao lidas
-- Interface simples para enviar orientacao baseada em feedbacks recebidos
+### Sem mudancas no banco
+A tabela `profiles` ja possui `parent_id` e a RLS permite admins verem todos os perfis e usuarios atualizarem o proprio perfil. Admins poderao atualizar via funcao ou ajuste de RLS se necessario.
 
 ---
 
-## Fase 2 - Controle de Materiais
+## 2. Inventario de Materiais
 
-### 2.1 Inventario de Materiais
-Controle do que foi enviado e usado por municipio.
+### Banco de dados (nova tabela)
 
-- Criar tabela `material_inventory` (campanha_id, tipo, descricao, cidade, quantidade_enviada, quantidade_reportada, created_at)
-- Nova aba dentro do modulo Recursos: "Inventario"
-- Registrar envio de materiais (santinhos, adesivos) por cidade
-- Equipe de campo reporta uso
-- Dashboard mostra: "Enviamos X, usaram Y" por municipio
+Criar tabela `material_inventory` com:
+- `id` (UUID, PK)
+- `campanha_id` (UUID, not null)
+- `tipo` (TEXT — santinhos, adesivos, bandeiras, etc.)
+- `descricao` (TEXT)
+- `cidade` (TEXT)
+- `quantidade_enviada` (INTEGER, default 0)
+- `quantidade_reportada` (INTEGER, default 0)
+- `created_by` (UUID)
+- `created_at`, `updated_at` (TIMESTAMPTZ)
 
----
+RLS: mesmo padrao — master acessa tudo, usuarios acessam pela campanha.
 
-## Fase 3 - Inteligencia Pos-Campanha
+### Interface
 
-### 3.1 ROI Politico (Pos-Campanha)
-Cruzamento de investimento com resultado eleitoral.
-
-- Criar tabela `election_results` (campanha_id, cidade, bairro, secao, votos_obtidos, total_eleitores)
-- Interface para importar dados de votacao (CSV/manual)
-- Calculos automaticos: custo por voto, eficiencia por municipio
-- Comparativo visual: investimento vs. votos por cidade
-- Nova aba "Pos-Campanha" no Dashboard ou Relatorios
-
-### 3.2 Exportacao PDF Real
-Gerar PDF do dossie e relatorios financeiros.
-
-- Usar biblioteca como `jspdf` + `html2canvas` ou `@react-pdf/renderer`
-- Botao "Exportar PDF" no Dossie de Visita gera resumo completo
-- Botao "Exportar PDF" nos Relatorios gera relatorio financeiro
-- Conteudo: KPIs, graficos, demandas, liderancas
+- Editar `src/pages/Resources.tsx` para adicionar sistema de abas:
+  - Aba "Solicitacoes" (conteudo atual)
+  - Aba "Inventario" (novo)
+- Criar `src/components/resources/MaterialInventory.tsx`
+  - Formulario para registrar envio de materiais por cidade
+  - Lista de materiais com indicador visual: enviado vs. reportado
+  - Barra de progresso mostrando uso percentual
+  - Equipe de campo pode atualizar `quantidade_reportada`
 
 ---
 
 ## Detalhes Tecnicos
 
-### Novas Tabelas de Banco
-
-```text
-route_assignments
-  - id (UUID, PK)
-  - campanha_id (UUID, FK)
-  - assigned_by (UUID, FK profiles)
-  - assigned_to (UUID, FK profiles)
-  - street_id (UUID, FK streets)
-  - data_planejada (DATE)
-  - status (TEXT: pendente/em_andamento/concluido)
-  - created_at (TIMESTAMPTZ)
-
-messages
-  - id (UUID, PK)
-  - campanha_id (UUID, FK)
-  - from_user (UUID, FK profiles)
-  - to_user (UUID, nullable)
-  - to_role (TEXT, nullable)
-  - conteudo (TEXT)
-  - lida (BOOLEAN default false)
-  - created_at (TIMESTAMPTZ)
-
-material_inventory
-  - id (UUID, PK)
-  - campanha_id (UUID, FK)
-  - tipo (TEXT)
-  - descricao (TEXT)
-  - cidade (TEXT)
-  - quantidade_enviada (INTEGER)
-  - quantidade_reportada (INTEGER default 0)
-  - created_at (TIMESTAMPTZ)
-
-election_results
-  - id (UUID, PK)
-  - campanha_id (UUID, FK)
-  - cidade (TEXT)
-  - bairro (TEXT, nullable)
-  - secao (TEXT, nullable)
-  - votos_obtidos (INTEGER)
-  - total_eleitores (INTEGER)
-  - created_at (TIMESTAMPTZ)
-```
-
-### Arquivos a Criar/Editar
-
-| Arquivo | Acao |
+### Arquivos a criar
+| Arquivo | Descricao |
 |---|---|
-| Migrations SQL (4 tabelas + RLS) | Criar |
-| `src/pages/RouteAssignment.tsx` | Criar - Planejamento de roteiro |
-| `src/components/admin/AdminHierarchy.tsx` | Criar - Arvore de liderancas |
-| `src/pages/Admin.tsx` | Editar - Adicionar aba Hierarquia |
-| `src/components/resources/MaterialInventory.tsx` | Criar - Inventario |
-| `src/pages/Resources.tsx` | Editar - Adicionar aba Inventario |
-| `src/components/reports/ElectionResults.tsx` | Criar - ROI pos-campanha |
-| `src/components/reports/PdfExporter.tsx` | Criar - Gerador PDF |
-| `src/pages/Reports.tsx` | Editar - Adicionar aba Pos-Campanha + botao PDF funcional |
-| `src/components/navigation/NavNotifications.tsx` | Editar - Mensagens |
-| `src/App.tsx` | Editar - Adicionar rota /roteiro |
-| `src/components/dashboard/DashboardModuleGrid.tsx` | Editar - Adicionar modulo Roteiro |
+| Migration SQL | Tabela `material_inventory` + RLS |
+| `src/components/admin/AdminHierarchy.tsx` | Arvore de hierarquia |
+| `src/components/resources/MaterialInventory.tsx` | Inventario de materiais |
 
-### Ordem de Implementacao Sugerida
+### Arquivos a editar
+| Arquivo | Mudanca |
+|---|---|
+| `src/pages/Admin.tsx` | Adicionar aba Hierarquia (5 abas) |
+| `src/components/admin/index.ts` | Exportar AdminHierarchy |
+| `src/pages/Resources.tsx` | Adicionar Tabs com Solicitacoes + Inventario |
 
-1. Planejamento de Roteiro (mais impacto operacional imediato)
-2. Hierarquia de Liderancas
-3. Inventario de Materiais
-4. Comunicacao Direta
-5. ROI Pos-Campanha
-6. Exportacao PDF
+### Ordem de execucao
+1. Migration para `material_inventory`
+2. Criar `AdminHierarchy.tsx` e integrar em Admin
+3. Criar `MaterialInventory.tsx` e integrar em Resources
 

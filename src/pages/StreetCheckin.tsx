@@ -11,6 +11,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, Di
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { enqueueOffline } from "@/lib/offlineSync";
 import { MapPin, Play, Square, Plus, Search, Loader2, MessageSquare } from "lucide-react";
 
 
@@ -36,7 +37,7 @@ interface Checkin {
   };
 }
 
-const OFFLINE_KEY = "checkin_offline_queue";
+// Offline sync is now handled by the centralized offlineSync service
 
 const STATUS_COBERTURA_LABELS: Record<string, { label: string; color: string }> = {
   nao_visitada: { label: "Não visitada", color: "bg-muted text-muted-foreground" },
@@ -83,23 +84,7 @@ const StreetCheckin = () => {
 
   useEffect(() => { 
     fetchData(); 
-    const syncOffline = async () => {
-      const queue = JSON.parse(localStorage.getItem(OFFLINE_KEY) || "[]");
-      if (queue.length > 0) {
-        const remaining: any[] = [];
-        for (const item of queue) {
-          const { error } = await supabase.from("street_checkins").insert(item);
-          if (error) remaining.push(item);
-        }
-        localStorage.setItem(OFFLINE_KEY, JSON.stringify(remaining));
-        if (remaining.length < queue.length) {
-          toast({ title: "Sincronizado!", description: "Check-ins offline enviados." });
-          fetchData();
-        }
-      }
-    };
-    syncOffline();
-  }, [fetchData, toast]);
+  }, [fetchData]);
 
   const handleStartCheckin = async () => {
     if (!selectedStreetId || !user || !campanhaId) return;
@@ -140,8 +125,23 @@ const StreetCheckin = () => {
       setSelectedStreetId("");
       fetchData();
     } catch (err: any) {
-      console.error(err);
-      toast({ title: "Erro", description: "Não foi possível iniciar o check-in.", variant: "destructive" });
+      // Offline fallback: enqueue for later sync
+      if (!navigator.onLine) {
+        const payload = {
+          street_id: selectedStreetId,
+          campanha_id: campanhaId,
+          user_id: user.id,
+          status: "active",
+          notes: notes || null,
+        };
+        enqueueOffline("street_checkins", payload);
+        toast({ title: "Salvo offline", description: "Será sincronizado quando a conexão voltar." });
+        setNotes("");
+        setSelectedStreetId("");
+      } else {
+        console.error(err);
+        toast({ title: "Erro", description: "Não foi possível iniciar o check-in.", variant: "destructive" });
+      }
     } finally {
       setCreating(false);
     }

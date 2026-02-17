@@ -18,6 +18,8 @@ import Admin from "./pages/Admin";
 import StreetCheckin from "./pages/StreetCheckin";
 import Resources from "./pages/Resources";
 import RouteAssignment from "./pages/RouteAssignment";
+import Messages from "./pages/Messages";
+import ROI from "./pages/ROI";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -43,6 +45,8 @@ const App = () => (
             <Route path="/checkin" element={<ProtectedRoute><StreetCheckin /></ProtectedRoute>} />
             <Route path="/resources" element={<ProtectedRoute><Resources /></ProtectedRoute>} />
             <Route path="/roteiro" element={<ProtectedRoute><RouteAssignment /></ProtectedRoute>} />
+            <Route path="/mensagens" element={<ProtectedRoute><Messages /></ProtectedRoute>} />
+            <Route path="/roi" element={<ProtectedRoute><ROI /></ProtectedRoute>} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </BrowserRouter>

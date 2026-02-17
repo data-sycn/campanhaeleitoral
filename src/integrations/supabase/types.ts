@@ -752,6 +752,47 @@ export type Database = {
           },
         ]
       }
+      team_messages: {
+        Row: {
+          campanha_id: string
+          cidade: string | null
+          conteudo: string
+          created_at: string
+          id: string
+          prioridade: string
+          sender_id: string
+          titulo: string
+        }
+        Insert: {
+          campanha_id: string
+          cidade?: string | null
+          conteudo: string
+          created_at?: string
+          id?: string
+          prioridade?: string
+          sender_id: string
+          titulo: string
+        }
+        Update: {
+          campanha_id?: string
+          cidade?: string | null
+          conteudo?: string
+          created_at?: string
+          id?: string
+          prioridade?: string
+          sender_id?: string
+          titulo?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "team_messages_campanha_id_fkey"
+            columns: ["campanha_id"]
+            isOneToOne: false
+            referencedRelation: "campanhas"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       user_candidates: {
         Row: {
           candidate_id: string

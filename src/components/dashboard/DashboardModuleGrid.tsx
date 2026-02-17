@@ -1,5 +1,5 @@
 import { useNavigate } from "react-router-dom";
-import { BarChart3, DollarSign, Users, FileText, Settings, MapPin, Package, Route } from "lucide-react";
+import { BarChart3, DollarSign, Users, FileText, Settings, MapPin, Package, Route, MessageCircle, TrendingUp } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { useDashboardData } from "./useDashboardData";
 import { useAuth } from "@/hooks/useAuth";
@@ -64,6 +64,14 @@ export function DashboardModuleGrid() {
       gradient: "from-teal-500 to-cyan-600",
     },
     {
+      id: "mensagens",
+      title: "Mensagens",
+      icon: MessageCircle,
+      route: "/mensagens",
+      stat: "Orientações",
+      gradient: "from-pink-500 to-rose-600",
+    },
+    {
       id: "reports",
       title: "Relatórios",
       icon: FileText,
@@ -74,14 +82,24 @@ export function DashboardModuleGrid() {
   ];
 
   if (isAdmin) {
-    modules.push({
-      id: "admin",
-      title: "Admin",
-      icon: Settings,
-      route: "/admin",
-      stat: "Gestão",
-      gradient: "from-slate-500 to-slate-700",
-    });
+    modules.push(
+      {
+        id: "roi",
+        title: "ROI",
+        icon: TrendingUp,
+        route: "/roi",
+        stat: "Custo por Voto",
+        gradient: "from-cyan-500 to-blue-600",
+      },
+      {
+        id: "admin",
+        title: "Admin",
+        icon: Settings,
+        route: "/admin",
+        stat: "Gestão",
+        gradient: "from-slate-500 to-slate-700",
+      }
+    );
   }
 
   return (

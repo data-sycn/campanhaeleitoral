@@ -11,6 +11,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, Di
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { enqueueOffline } from "@/lib/offlineSync";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Package, PlusCircle, CheckCircle, XCircle, Clock, Edit, ClipboardList, Boxes } from "lucide-react";
 import { MaterialInventory } from "@/components/resources/MaterialInventory";
@@ -106,7 +107,25 @@ const Resources = () => {
     });
 
     if (error) {
-      toast({ title: "Erro", description: error.message, variant: "destructive" });
+      if (!navigator.onLine) {
+        enqueueOffline("resource_requests", {
+          campanha_id: campanhaId,
+          user_id: user.id,
+          tipo: form.tipo,
+          descricao: form.descricao,
+          quantidade: parseFloat(form.quantidade),
+          valor_estimado: parseFloat(form.valor_estimado),
+          localidade: form.localidade,
+          bairro: form.bairro || null,
+          cidade: form.cidade || null,
+          notes: form.notes || null,
+        });
+        toast({ title: "Salvo offline", description: "Será sincronizado quando a conexão voltar." });
+        setForm({ tipo: "", descricao: "", quantidade: "1", valor_estimado: "", localidade: "", bairro: "", cidade: "", notes: "" });
+        setShowForm(false);
+      } else {
+        toast({ title: "Erro", description: error.message, variant: "destructive" });
+      }
     } else {
       toast({ title: "Solicitação criada!" });
       setForm({ tipo: "", descricao: "", quantidade: "1", valor_estimado: "", localidade: "", bairro: "", cidade: "", notes: "" });

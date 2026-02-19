@@ -2,10 +2,12 @@ import { useState, useEffect, useCallback, useMemo } from "react";
 import { Navbar } from "@/components/Navbar";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from "recharts";
-import { TrendingUp, DollarSign, Target } from "lucide-react";
+import { TrendingUp, DollarSign, Target, Upload } from "lucide-react";
+import VotesImport from "@/components/roi/VotesImport";
 
 interface CityROI {
   cidade: string;
@@ -18,6 +20,7 @@ const ROI = () => {
   const { profile, campanhaId } = useAuth();
   const [cityData, setCityData] = useState<CityROI[]>([]);
   const [loading, setLoading] = useState(true);
+  const [showImport, setShowImport] = useState(false);
 
   const candidateId = profile?.candidate_id;
 
@@ -102,10 +105,21 @@ const ROI = () => {
     <div className="min-h-screen bg-background">
       <Navbar />
       <div className="container mx-auto px-4 py-8">
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold">ROI Político</h1>
-          <p className="text-muted-foreground">Custo por voto e eficiência de investimento por cidade</p>
+        <div className="flex items-center justify-between mb-8">
+          <div>
+            <h1 className="text-3xl font-bold">ROI Político</h1>
+            <p className="text-muted-foreground">Custo por voto e eficiência de investimento por cidade</p>
+          </div>
+          {candidateId && (
+            <Button variant="outline" className="gap-2" onClick={() => setShowImport(true)}>
+              <Upload className="w-4 h-4" /> Importar Votos
+            </Button>
+          )}
         </div>
+
+        {candidateId && (
+          <VotesImport open={showImport} onOpenChange={setShowImport} candidateId={candidateId} />
+        )}
 
         {/* KPI cards */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">

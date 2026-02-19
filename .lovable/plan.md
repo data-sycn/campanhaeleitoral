@@ -1,101 +1,117 @@
 
 
-# Fase 3 — Itens Pendentes do Plano Complementar
+# Fase 4 — Itens Pendentes da Especificacao
 
-Implementacao dos tres modulos restantes: Comunicacao Direta, ROI Politico (Custo por Voto), e reforco Offline First.
-
----
-
-## 1. Comunicacao Direta (Orientacoes para Equipes)
-
-Sistema de mensagens/orientacoes do Coordenador para as equipes de campo, vinculadas a campanha.
-
-### Banco de dados
-
-Nova tabela `team_messages`:
-
-| Coluna | Tipo | Detalhes |
-|---|---|---|
-| id | UUID | PK, gen_random_uuid() |
-| campanha_id | UUID | NOT NULL |
-| sender_id | UUID | NOT NULL (quem enviou) |
-| cidade | TEXT | NULL (filtro opcional por cidade) |
-| titulo | TEXT | NOT NULL |
-| conteudo | TEXT | NOT NULL |
-| prioridade | TEXT | DEFAULT 'normal' (normal, urgente) |
-| created_at | TIMESTAMPTZ | DEFAULT now() |
-
-RLS: mesmo padrao campanha_id. Master/admin podem inserir; todos da campanha podem ler.
-
-### Interface
-
-- **Criar** `src/pages/Messages.tsx` — Pagina com duas visoes:
-  - Coordenador/Admin: formulario para enviar orientacoes (titulo, conteudo, cidade opcional, prioridade)
-  - Equipe de campo: lista de mensagens recebidas, ordenadas por data, com badge de prioridade
-- **Criar** `src/components/navigation/NavNotifications.tsx` (ou editar se ja existe) — Indicador de mensagens nao lidas no Navbar
-- **Editar** `src/App.tsx` — Adicionar rota `/mensagens`
-- **Editar** `src/components/dashboard/DashboardModuleGrid.tsx` — Adicionar card "Mensagens" no grid
+Comparacao detalhada do PDF com o sistema atual revelou 5 funcionalidades ainda nao implementadas.
 
 ---
 
-## 2. ROI Politico / Custo por Voto
+## 1. Relatorios de Produtividade por Equipe/Operador
 
-Modulo pos-campanha para cruzar dados de votacao com investimento por cidade.
+O PDF exige: "Quem fez o que, onde e para quem" e "Ranking de Efetividade comparando equipes e municipios".
 
-### O que ja existe
+Atualmente `Reports.tsx` so mostra gastos por categoria. Falta:
 
-- Tabela `votes_raw` com votos por secao/zona
-- Tabela `votes_agg` com total de votos por candidato
-- Tabela `expenses` e `resource_requests` com custos por cidade
-- Tabela `street_checkins` com acoes por cidade
+- Tabela de produtividade: check-ins por operador, ruas concluidas, feedbacks coletados
+- Ranking de equipes por cidade (ruas visitadas vs. investimento)
 
-### Interface
-
-- **Criar** `src/pages/ROI.tsx` — Dashboard de ROI com:
-  - Resumo por cidade: votos obtidos, total investido (expenses + resource_requests aprovados), custo por voto
-  - Tabela comparativa ordenavel
-  - Grafico de barras (Recharts) comparando investimento vs. votos por cidade
-  - Badge visual: cidades eficientes (verde) vs. cidades caras (vermelho)
-- **Editar** `src/App.tsx` — Adicionar rota `/roi`
-- **Editar** `src/components/dashboard/DashboardModuleGrid.tsx` — Adicionar card "ROI" (visivel apenas para master/admin)
+**Arquivos**: Editar `src/pages/Reports.tsx` para adicionar aba/secao de produtividade usando dados de `street_checkins` + `profiles`.
 
 ---
 
-## 3. Reforco Offline First
+## 2. Exportacao PDF Funcional
 
-Atualmente o offline so cobre check-ins (localStorage queue em StreetCheckin). O plano exige cobertura para feedbacks e solicitacoes de recursos tambem.
+O botao "Exportar PDF" em Reports.tsx e um stub. Implementar geracao real usando `window.print()` com CSS `@media print` otimizado, que e a abordagem mais leve sem dependencias extras.
 
-### O que sera feito
-
-- **Criar** `src/lib/offlineSync.ts` — Servico generico de fila offline:
-  - Funcao `enqueueOffline(table, payload)` para salvar em localStorage
-  - Funcao `syncOfflineQueue()` para tentar enviar pendencias ao Supabase
-  - Listener de `online` event para sincronizar automaticamente
-- **Editar** `src/pages/StreetCheckin.tsx` — Migrar logica atual de offline para usar `offlineSync`
-- **Editar** `src/pages/Resources.tsx` — Adicionar suporte offline nas solicitacoes de recurso
-- **Editar** `src/main.tsx` — Registrar listener global de reconexao para disparar `syncOfflineQueue`
-- Adicionar indicador visual no Navbar quando houver itens pendentes de sincronizacao
+**Arquivos**: Editar `src/pages/Reports.tsx`.
 
 ---
 
-## Resumo de Arquivos
+## 3. Importacao de Dados de Votacao (CSV)
 
-| Arquivo | Acao |
+O PDF menciona "importar dados de votacao" para cruzar com esforco de campo no modulo ROI. As tabelas `votes_raw` e `votes_agg` existem mas nao ha UI para popular.
+
+- Criar pagina/dialog para upload de CSV com colunas: zona, secao, votos
+- Validar estrutura do CSV, deduplicar por zona+secao
+- Inserir em `votes_raw` e recalcular `votes_agg`
+
+**Arquivos**: Criar `src/components/roi/VotesImport.tsx`, editar `src/pages/ROI.tsx` para incluir botao de importacao. Instalar `papaparse` (ja disponivel no stack conforme memoria).
+
+---
+
+## 4. Suporte a Fotos no Check-in
+
+O PDF diz: "registre tudo (ruas, feedbacks, fotos) offline". Atualmente nao ha captura de foto.
+
+- Criar bucket `checkin-photos` no Supabase Storage
+- Adicionar campo opcional de foto no formulario de check-in (captura via camera ou galeria)
+- Upload ao Supabase Storage, salvar URL no check-in
+- Requer nova coluna `photo_url TEXT` na tabela `street_checkins`
+
+**Arquivos**: Migration SQL (nova coluna + bucket + RLS), editar `src/pages/StreetCheckin.tsx`.
+
+---
+
+## 5. Auto-cadastro via Link de Convite
+
+O PDF menciona: "cadastrar os colaboradores via aplicativo (atraves de links ou cadastro direto)".
+
+- Gerar link de convite com token unico vinculado a campanha
+- Pagina publica `/convite/:token` para novo usuario se registrar ja vinculado a campanha correta
+- Nova tabela `invite_links` (token, campanha_id, created_by, expires_at, used_at)
+
+**Arquivos**: Migration SQL, criar `src/pages/Invite.tsx`, editar `src/App.tsx`.
+
+---
+
+## Detalhes Tecnicos
+
+### Banco de Dados (Migrations)
+
+1. **Coluna photo_url em street_checkins**:
+```text
+ALTER TABLE street_checkins ADD COLUMN photo_url TEXT;
+```
+
+2. **Bucket checkin-photos**:
+```text
+INSERT INTO storage.buckets (id, name, public) VALUES ('checkin-photos', 'checkin-photos', true);
+-- RLS: authenticated users can upload, anyone can read
+```
+
+3. **Tabela invite_links**:
+```text
+CREATE TABLE invite_links (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  campanha_id UUID NOT NULL,
+  token TEXT NOT NULL UNIQUE,
+  created_by UUID NOT NULL,
+  expires_at TIMESTAMPTZ,
+  used_at TIMESTAMPTZ,
+  created_at TIMESTAMPTZ DEFAULT now()
+);
+-- RLS: coordinators/admins da campanha podem criar e visualizar
+```
+
+### Arquivos Criados
+| Arquivo | Descricao |
 |---|---|
-| Migration SQL | Criar tabela `team_messages` + RLS |
-| `src/pages/Messages.tsx` | Criar |
-| `src/pages/ROI.tsx` | Criar |
-| `src/lib/offlineSync.ts` | Criar |
-| `src/App.tsx` | Editar (adicionar rotas /mensagens e /roi) |
-| `src/components/dashboard/DashboardModuleGrid.tsx` | Editar (cards Mensagens e ROI) |
-| `src/pages/StreetCheckin.tsx` | Editar (migrar offline para offlineSync) |
-| `src/pages/Resources.tsx` | Editar (adicionar offline) |
-| `src/main.tsx` | Editar (listener global de sync) |
-| `src/components/Navbar.tsx` | Editar (indicador offline queue) |
+| `src/components/roi/VotesImport.tsx` | Dialog de importacao CSV de votos |
+| `src/pages/Invite.tsx` | Pagina publica de auto-cadastro |
+| Migration SQL | photo_url + bucket + invite_links |
 
-### Ordem de execucao
-1. Migration para `team_messages`
-2. Criar `offlineSync.ts` e integrar em StreetCheckin + Resources + main.tsx
-3. Criar `Messages.tsx` e integrar nas rotas e grid
-4. Criar `ROI.tsx` e integrar nas rotas e grid
+### Arquivos Editados
+| Arquivo | Mudanca |
+|---|---|
+| `src/pages/Reports.tsx` | Adicionar secao de produtividade por operador + print PDF |
+| `src/pages/ROI.tsx` | Botao para abrir VotesImport |
+| `src/pages/StreetCheckin.tsx` | Campo de foto com upload |
+| `src/App.tsx` | Rota `/convite/:token` |
+
+### Ordem de Execucao
+1. Migrations (photo_url, bucket, invite_links)
+2. Reports.tsx (produtividade + PDF)
+3. VotesImport + integracao no ROI
+4. Foto no StreetCheckin
+5. Invite (link de convite + pagina)
 

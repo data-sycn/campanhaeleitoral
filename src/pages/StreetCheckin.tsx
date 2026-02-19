@@ -12,7 +12,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { enqueueOffline } from "@/lib/offlineSync";
-import { MapPin, Play, Square, Plus, Search, Loader2, MessageSquare } from "lucide-react";
+import { MapPin, Play, Square, Plus, Search, Loader2, MessageSquare, Camera } from "lucide-react";
 
 
 interface Street {
@@ -65,6 +65,8 @@ const StreetCheckin = () => {
   const [feedbackDemandas, setFeedbackDemandas] = useState("");
   const [liderancas, setLiderancas] = useState("");
   const [submittingFeedback, setSubmittingFeedback] = useState(false);
+  const [photo, setPhoto] = useState<File | null>(null);
+  const [photoPreview, setPhotoPreview] = useState<string | null>(null);
 
   const fetchData = useCallback(async () => {
     if (!user || !campanhaId) { setLoading(false); return; }
@@ -154,6 +156,13 @@ const StreetCheckin = () => {
     setLiderancas("");
   };
 
+  const handlePhotoSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const f = e.target.files?.[0];
+    if (!f) return;
+    setPhoto(f);
+    setPhotoPreview(URL.createObjectURL(f));
+  };
+
   const submitFeedbackAndEnd = async () => {
     setSubmittingFeedback(true);
     const updatePayload: any = {
@@ -163,6 +172,17 @@ const StreetCheckin = () => {
     if (feedbackClima) updatePayload.feedback_clima = feedbackClima;
     if (feedbackDemandas) updatePayload.feedback_demandas = feedbackDemandas;
     if (liderancas) updatePayload.liderancas_identificadas = liderancas;
+
+    // Upload photo if present
+    if (photo && user) {
+      const ext = photo.name.split(".").pop();
+      const path = `${user.id}/${feedbackDialog.checkinId}.${ext}`;
+      const { error: uploadErr } = await supabase.storage.from("checkin-photos").upload(path, photo);
+      if (!uploadErr) {
+        const { data: urlData } = supabase.storage.from("checkin-photos").getPublicUrl(path);
+        updatePayload.photo_url = urlData.publicUrl;
+      }
+    }
 
     const { error } = await supabase
       .from("street_checkins")
@@ -174,6 +194,8 @@ const StreetCheckin = () => {
     } else {
       toast({ title: "Ação encerrada com feedback!" });
       setFeedbackDialog({ open: false, checkinId: "" });
+      setPhoto(null);
+      setPhotoPreview(null);
       fetchData();
     }
     setSubmittingFeedback(false);
@@ -422,6 +444,13 @@ const StreetCheckin = () => {
                 placeholder="Nomes de lideranças locais encontradas..."
                 rows={2}
               />
+            </div>
+            <div className="space-y-2">
+              <Label className="flex items-center gap-2"><Camera className="w-4 h-4" /> Foto (Opcional)</Label>
+              <Input type="file" accept="image/*" capture="environment" onChange={handlePhotoSelect} />
+              {photoPreview && (
+                <img src={photoPreview} alt="Preview" className="rounded-lg max-h-32 object-cover" />
+              )}
             </div>
           </div>
           <DialogFooter className="gap-2">

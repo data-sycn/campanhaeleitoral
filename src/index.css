@@ -230,3 +230,16 @@
     transition: var(--transition-bounce);
   }
 }
+
+/* Print styles for PDF export */
+@media print {
+  body { background: white !important; }
+  .print\:hidden { display: none !important; }
+  .print\:block { display: block !important; }
+  .print\:bg-white { background: white !important; }
+  .print\:bg-primary { background: hsl(var(--primary)) !important; }
+  .print\:bg-secondary { background: hsl(var(--secondary)) !important; }
+  .print\:bg-accent { background: hsl(var(--accent)) !important; }
+  .print\:mt-8 { margin-top: 2rem !important; }
+  .print\:mb-4 { margin-bottom: 1rem !important; }
+}

@@ -272,6 +272,47 @@ export type Database = {
           },
         ]
       }
+      invite_links: {
+        Row: {
+          campanha_id: string
+          created_at: string
+          created_by: string
+          expires_at: string | null
+          id: string
+          token: string
+          used_at: string | null
+          used_by: string | null
+        }
+        Insert: {
+          campanha_id: string
+          created_at?: string
+          created_by: string
+          expires_at?: string | null
+          id?: string
+          token: string
+          used_at?: string | null
+          used_by?: string | null
+        }
+        Update: {
+          campanha_id?: string
+          created_at?: string
+          created_by?: string
+          expires_at?: string | null
+          id?: string
+          token?: string
+          used_at?: string | null
+          used_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "invite_links_campanha_id_fkey"
+            columns: ["campanha_id"]
+            isOneToOne: false
+            referencedRelation: "campanhas"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       material_inventory: {
         Row: {
           campanha_id: string
@@ -584,6 +625,7 @@ export type Database = {
           id: string
           liderancas_identificadas: string | null
           notes: string | null
+          photo_url: string | null
           started_at: string
           status: string
           street_id: string
@@ -602,6 +644,7 @@ export type Database = {
           id?: string
           liderancas_identificadas?: string | null
           notes?: string | null
+          photo_url?: string | null
           started_at?: string
           status?: string
           street_id: string
@@ -620,6 +663,7 @@ export type Database = {
           id?: string
           liderancas_identificadas?: string | null
           notes?: string | null
+          photo_url?: string | null
           started_at?: string
           status?: string
           street_id?: string

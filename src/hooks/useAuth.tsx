@@ -157,6 +157,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const isMaster = userRoles.includes('master');
   const isAdmin = userRoles.includes('admin') || isMaster;
   const isCoordinator = userRoles.includes('coordinator') || isAdmin;
+  const isSupervisor = userRoles.includes('supervisor') || isCoordinator;
   const campanhaId = profile?.campanha_id ?? null;
 
   return (

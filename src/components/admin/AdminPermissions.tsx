@@ -127,18 +127,21 @@ export function AdminPermissions() {
     switch (role) {
       case 'master': return 'destructive';
       case 'admin': return 'destructive';
+      case 'candidate': return 'default';
       case 'coordinator': return 'default';
+      case 'supervisor': return 'secondary';
       default: return 'secondary';
     }
   };
 
   const getRoleLabel = (role: AppRole) => {
     switch (role) {
-      case 'master': return 'Coordenador Geral';
-      case 'admin': return 'Coordenador de Área';
-      case 'coordinator': return 'Supervisor de Equipe';
+      case 'master': return 'Master (Desenvolvedor)';
+      case 'admin': return 'Administrador de Sistema';
       case 'candidate': return 'Candidato';
-      default: return 'Apoiador / Voluntário';
+      case 'coordinator': return 'Coordenador Geral';
+      case 'supervisor': return 'Supervisor de Área';
+      default: return 'Apoiador';
     }
   };
 
@@ -197,10 +200,12 @@ export function AdminPermissions() {
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="supporter">Apoiador / Voluntário</SelectItem>
-                    <SelectItem value="coordinator">Supervisor de Equipe</SelectItem>
-                    <SelectItem value="admin">Coordenador de Área</SelectItem>
-                    <SelectItem value="master">Coordenador Geral</SelectItem>
+                    <SelectItem value="supporter">Apoiador</SelectItem>
+                    <SelectItem value="supervisor">Supervisor de Área</SelectItem>
+                    <SelectItem value="coordinator">Coordenador Geral</SelectItem>
+                    <SelectItem value="candidate">Candidato</SelectItem>
+                    <SelectItem value="admin">Administrador de Sistema</SelectItem>
+                    <SelectItem value="master">Master (Desenvolvedor)</SelectItem>
                   </SelectContent>
                 </Select>
               </div>

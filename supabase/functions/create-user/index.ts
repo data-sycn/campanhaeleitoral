@@ -87,12 +87,19 @@ Deno.serve(async (req) => {
     if (profileError) {
       await adminClient
         .from('profiles')
-        .insert({ id: userId, name, pin, email, campanha_id: campanha_id || null });
-    } else if (campanha_id) {
+        .insert({ id: userId, name, pin, email, campanha_id: (role !== 'admin' && campanha_id) ? campanha_id : null });
+    } else if (campanha_id && role !== 'admin') {
       await adminClient
         .from('profiles')
         .update({ campanha_id })
         .eq('id', userId);
+    }
+
+    // For admin role, use user_campanhas junction table for multi-campaign support
+    if (role === 'admin' && campanha_id) {
+      await adminClient
+        .from('user_campanhas')
+        .insert({ user_id: userId, campanha_id });
     }
 
     // Assign role

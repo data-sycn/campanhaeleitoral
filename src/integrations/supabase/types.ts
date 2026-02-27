@@ -1371,6 +1371,7 @@ export type Database = {
         }[]
       }
       get_user_candidate_id: { Args: { _user_id: string }; Returns: string }
+      get_user_id_by_pin: { Args: { p_pin: string }; Returns: string }
       gettransactionid: { Args: never; Returns: unknown }
       has_role: {
         Args: {

@@ -32,7 +32,7 @@ const TIPOS_MATERIAL = [
 ];
 
 export const MaterialInventory = () => {
-  const { user, campanhaId } = useAuth();
+  const { user, campanhaId, isMaster } = useAuth();
   const { toast } = useToast();
   const [items, setItems] = useState<MaterialItem[]>([]);
   const [loading, setLoading] = useState(true);
@@ -45,12 +45,13 @@ export const MaterialInventory = () => {
   const [savingReport, setSavingReport] = useState(false);
 
   const fetchItems = useCallback(async () => {
-    if (!user || !campanhaId) { setLoading(false); return; }
-    const { data, error } = await (supabase
+    if (!user || (!campanhaId && !isMaster)) { setLoading(false); return; }
+    let query = supabase
       .from("material_inventory" as any)
       .select("*")
-      .eq("campanha_id", campanhaId)
-      .order("created_at", { ascending: false }) as any);
+      .order("created_at", { ascending: false }) as any;
+    if (campanhaId) query = query.eq("campanha_id", campanhaId);
+    const { data, error } = await query;
 
     if (error) {
       toast({ title: "Erro", description: error.message, variant: "destructive" });
@@ -58,7 +59,7 @@ export const MaterialInventory = () => {
       setItems((data as MaterialItem[]) || []);
     }
     setLoading(false);
-  }, [user, campanhaId]);
+  }, [user, campanhaId, isMaster]);
 
   useEffect(() => { fetchItems(); }, [fetchItems]);
 

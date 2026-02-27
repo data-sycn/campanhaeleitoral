@@ -180,8 +180,13 @@ export function useDashboardData(overrideCampanhaId?: string | null) {
   }, [isCoordinator, isAdmin]);
 
   const fetchAll = useCallback(async () => {
-    if (!campanhaId) {
+    if (!campanhaId && !isMaster) {
       if (profile !== undefined) setLoading(false);
+      return;
+    }
+    if (!campanhaId && isMaster) {
+      // Master without a selected campaign - skip data fetch until they select one
+      setLoading(false);
       return;
     }
     setLoading(true);

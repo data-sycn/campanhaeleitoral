@@ -22,12 +22,12 @@ interface BudgetOverviewProps {
 }
 
 export function BudgetOverview({ budgets, activeBudget }: BudgetOverviewProps) {
-  const { campanhaId } = useAuth();
+  const { campanhaId, isMaster } = useAuth();
   const [budgetExecution, setBudgetExecution] = useState<BudgetExecution[]>([]);
 
   useEffect(() => {
     const fetchExecution = async () => {
-      if (!campanhaId) return;
+      if (!campanhaId && !isMaster) return;
       const { data } = await supabase
         .from("v_execucao_orcamentaria")
         .select("*")

@@ -17,19 +17,20 @@ interface ProfileWithRole {
 }
 
 export const AdminHierarchy = () => {
-  const { campanhaId } = useAuth();
+  const { campanhaId, isMaster } = useAuth();
   const { toast } = useToast();
   const [profiles, setProfiles] = useState<ProfileWithRole[]>([]);
   const [loading, setLoading] = useState(true);
   const [openNodes, setOpenNodes] = useState<Set<string>>(new Set());
 
   const fetchProfiles = useCallback(async () => {
-    if (!campanhaId) { setLoading(false); return; }
+    if (!campanhaId && !isMaster) { setLoading(false); return; }
 
-    const { data: profilesData, error: pErr } = await supabase
+    let query = supabase
       .from("profiles")
-      .select("id, name, parent_id, campanha_id")
-      .eq("campanha_id", campanhaId);
+      .select("id, name, parent_id, campanha_id");
+    if (campanhaId) query = query.eq("campanha_id", campanhaId);
+    const { data: profilesData, error: pErr } = await query;
 
     if (pErr) {
       toast({ title: "Erro", description: pErr.message, variant: "destructive" });
@@ -55,7 +56,7 @@ export const AdminHierarchy = () => {
     const leaders = new Set(merged.filter((p) => merged.some((c) => c.parent_id === p.id)).map((p) => p.id));
     setOpenNodes(leaders);
     setLoading(false);
-  }, [campanhaId]);
+  }, [campanhaId, isMaster]);
 
   useEffect(() => { fetchProfiles(); }, [fetchProfiles]);
 

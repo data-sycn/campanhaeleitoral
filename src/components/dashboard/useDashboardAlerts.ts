@@ -24,7 +24,8 @@ export function useRecurrenceAlerts(overrideCampanhaId?: string | null, threshol
   const [alerts, setAlerts] = useState<RecurrenceAlert[]>([]);
 
   const fetch = useCallback(async () => {
-    if (!campanhaId) return;
+    if (!campanhaId && !isMaster) return;
+    if (!campanhaId) return; // master needs to select a campaign for alerts
 
     // Get streets with their latest completed checkin
     const { data: streets } = await supabase
@@ -84,7 +85,7 @@ export function useEffectivenessRanking(overrideCampanhaId?: string | null) {
   const [ranking, setRanking] = useState<EffectivenessEntry[]>([]);
 
   const fetch = useCallback(async () => {
-    if (!campanhaId) return;
+    if (!campanhaId) return; // needs campaign context for ranking
 
     // Get completed checkins grouped by city
     const { data: checkins } = await supabase

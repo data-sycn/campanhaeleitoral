@@ -33,13 +33,13 @@ const CLIMA_LABELS: Record<string, { label: string; emoji: string }> = {
 
 const DossieVisita = () => {
   const { cidade } = useParams<{ cidade: string }>();
-  const { campanhaId } = useAuth();
+  const { campanhaId, isMaster } = useAuth();
   const navigate = useNavigate();
   const [data, setData] = useState<DossieData | null>(null);
   const [loading, setLoading] = useState(true);
 
   const fetchDossie = useCallback(async () => {
-    if (!campanhaId || !cidade) { setLoading(false); return; }
+    if ((!campanhaId && !isMaster) || !cidade) { setLoading(false); return; }
 
     try {
       const decodedCidade = decodeURIComponent(cidade);

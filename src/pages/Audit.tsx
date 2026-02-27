@@ -27,7 +27,7 @@ const Audit = () => {
   const activeCampanhaId = isMaster && campanhaId ? campanhaId : profileCampanhaId;
 
   const fetchAudit = useCallback(async () => {
-    if (!activeCampanhaId) {
+    if (!activeCampanhaId && !isMaster) {
       setLoading(false);
       return;
     }

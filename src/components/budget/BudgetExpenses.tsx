@@ -41,7 +41,7 @@ const paymentMethods = [
 ] as const;
 
 export function BudgetExpenses() {
-  const { user, campanhaId, profile } = useAuth();
+  const { user, campanhaId, profile, isMaster } = useAuth();
   const { toast } = useToast();
   const [expenses, setExpenses] = useState<Expense[]>([]);
   const [loading, setLoading] = useState(true);
@@ -86,7 +86,7 @@ export function BudgetExpenses() {
     setCreating(true);
     try {
       if (!campanhaId) {
-        toast({ title: "Erro", description: "Você precisa estar vinculado a uma campanha para registrar despesas", variant: "destructive" });
+        toast({ title: "Erro", description: isMaster ? "Selecione uma campanha primeiro." : "Você precisa estar vinculado a uma campanha para registrar despesas", variant: "destructive" });
         return;
       }
       const { error } = await supabase.from('expenses').insert({

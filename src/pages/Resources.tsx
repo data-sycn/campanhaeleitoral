@@ -47,7 +47,7 @@ const STATUS_CONFIG: Record<string, { label: string; color: string; icon: any }>
 };
 
 const Resources = () => {
-  const { user, campanhaId, isAdmin } = useAuth();
+  const { user, campanhaId, isAdmin, isMaster } = useAuth();
   const { toast } = useToast();
   const [activeTab, setActiveTab] = useState("solicitacoes");
   const [requests, setRequests] = useState<ResourceRequest[]>([]);
@@ -71,12 +71,13 @@ const Resources = () => {
   const [savingUsage, setSavingUsage] = useState(false);
 
   const fetchRequests = useCallback(async () => {
-    if (!user || !campanhaId) { setLoading(false); return; }
-    const { data, error } = await (supabase
+    if (!user || (!campanhaId && !isMaster)) { setLoading(false); return; }
+    let query = supabase
       .from("resource_requests" as any)
       .select("*")
-      .eq("campanha_id", campanhaId)
-      .order("created_at", { ascending: false }) as any);
+      .order("created_at", { ascending: false }) as any;
+    if (campanhaId) query = query.eq("campanha_id", campanhaId);
+    const { data, error } = await query;
 
     if (error) {
       toast({ title: "Erro", description: error.message, variant: "destructive" });
@@ -84,7 +85,7 @@ const Resources = () => {
       setRequests((data as ResourceRequest[]) || []);
     }
     setLoading(false);
-  }, [user, campanhaId]);
+  }, [user, campanhaId, isMaster]);
 
   useEffect(() => { fetchRequests(); }, [fetchRequests]);
 

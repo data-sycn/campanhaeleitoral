@@ -38,8 +38,8 @@ export function NavMobileMenu() {
       <SheetContent side="left" className="w-[280px]">
         <SheetHeader>
           <SheetTitle className="flex items-center gap-2">
-            <div className="w-6 h-6 gradient-hero rounded flex items-center justify-center">
-              <BarChart3 className="w-4 h-4 text-white" />
+            <div className="w-6 h-6 bg-primary rounded flex items-center justify-center">
+              <BarChart3 className="w-4 h-4 text-primary-foreground" />
             </div>
             CampanhaGov
           </SheetTitle>

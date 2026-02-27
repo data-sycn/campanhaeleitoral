@@ -93,8 +93,8 @@ const Supporters = () => {
         <Card className="mb-8">
           <CardContent className="p-6">
             <div className="flex items-center gap-4">
-              <div className="w-12 h-12 gradient-civic rounded-xl flex items-center justify-center">
-                <Users className="w-6 h-6 text-white" />
+              <div className="w-12 h-12 bg-primary/10 rounded-xl flex items-center justify-center">
+                <Users className="w-6 h-6 text-primary" />
               </div>
               <div>
                 <h3 className="text-2xl font-bold">{supporters.length}</h3>
@@ -136,7 +136,7 @@ const Supporters = () => {
                 <CardContent className="p-6">
                   <div className="flex items-center gap-4">
                     <Avatar className="w-12 h-12">
-                      <AvatarFallback className="gradient-primary text-white">
+                      <AvatarFallback className="bg-primary text-primary-foreground">
                         {supporter.nome.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2)}
                       </AvatarFallback>
                     </Avatar>

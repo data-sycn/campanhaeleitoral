@@ -55,8 +55,8 @@ const Auth = () => {
     <div className="min-h-screen bg-gradient-to-br from-primary/10 via-background to-secondary/10 flex items-center justify-center p-4">
       <div className="w-full max-w-sm">
         <div className="flex flex-col items-center gap-3 mb-8">
-          <div className="w-16 h-16 gradient-hero rounded-2xl flex items-center justify-center shadow-lg">
-            <BarChart3 className="w-9 h-9 text-white" />
+          <div className="w-16 h-16 bg-primary rounded-2xl flex items-center justify-center shadow-elevated">
+            <BarChart3 className="w-9 h-9 text-primary-foreground" />
           </div>
           <div className="text-center">
             <h1 className="text-2xl font-bold">CampanhaGov</h1>

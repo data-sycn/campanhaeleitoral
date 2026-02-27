@@ -24,7 +24,7 @@ export function KPICard({
   className 
 }: KPICardProps) {
   const variantStyles = {
-    default: 'gradient-card',
+    default: 'bg-card',
     primary: 'bg-primary/5 border-primary/20',
     secondary: 'bg-secondary/5 border-secondary/20',
     success: 'bg-success/5 border-success/20',

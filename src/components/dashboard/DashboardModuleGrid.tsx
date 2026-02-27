@@ -116,8 +116,8 @@ export function DashboardModuleGrid() {
             )}
           >
             <CardContent className="p-4 flex flex-col items-center text-center gap-2">
-              <div className={cn("w-10 h-10 rounded-xl flex items-center justify-center bg-gradient-to-br", mod.gradient)}>
-                <Icon className="w-5 h-5 text-white" />
+              <div className="w-10 h-10 rounded-xl flex items-center justify-center bg-primary/10">
+                <Icon className="w-5 h-5 text-primary" />
               </div>
               <span className="font-semibold text-sm">{mod.title}</span>
               <span className="text-xs text-muted-foreground">{mod.stat}</span>

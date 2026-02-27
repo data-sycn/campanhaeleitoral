@@ -368,6 +368,7 @@ export type Database = {
           campanha_id: string | null
           candidate_id: string | null
           created_at: string
+          email: string | null
           id: string
           name: string
           parent_id: string | null
@@ -378,6 +379,7 @@ export type Database = {
           campanha_id?: string | null
           candidate_id?: string | null
           created_at?: string
+          email?: string | null
           id: string
           name: string
           parent_id?: string | null
@@ -388,6 +390,7 @@ export type Database = {
           campanha_id?: string | null
           candidate_id?: string | null
           created_at?: string
+          email?: string | null
           id?: string
           name?: string
           parent_id?: string | null
@@ -1360,6 +1363,7 @@ export type Database = {
         Returns: boolean
       }
       geomfromewkt: { Args: { "": string }; Returns: unknown }
+      get_email_by_pin: { Args: { p_pin: string }; Returns: string }
       get_user_available_candidates: {
         Args: { _user_id: string }
         Returns: {
@@ -1371,7 +1375,6 @@ export type Database = {
         }[]
       }
       get_user_candidate_id: { Args: { _user_id: string }; Returns: string }
-      get_user_id_by_pin: { Args: { p_pin: string }; Returns: string }
       gettransactionid: { Args: never; Returns: unknown }
       has_role: {
         Args: {

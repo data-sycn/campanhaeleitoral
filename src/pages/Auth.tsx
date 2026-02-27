@@ -23,7 +23,7 @@ const Auth = () => {
 
     try {
       // Look up email by PIN
-      const { data: email, error: lookupError } = await supabase
+      const { data: email, error: lookupError } = await (supabase as any)
         .rpc('get_email_by_pin', { p_pin: value });
 
       if (lookupError || !email) {

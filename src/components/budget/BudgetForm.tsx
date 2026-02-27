@@ -14,7 +14,7 @@ interface BudgetFormProps {
 
 export function BudgetForm({ onSubmit, onCancel, isSubmitting }: BudgetFormProps) {
   const [form, setForm] = useState<BudgetFormData>({
-    year: new Date().getFullYear(),
+    title: "",
     total_planned: "",
     notes: ""
   });
@@ -23,11 +23,7 @@ export function BudgetForm({ onSubmit, onCancel, isSubmitting }: BudgetFormProps
     e.preventDefault();
     const success = await onSubmit(form);
     if (success) {
-      setForm({
-        year: new Date().getFullYear(),
-        total_planned: "",
-        notes: ""
-      });
+      setForm({ title: "", total_planned: "", notes: "" });
     }
   };
 
@@ -36,21 +32,19 @@ export function BudgetForm({ onSubmit, onCancel, isSubmitting }: BudgetFormProps
       <CardHeader>
         <CardTitle>Criar Novo Orçamento</CardTitle>
         <CardDescription>
-          Defina o orçamento total para o ano da campanha
+          Defina um orçamento para a campanha
         </CardDescription>
       </CardHeader>
       <CardContent>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label htmlFor="year">Ano</Label>
+              <Label htmlFor="title">Título</Label>
               <Input
-                id="year"
-                type="number"
-                value={form.year}
-                onChange={(e) => setForm(prev => ({ ...prev, year: parseInt(e.target.value) }))}
-                min="2020"
-                max="2030"
+                id="title"
+                value={form.title}
+                onChange={(e) => setForm(prev => ({ ...prev, title: e.target.value }))}
+                placeholder="Ex: Orçamento Publicidade, Fundo Eleitoral..."
                 required
               />
             </div>

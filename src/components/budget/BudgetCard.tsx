@@ -14,11 +14,13 @@ export function BudgetCard({ budget }: BudgetCardProps) {
     });
   };
 
+  const displayName = budget.title || `Orçamento ${budget.year || ''}`;
+
   return (
     <Card>
       <CardHeader>
         <CardTitle className="flex items-center justify-between">
-          <span>Orçamento {budget.year}</span>
+          <span>{displayName}</span>
           {budget.active && (
             <Badge variant="default" className="bg-primary">
               Ativo

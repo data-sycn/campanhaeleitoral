@@ -5,7 +5,8 @@ import { useToast } from "@/hooks/use-toast";
 
 export interface Budget {
   id: string;
-  year: number;
+  title: string | null;
+  year: number | null;
   total_planned: number;
   notes?: string;
   active: boolean;
@@ -13,7 +14,7 @@ export interface Budget {
 }
 
 export interface BudgetFormData {
-  year: number;
+  title: string;
   total_planned: string;
   notes: string;
 }
@@ -32,7 +33,7 @@ export function useBudgetData() {
       let query = supabase
         .from('budgets')
         .select('*')
-        .order('year', { ascending: false });
+        .order('created_at', { ascending: false });
 
       if (campanhaId) {
         query = query.eq('campanha_id', campanhaId);
@@ -76,11 +77,11 @@ export function useBudgetData() {
         .insert({
           candidate_id: profile?.candidate_id || undefined,
           campanha_id: campanhaId,
-          year: formData.year,
+          title: formData.title,
           total_planned: parseFloat(formData.total_planned),
           notes: formData.notes || null,
           active: true
-        });
+        } as any);
 
       if (error) {
         toast({

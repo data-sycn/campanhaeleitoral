@@ -1,11 +1,10 @@
 import { useEffect, useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Skeleton } from "@/components/ui/skeleton";
 import { PieChart, AlertCircle } from "lucide-react";
 import { useBudgetAllocations, ALL_CATEGORIES, CATEGORY_LABELS } from "./useBudgetAllocations";
 import { AllocationRow } from "./AllocationRow";
-import { useBudgetData, Budget } from "./useBudgetData";
+import { useBudgetData } from "./useBudgetData";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { PieChart as RechartsPie, Pie, Cell, ResponsiveContainer, Legend, Tooltip } from "recharts";
@@ -21,11 +20,11 @@ const COLORS = [
 ];
 
 export function BudgetAllocations() {
-  const { user, campanhaId } = useAuth();
-  const { budgets, loading: budgetsLoading } = useBudgetData();
-  const [selectedBudgetId, setSelectedBudgetId] = useState<string | undefined>();
+  const { user } = useAuth();
+  const { budgets, loading: budgetsLoading, totalPlanned } = useBudgetData();
   
-  const selectedBudget = budgets.find(b => b.id === selectedBudgetId);
+  // Use the first budget for allocations storage, but show total from all budgets
+  const activeBudget = budgets.find(b => b.active) || budgets[0];
   
   const {
     allocations,
@@ -36,47 +35,32 @@ export function BudgetAllocations() {
     getAllocationForCategory,
     saveAllocation,
     fetchExpensesByCategory
-  } = useBudgetAllocations(selectedBudgetId);
+  } = useBudgetAllocations(activeBudget?.id);
 
-  // Auto-select active budget on load
-  useEffect(() => {
-    if (budgets.length > 0 && !selectedBudgetId) {
-      const activeBudget = budgets.find(b => b.active);
-      setSelectedBudgetId(activeBudget?.id || budgets[0].id);
-    }
-  }, [budgets, selectedBudgetId]);
-
-  // Fetch expenses using candidate_id from profile
   useEffect(() => {
     const fetchCandidateExpenses = async () => {
       if (!user) return;
-      
       const { data: profile } = await supabase
         .from('profiles')
         .select('candidate_id')
         .eq('id', user.id)
         .maybeSingle();
-      
       if (profile?.candidate_id) {
         fetchExpensesByCategory(profile.candidate_id);
       }
     };
-
     fetchCandidateExpenses();
-  }, [user, selectedBudgetId]);
+  }, [user, activeBudget?.id]);
 
   const formatCurrency = (value: number) => {
-    return new Intl.NumberFormat('pt-BR', {
-      style: 'currency',
-      currency: 'BRL'
-    }).format(value);
+    return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(value);
   };
 
-  const totalBudget = selectedBudget?.total_planned || 0;
+  // Total from ALL budgets combined
+  const totalBudget = totalPlanned;
   const unallocated = totalBudget - totalAllocated;
   const totalSpent = Object.values(expenses).reduce((sum, v) => sum + v, 0);
 
-  // Prepare pie chart data
   const pieData = ALL_CATEGORIES
     .map((cat, index) => ({
       name: CATEGORY_LABELS[cat],
@@ -88,13 +72,8 @@ export function BudgetAllocations() {
   if (budgetsLoading) {
     return (
       <Card>
-        <CardHeader>
-          <Skeleton className="h-6 w-48" />
-          <Skeleton className="h-4 w-72" />
-        </CardHeader>
-        <CardContent>
-          <Skeleton className="h-64 w-full" />
-        </CardContent>
+        <CardHeader><Skeleton className="h-6 w-48" /><Skeleton className="h-4 w-72" /></CardHeader>
+        <CardContent><Skeleton className="h-64 w-full" /></CardContent>
       </Card>
     );
   }
@@ -103,20 +82,13 @@ export function BudgetAllocations() {
     return (
       <Card>
         <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <PieChart className="w-5 h-5" />
-            Alocações por Categoria
-          </CardTitle>
-          <CardDescription>
-            Distribua o orçamento entre as diferentes categorias de despesas
-          </CardDescription>
+          <CardTitle className="flex items-center gap-2"><PieChart className="w-5 h-5" />Alocações por Categoria</CardTitle>
+          <CardDescription>Distribua o orçamento entre as diferentes categorias de despesas</CardDescription>
         </CardHeader>
         <CardContent className="text-center py-12">
           <AlertCircle className="w-12 h-12 mx-auto text-muted-foreground mb-4" />
           <h3 className="text-lg font-semibold mb-2">Nenhum Orçamento Encontrado</h3>
-          <p className="text-muted-foreground">
-            Crie um orçamento na aba "Orçamentos" para começar a distribuir as alocações.
-          </p>
+          <p className="text-muted-foreground">Crie um orçamento na aba "Orçamentos" para começar a distribuir as alocações.</p>
         </CardContent>
       </Card>
     );
@@ -124,41 +96,13 @@ export function BudgetAllocations() {
 
   return (
     <div className="space-y-6">
-      {/* Budget Selector */}
-      <Card>
-        <CardHeader className="pb-4">
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-            <div>
-              <CardTitle className="flex items-center gap-2">
-                <PieChart className="w-5 h-5" />
-                Alocações por Categoria
-              </CardTitle>
-              <CardDescription>
-                Distribua o orçamento entre as diferentes categorias de despesas
-              </CardDescription>
-            </div>
-            <Select value={selectedBudgetId} onValueChange={setSelectedBudgetId}>
-              <SelectTrigger className="w-[200px]">
-                <SelectValue placeholder="Selecione o orçamento" />
-              </SelectTrigger>
-              <SelectContent>
-                {budgets.map((budget) => (
-                  <SelectItem key={budget.id} value={budget.id}>
-                    {budget.year} {budget.active && "(Ativo)"}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-        </CardHeader>
-      </Card>
-
-      {/* Summary Cards */}
+      {/* Summary Cards - uses total from ALL budgets */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
         <Card className="bg-primary/5 border-primary/20">
           <CardContent className="pt-6">
-            <p className="text-sm text-muted-foreground">Total do Orçamento</p>
+            <p className="text-sm text-muted-foreground">Saldo Total (todos orçamentos)</p>
             <p className="text-2xl font-bold">{formatCurrency(totalBudget)}</p>
+            <p className="text-xs text-muted-foreground mt-1">{budgets.length} orçamento(s)</p>
           </CardContent>
         </Card>
         <Card className="bg-chart-2/10 border-chart-2/20">
@@ -184,22 +128,18 @@ export function BudgetAllocations() {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Allocation Table */}
         <Card className="lg:col-span-2">
           <CardHeader className="pb-2">
             <CardTitle className="text-lg">Categorias</CardTitle>
-            <CardDescription>Clique no valor planejado para editar</CardDescription>
+            <CardDescription>Clique no valor planejado para editar. Você pode alocar livremente, mesmo sem saldo disponível.</CardDescription>
           </CardHeader>
           <CardContent className="p-0">
             {allocationsLoading ? (
               <div className="p-4 space-y-4">
-                {[1, 2, 3, 4, 5].map(i => (
-                  <Skeleton key={i} className="h-12 w-full" />
-                ))}
+                {[1, 2, 3, 4, 5].map(i => (<Skeleton key={i} className="h-12 w-full" />))}
               </div>
             ) : (
               <div className="divide-y">
-                {/* Header */}
                 <div className="grid grid-cols-12 gap-4 p-4 bg-muted/50 text-sm font-medium text-muted-foreground">
                   <div className="col-span-3 md:col-span-2">Categoria</div>
                   <div className="col-span-4 md:col-span-2">Planejado</div>
@@ -207,7 +147,6 @@ export function BudgetAllocations() {
                   <div className="col-span-2 hidden md:block">Saldo</div>
                   <div className="col-span-5 md:col-span-4">Progresso</div>
                 </div>
-                
                 {ALL_CATEGORIES.map((category) => (
                   <AllocationRow
                     key={category}
@@ -223,7 +162,6 @@ export function BudgetAllocations() {
           </CardContent>
         </Card>
 
-        {/* Pie Chart */}
         <Card>
           <CardHeader>
             <CardTitle className="text-lg">Distribuição</CardTitle>
@@ -233,29 +171,11 @@ export function BudgetAllocations() {
             {pieData.length > 0 ? (
               <ResponsiveContainer width="100%" height={280}>
                 <RechartsPie>
-                  <Pie
-                    data={pieData}
-                    cx="50%"
-                    cy="50%"
-                    innerRadius={50}
-                    outerRadius={90}
-                    paddingAngle={2}
-                    dataKey="value"
-                    nameKey="name"
-                  >
-                    {pieData.map((entry, index) => (
-                      <Cell key={`cell-${index}`} fill={entry.color} />
-                    ))}
+                  <Pie data={pieData} cx="50%" cy="50%" innerRadius={50} outerRadius={90} paddingAngle={2} dataKey="value" nameKey="name">
+                    {pieData.map((entry, index) => (<Cell key={`cell-${index}`} fill={entry.color} />))}
                   </Pie>
-                  <Tooltip 
-                    formatter={(value: number) => formatCurrency(value)}
-                  />
-                  <Legend 
-                    layout="vertical" 
-                    align="right" 
-                    verticalAlign="middle"
-                    wrapperStyle={{ fontSize: '12px' }}
-                  />
+                  <Tooltip formatter={(value: number) => formatCurrency(value)} />
+                  <Legend layout="vertical" align="right" verticalAlign="middle" wrapperStyle={{ fontSize: '12px' }} />
                 </RechartsPie>
               </ResponsiveContainer>
             ) : (

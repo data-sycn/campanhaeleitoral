@@ -66,7 +66,7 @@ export function BudgetOverview({ budgets, activeBudget }: BudgetOverviewProps) {
               {formatCurrency(totalPlanned)}
             </div>
             <p className="text-xs text-muted-foreground">
-              Orçamento {activeBudget?.year || new Date().getFullYear()}
+              {activeBudget?.title || `Orçamento ${activeBudget?.year || new Date().getFullYear()}`}
             </p>
           </CardContent>
         </Card>

@@ -17,13 +17,13 @@ interface AuditEntry {
 }
 
 const Audit = () => {
-  const { userRoles, campanhaId: profileCampanhaId, profile, isAdmin } = useAuth();
+  const { userRoles, campanhaId: profileCampanhaId, profile, isAdmin, selectedCampanhaId, setSelectedCampanhaId } = useAuth();
   const isMaster = userRoles.includes("master");
   const isCoordinator = userRoles.includes("coordinator");
-  const [campanhaId, setCampanhaId] = useState<string | null>(null);
   const [auditData, setAuditData] = useState<AuditEntry[]>([]);
   const [loading, setLoading] = useState(true);
 
+  const campanhaId = selectedCampanhaId;
   const activeCampanhaId = isMaster && campanhaId ? campanhaId : profileCampanhaId;
 
   const fetchAudit = useCallback(async () => {
@@ -101,7 +101,7 @@ const Audit = () => {
               Registro de todas as ações realizadas na campanha
             </p>
           </div>
-          {isMaster && <CampaignSelector value={campanhaId} onChange={setCampanhaId} />}
+          {isMaster && <CampaignSelector value={selectedCampanhaId} onChange={setSelectedCampanhaId} />}
         </div>
 
         <AuditTimeline data={auditData} loading={loading} />

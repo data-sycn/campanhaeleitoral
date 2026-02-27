@@ -25,6 +25,8 @@ interface AuthContextType {
   isCoordinator: boolean;
   isMaster: boolean;
   campanhaId: string | null;
+  selectedCampanhaId: string | null;
+  setSelectedCampanhaId: (id: string | null) => void;
   signUp: (email: string, password: string, name: string) => Promise<{ error: any }>;
   signIn: (email: string, password: string) => Promise<{ error: any }>;
   signOut: () => Promise<void>;
@@ -49,6 +51,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [userRoles, setUserRoles] = useState<AppRole[]>([]);
   const [loading, setLoading] = useState(true);
   const [profileLoading, setProfileLoading] = useState(false);
+  const [selectedCampanhaId, setSelectedCampanhaId] = useState<string | null>(null);
   const { toast } = useToast();
 
   const fetchUserRoles = async (userId: string) => {
@@ -171,6 +174,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       isCoordinator,
       isMaster,
       campanhaId,
+      selectedCampanhaId,
+      setSelectedCampanhaId,
       signUp,
       signIn,
       signOut,

@@ -1,16 +1,14 @@
 import { useState, useEffect } from "react";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { Users, UserPlus, Phone, Mail, MapPin } from "lucide-react";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
-
 import { Navbar } from "@/components/Navbar";
+import { SupporterForm } from "@/components/supporters/SupporterForm";
 
 interface Supporter {
   id: string;
@@ -27,13 +25,7 @@ const Supporters = () => {
   const { toast } = useToast();
   const [supporters, setSupporters] = useState<Supporter[]>([]);
   const [loading, setLoading] = useState(true);
-  const [inviting, setInviting] = useState(false);
-  const [showInviteForm, setShowInviteForm] = useState(false);
-
-  const [inviteForm, setInviteForm] = useState({
-    email: "",
-    message: ""
-  });
+  const [showRegisterForm, setShowRegisterForm] = useState(false);
 
   useEffect(() => {
     fetchSupporters();
@@ -53,45 +45,14 @@ const Supporters = () => {
         .order('created_at', { ascending: false });
 
       if (error) {
-        toast({
-          title: "Erro ao carregar apoiadores",
-          description: error.message,
-          variant: "destructive"
-        });
+        toast({ title: "Erro ao carregar apoiadores", description: error.message, variant: "destructive" });
         return;
       }
-
       setSupporters(data || []);
     } catch (error) {
       console.error('Error fetching supporters:', error);
     } finally {
       setLoading(false);
-    }
-  };
-
-  const handleInvite = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!user) return;
-
-    setInviting(true);
-
-    try {
-      toast({
-        title: "Convite enviado!",
-        description: `Convite enviado para ${inviteForm.email}. O usuário receberá instruções por email.`
-      });
-      
-      setInviteForm({ email: "", message: "" });
-      setShowInviteForm(false);
-    } catch (error) {
-      console.error('Error sending invite:', error);
-      toast({
-        title: "Erro ao enviar convite",
-        description: "Ocorreu um erro ao enviar o convite. Tente novamente.",
-        variant: "destructive"
-      });
-    } finally {
-      setInviting(false);
     }
   };
 
@@ -118,13 +79,13 @@ const Supporters = () => {
             <h1 className="text-3xl font-bold">Apoiadores</h1>
             <p className="text-muted-foreground">Gerencie os apoiadores da campanha</p>
           </div>
-          <Button 
-            onClick={() => setShowInviteForm(!showInviteForm)}
+          <Button
+            onClick={() => setShowRegisterForm(!showRegisterForm)}
             variant="campaign"
             className="gap-2"
           >
             <UserPlus className="w-4 h-4" />
-            Convidar Apoiador
+            {showRegisterForm ? "Fechar" : "Cadastrar Apoiador"}
           </Button>
         </div>
 
@@ -143,53 +104,18 @@ const Supporters = () => {
           </CardContent>
         </Card>
 
-        {showInviteForm && (
-          <Card className="mb-8">
-            <CardHeader>
-              <CardTitle>Convidar Novo Apoiador</CardTitle>
-              <CardDescription>
-                Envie um convite para alguém se juntar à sua campanha
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <form onSubmit={handleInvite} className="space-y-4">
-                <div className="space-y-2">
-                  <Label htmlFor="email">Email do Convidado</Label>
-                  <Input
-                    id="email"
-                    type="email"
-                    value={inviteForm.email}
-                    onChange={(e) => setInviteForm(prev => ({ ...prev, email: e.target.value }))}
-                    placeholder="email@exemplo.com"
-                    required
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="message">Mensagem Personalizada (Opcional)</Label>
-                  <Input
-                    id="message"
-                    value={inviteForm.message}
-                    onChange={(e) => setInviteForm(prev => ({ ...prev, message: e.target.value }))}
-                    placeholder="Convido você para fazer parte da nossa equipe..."
-                  />
-                </div>
-                <div className="flex gap-2">
-                  <Button type="submit" disabled={inviting} variant="campaign">
-                    {inviting ? "Enviando..." : "Enviar Convite"}
-                  </Button>
-                  <Button 
-                    type="button" 
-                    variant="outline" 
-                    onClick={() => setShowInviteForm(false)}
-                  >
-                    Cancelar
-                  </Button>
-                </div>
-              </form>
-            </CardContent>
-          </Card>
+        {/* Formulário de cadastro */}
+        {showRegisterForm && (
+          <SupporterForm
+            onSuccess={() => {
+              fetchSupporters();
+              setShowRegisterForm(false);
+            }}
+            onCancel={() => setShowRegisterForm(false)}
+          />
         )}
 
+        {/* Lista */}
         <div className="grid gap-4">
           {supporters.length === 0 ? (
             <Card>
@@ -197,10 +123,10 @@ const Supporters = () => {
                 <Users className="w-12 h-12 mx-auto text-muted-foreground mb-4" />
                 <h3 className="text-lg font-semibold mb-2">Nenhum apoiador encontrado</h3>
                 <p className="text-muted-foreground mb-4">
-                  Comece convidando pessoas para se juntarem à sua campanha
+                  Comece cadastrando apoiadores na campanha
                 </p>
-                <Button onClick={() => setShowInviteForm(true)} variant="campaign">
-                  Convidar Primeiro Apoiador
+                <Button onClick={() => setShowRegisterForm(true)} variant="campaign">
+                  Cadastrar Primeiro Apoiador
                 </Button>
               </CardContent>
             </Card>

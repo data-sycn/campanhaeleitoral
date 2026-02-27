@@ -10,7 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { useToast } from "@/hooks/use-toast";
-import { UserPlus, Loader2, Trash2 } from "lucide-react";
+import { UserPlus, Loader2, Trash2, RefreshCw, Copy, Eye, EyeOff } from "lucide-react";
 import { Database } from "@/integrations/supabase/types";
 
 type AppRole = Database['public']['Enums']['app_role'];
@@ -18,18 +18,27 @@ type AppRole = Database['public']['Enums']['app_role'];
 interface UserWithRoles {
   id: string;
   name: string;
+  email?: string;
+  pin?: string;
   candidate_id: string | null;
+  campanha_id: string | null;
   created_at: string;
   roles: AppRole[];
   candidateName?: string;
+}
+
+function generatePin(): string {
+  return String(Math.floor(1000 + Math.random() * 9000));
 }
 
 export function AdminUsers() {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [newUserEmail, setNewUserEmail] = useState("");
   const [newUserName, setNewUserName] = useState("");
+  const [newUserPin, setNewUserPin] = useState(generatePin());
   const [newUserRole, setNewUserRole] = useState<AppRole>("supporter");
-  const [newUserCandidate, setNewUserCandidate] = useState<string>("");
+  const [newUserCampanha, setNewUserCampanha] = useState<string>("");
+  const [showPins, setShowPins] = useState<Record<string, boolean>>({});
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
@@ -49,70 +58,47 @@ export function AdminUsers() {
 
       if (rolesError) throw rolesError;
 
-      const { data: candidates, error: candidatesError } = await supabase
-        .from('candidates')
-        .select('id, name');
-
-      if (candidatesError) throw candidatesError;
-
-      const candidatesMap = new Map(candidates?.map(c => [c.id, c.name]) || []);
-
-      const usersWithRoles: UserWithRoles[] = profiles?.map(profile => ({
+      const usersWithRoles: UserWithRoles[] = profiles?.map((profile: any) => ({
         ...profile,
         roles: roles?.filter(r => r.user_id === profile.id).map(r => r.role) || [],
-        candidateName: profile.candidate_id ? candidatesMap.get(profile.candidate_id) : undefined
       })) || [];
 
       return usersWithRoles;
     }
   });
 
-  const { data: candidates } = useQuery({
-    queryKey: ['admin-candidates'],
+  const { data: campanhas } = useQuery({
+    queryKey: ['admin-campanhas-list'],
     queryFn: async () => {
       const { data, error } = await supabase
-        .from('candidates')
-        .select('*')
-        .order('name');
-
+        .from('campanhas')
+        .select('id, nome')
+        .is('deleted_at', null)
+        .order('nome');
       if (error) throw error;
       return data;
     }
   });
 
   const createUserMutation = useMutation({
-    mutationFn: async (userData: { email: string; name: string; role: AppRole; candidateId?: string }) => {
-      // Note: Creating users via admin requires Supabase Admin API
-      // For now, we'll just show a toast with instructions
-      toast({
-        title: "Instruções",
-        description: "Para criar novos usuários, use o painel do Supabase ou peça ao usuário para se cadastrar.",
+    mutationFn: async (userData: { email: string; name: string; pin: string; role: AppRole; campanha_id?: string }) => {
+      const { data, error } = await supabase.functions.invoke('create-user', {
+        body: userData,
       });
-      return null;
+
+      if (error) throw error;
+      if (data?.error) throw new Error(data.error);
+      return data;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['admin-users'] });
       setIsDialogOpen(false);
       resetForm();
-    }
-  });
-
-  const updateUserCandidateMutation = useMutation({
-    mutationFn: async ({ userId, candidateId }: { userId: string; candidateId: string | null }) => {
-      const { error } = await supabase
-        .from('profiles')
-        .update({ candidate_id: candidateId })
-        .eq('id', userId);
-
-      if (error) throw error;
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['admin-users'] });
-      toast({ title: "Candidato atualizado com sucesso" });
+      toast({ title: "Usuário criado com sucesso!" });
     },
     onError: (error: any) => {
       toast({
-        title: "Erro ao atualizar candidato",
+        title: "Erro ao criar usuário",
         description: error.message,
         variant: "destructive"
       });
@@ -122,8 +108,14 @@ export function AdminUsers() {
   const resetForm = () => {
     setNewUserEmail("");
     setNewUserName("");
+    setNewUserPin(generatePin());
     setNewUserRole("supporter");
-    setNewUserCandidate("");
+    setNewUserCampanha("");
+  };
+
+  const copyPin = (pin: string) => {
+    navigator.clipboard.writeText(pin);
+    toast({ title: "PIN copiado!" });
   };
 
   const getRoleBadgeVariant = (role: AppRole) => {
@@ -163,7 +155,7 @@ export function AdminUsers() {
           <CardTitle>Usuários</CardTitle>
           <CardDescription>Gerencie os usuários do sistema</CardDescription>
         </div>
-        <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+        <Dialog open={isDialogOpen} onOpenChange={(open) => { setIsDialogOpen(open); if (open) resetForm(); }}>
           <DialogTrigger asChild>
             <Button className="gap-2">
               <UserPlus className="w-4 h-4" />
@@ -174,10 +166,19 @@ export function AdminUsers() {
             <DialogHeader>
               <DialogTitle>Adicionar Usuário</DialogTitle>
               <DialogDescription>
-                Preencha os dados do novo usuário
+                Preencha os dados e gere um PIN de acesso
               </DialogDescription>
             </DialogHeader>
             <div className="space-y-4 py-4">
+              <div className="space-y-2">
+                <Label htmlFor="name">Nome</Label>
+                <Input
+                  id="name"
+                  placeholder="Nome completo"
+                  value={newUserName}
+                  onChange={(e) => setNewUserName(e.target.value)}
+                />
+              </div>
               <div className="space-y-2">
                 <Label htmlFor="email">Email</Label>
                 <Input
@@ -189,13 +190,37 @@ export function AdminUsers() {
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="name">Nome</Label>
-                <Input
-                  id="name"
-                  placeholder="Nome completo"
-                  value={newUserName}
-                  onChange={(e) => setNewUserName(e.target.value)}
-                />
+                <Label>PIN de Acesso (4 dígitos)</Label>
+                <div className="flex gap-2">
+                  <Input
+                    value={newUserPin}
+                    onChange={(e) => {
+                      const v = e.target.value.replace(/\D/g, '').slice(0, 4);
+                      setNewUserPin(v);
+                    }}
+                    maxLength={4}
+                    className="font-mono text-lg tracking-widest text-center"
+                    placeholder="0000"
+                  />
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="icon"
+                    onClick={() => setNewUserPin(generatePin())}
+                    title="Gerar novo PIN"
+                  >
+                    <RefreshCw className="w-4 h-4" />
+                  </Button>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="icon"
+                    onClick={() => copyPin(newUserPin)}
+                    title="Copiar PIN"
+                  >
+                    <Copy className="w-4 h-4" />
+                  </Button>
+                </div>
               </div>
               <div className="space-y-2">
                 <Label htmlFor="role">Função</Label>
@@ -213,14 +238,15 @@ export function AdminUsers() {
                 </Select>
               </div>
               <div className="space-y-2">
-                <Label htmlFor="candidate">Vincular a Candidato</Label>
-                <Select value={newUserCandidate} onValueChange={setNewUserCandidate}>
+                <Label>Campanha</Label>
+                <Select value={newUserCampanha} onValueChange={setNewUserCampanha}>
                   <SelectTrigger>
-                    <SelectValue placeholder="Selecione um candidato" />
+                    <SelectValue placeholder="Selecione uma campanha" />
                   </SelectTrigger>
                   <SelectContent>
-                    {candidates?.map((c) => (
-                      <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>
+                    <SelectItem value="none">Sem campanha</SelectItem>
+                    {campanhas?.map((c) => (
+                      <SelectItem key={c.id} value={c.id}>{c.nome}</SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
@@ -230,14 +256,15 @@ export function AdminUsers() {
               <Button variant="outline" onClick={() => setIsDialogOpen(false)}>
                 Cancelar
               </Button>
-              <Button 
+              <Button
                 onClick={() => createUserMutation.mutate({
                   email: newUserEmail,
                   name: newUserName,
+                  pin: newUserPin,
                   role: newUserRole,
-                  candidateId: newUserCandidate || undefined
+                  campanha_id: newUserCampanha && newUserCampanha !== "none" ? newUserCampanha : undefined
                 })}
-                disabled={createUserMutation.isPending}
+                disabled={createUserMutation.isPending || !newUserEmail || !newUserName || newUserPin.length !== 4}
               >
                 {createUserMutation.isPending && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
                 Criar Usuário
@@ -251,16 +278,42 @@ export function AdminUsers() {
           <TableHeader>
             <TableRow>
               <TableHead>Nome</TableHead>
+              <TableHead>Email</TableHead>
+              <TableHead>PIN</TableHead>
               <TableHead>Funções</TableHead>
-              <TableHead>Candidato Vinculado</TableHead>
               <TableHead>Criado em</TableHead>
-              <TableHead className="w-[100px]">Ações</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {users?.map((user) => (
               <TableRow key={user.id}>
                 <TableCell className="font-medium">{user.name}</TableCell>
+                <TableCell className="text-muted-foreground">{user.email || '—'}</TableCell>
+                <TableCell>
+                  {user.pin ? (
+                    <div className="flex items-center gap-1">
+                      <span className="font-mono">
+                        {showPins[user.id] ? user.pin : '••••'}
+                      </span>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-6 w-6"
+                        onClick={() => setShowPins(prev => ({ ...prev, [user.id]: !prev[user.id] }))}
+                      >
+                        {showPins[user.id] ? <EyeOff className="w-3 h-3" /> : <Eye className="w-3 h-3" />}
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-6 w-6"
+                        onClick={() => copyPin(user.pin!)}
+                      >
+                        <Copy className="w-3 h-3" />
+                      </Button>
+                    </div>
+                  ) : '—'}
+                </TableCell>
                 <TableCell>
                   <div className="flex gap-1 flex-wrap">
                     {user.roles.map((role) => (
@@ -271,33 +324,7 @@ export function AdminUsers() {
                   </div>
                 </TableCell>
                 <TableCell>
-                  <Select
-                    value={user.candidate_id || "none"}
-                    onValueChange={(value) => 
-                      updateUserCandidateMutation.mutate({
-                        userId: user.id,
-                        candidateId: value === "none" ? null : value
-                      })
-                    }
-                  >
-                    <SelectTrigger className="w-[200px]">
-                      <SelectValue placeholder="Sem candidato" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="none">Sem candidato</SelectItem>
-                      {candidates?.map((c) => (
-                        <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </TableCell>
-                <TableCell>
                   {new Date(user.created_at).toLocaleDateString('pt-BR')}
-                </TableCell>
-                <TableCell>
-                  <Button variant="ghost" size="icon" disabled>
-                    <Trash2 className="w-4 h-4" />
-                  </Button>
                 </TableCell>
               </TableRow>
             ))}

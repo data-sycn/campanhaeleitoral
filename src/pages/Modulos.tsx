@@ -2,12 +2,10 @@ import { Navbar } from "@/components/Navbar";
 import { DashboardModuleGrid } from "@/components/dashboard/DashboardModuleGrid";
 import { useAuth } from "@/hooks/useAuth";
 import { CampaignSelector } from "@/components/dashboard/CampaignSelector";
-import { useState } from "react";
 
 const Modulos = () => {
-  const { userRoles } = useAuth();
+  const { userRoles, selectedCampanhaId, setSelectedCampanhaId } = useAuth();
   const isMaster = userRoles.includes("master");
-  const [campanhaId, setCampanhaId] = useState<string | null>(null);
 
   return (
     <div className="min-h-screen bg-background">
@@ -18,7 +16,7 @@ const Modulos = () => {
             <h1 className="text-2xl sm:text-3xl font-bold">Módulos</h1>
             <p className="text-sm text-muted-foreground">Acesse os módulos da plataforma</p>
           </div>
-          {isMaster && <CampaignSelector value={campanhaId} onChange={setCampanhaId} />}
+          {isMaster && <CampaignSelector value={selectedCampanhaId} onChange={setSelectedCampanhaId} />}
         </div>
 
         <DashboardModuleGrid />

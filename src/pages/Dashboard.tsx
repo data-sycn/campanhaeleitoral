@@ -15,9 +15,9 @@ import { LeafletHeatmap } from "@/components/dashboard/LeafletHeatmap";
 import { SimultaneityWidget } from "@/components/dashboard/SimultaneityWidget";
 
 const Dashboard = () => {
-  const { userRoles } = useAuth();
+  const { userRoles, selectedCampanhaId, setSelectedCampanhaId } = useAuth();
   const isMaster = userRoles.includes("master");
-  const [campanhaId, setCampanhaId] = useState<string | null>(null);
+  const campanhaId = selectedCampanhaId;
   const { stats, supporterPoints, heatmapData, activeCheckins, loading } = useDashboardData(campanhaId);
   const navigate = useNavigate();
 
@@ -54,7 +54,7 @@ const Dashboard = () => {
             <p className="text-sm text-muted-foreground">Visão executiva da campanha</p>
           </div>
           <div className="flex items-center gap-2 sm:gap-3 overflow-x-auto">
-            {isMaster && <CampaignSelector value={campanhaId} onChange={setCampanhaId} />}
+            {isMaster && <CampaignSelector value={selectedCampanhaId} onChange={setSelectedCampanhaId} />}
             <Button variant="outline" onClick={() => navigate("/modulos")} className="gap-2 shrink-0">
               <LayoutGrid className="w-4 h-4" />
               <span className="hidden sm:inline">Módulos</span>

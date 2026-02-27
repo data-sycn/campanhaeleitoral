@@ -19,9 +19,8 @@ export interface BudgetFormData {
   notes: string;
 }
 
-export function useBudgetData(overrideCampanhaId?: string | null) {
-  const { user, campanhaId: profileCampanhaId, profile, isMaster } = useAuth();
-  const campanhaId = isMaster && overrideCampanhaId ? overrideCampanhaId : profileCampanhaId;
+export function useBudgetData() {
+  const { user, campanhaId, profile, isMaster } = useAuth();
   const { toast } = useToast();
   const [budgets, setBudgets] = useState<Budget[]>([]);
   const [loading, setLoading] = useState(true);
@@ -64,10 +63,21 @@ export function useBudgetData(overrideCampanhaId?: string | null) {
     setCreating(true);
 
     try {
-      if (!campanhaId) {
+      const insertData: any = {
+        candidate_id: profile?.candidate_id || undefined,
+        title: formData.title,
+        total_planned: parseFloat(formData.total_planned),
+        notes: formData.notes || null,
+        active: true
+      };
+
+      // Master doesn't need campanhaId, but if available use it
+      if (campanhaId) {
+        insertData.campanha_id = campanhaId;
+      } else if (!isMaster) {
         toast({
           title: "Erro",
-          description: isMaster ? "Selecione uma campanha primeiro." : "Você precisa estar vinculado a uma campanha para criar orçamentos",
+          description: "Você precisa estar vinculado a uma campanha para criar orçamentos",
           variant: "destructive"
         });
         return false;
@@ -75,14 +85,7 @@ export function useBudgetData(overrideCampanhaId?: string | null) {
 
       const { error } = await supabase
         .from('budgets')
-        .insert({
-          candidate_id: profile?.candidate_id || undefined,
-          campanha_id: campanhaId,
-          title: formData.title,
-          total_planned: parseFloat(formData.total_planned),
-          notes: formData.notes || null,
-          active: true
-        } as any);
+        .insert(insertData);
 
       if (error) {
         toast({

@@ -22,31 +22,19 @@ const Auth = () => {
     setIsLoading(true);
 
     try {
-      // Look up the user by PIN in profiles or a known mapping
-      // Since PIN = password, we need to find the email associated with this PIN
-      const { data: profile, error: lookupError } = await supabase
-        .from('profiles')
-        .select('id')
-        .eq('pin', value)
-        .maybeSingle();
+      // Look up user ID by PIN using security definer function
+      const { data: userId, error: lookupError } = await supabase
+        .rpc('get_user_id_by_pin', { p_pin: value });
 
-      if (lookupError || !profile) {
+      if (lookupError || !userId) {
         toast({ title: "PIN inválido", description: "Nenhum usuário encontrado com este PIN.", variant: "destructive" });
         setPin("");
         setIsLoading(false);
         return;
       }
 
-      // Get the user's email from auth metadata via an edge function or use a stored email
-      // For simplicity, we'll store email on profiles and use it
-      const { data: profileWithEmail } = await supabase
-        .from('profiles')
-        .select('name')
-        .eq('id', profile.id)
-        .single();
-
-      // Use the user id as email pattern: {id}@internal.app
-      const internalEmail = `${profile.id}@internal.app`;
+      // Use internal email pattern and PIN as password
+      const internalEmail = `${userId}@internal.app`;
       
       const { error } = await supabase.auth.signInWithPassword({
         email: internalEmail,
@@ -57,7 +45,7 @@ const Auth = () => {
         toast({ title: "PIN inválido", description: "Não foi possível autenticar.", variant: "destructive" });
         setPin("");
       }
-    } catch (err) {
+    } catch {
       toast({ title: "Erro", description: "Erro ao tentar autenticar.", variant: "destructive" });
       setPin("");
     } finally {
@@ -68,7 +56,6 @@ const Auth = () => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-primary/10 via-background to-secondary/10 flex items-center justify-center p-4">
       <div className="w-full max-w-sm">
-        {/* Logo */}
         <div className="flex flex-col items-center gap-3 mb-8">
           <div className="w-16 h-16 gradient-hero rounded-2xl flex items-center justify-center shadow-lg">
             <BarChart3 className="w-9 h-9 text-white" />

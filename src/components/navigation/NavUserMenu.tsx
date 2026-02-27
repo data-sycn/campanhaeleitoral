@@ -9,7 +9,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Settings, LogOut, User, LayoutGrid, Crown, Shield, UserCheck } from "lucide-react";
+import { Settings, LogOut, User, Crown, Shield, UserCheck, Building2 } from "lucide-react";
 import { User as SupabaseUser } from "@supabase/supabase-js";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
@@ -80,10 +80,12 @@ export function NavUserMenu({ user, onSignOut }: NavUserMenuProps) {
         </DropdownMenuLabel>
         
         <DropdownMenuSeparator />
-        <DropdownMenuItem onClick={() => navigate("/modulos")}>
-          <LayoutGrid className="mr-2 h-4 w-4" />
-          Trocar Módulo
-        </DropdownMenuItem>
+        {isMaster && (
+          <DropdownMenuItem onClick={() => navigate("/settings")}>
+            <Building2 className="mr-2 h-4 w-4" />
+            Selecionar Campanha
+          </DropdownMenuItem>
+        )}
         
         <DropdownMenuSeparator />
         <DropdownMenuItem onClick={() => navigate("/profile")}>

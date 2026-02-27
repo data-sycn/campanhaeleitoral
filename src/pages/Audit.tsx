@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { Navbar } from "@/components/Navbar";
 import { AuditTimeline } from "@/components/dashboard/AuditTimeline";
-import { CampaignSelector } from "@/components/dashboard/CampaignSelector";
+
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { Json } from "@/integrations/supabase/types";
@@ -17,7 +17,7 @@ interface AuditEntry {
 }
 
 const Audit = () => {
-  const { userRoles, campanhaId: profileCampanhaId, profile, isAdmin, selectedCampanhaId, setSelectedCampanhaId } = useAuth();
+  const { userRoles, campanhaId: profileCampanhaId, profile, isAdmin, selectedCampanhaId } = useAuth();
   const isMaster = userRoles.includes("master");
   const isCoordinator = userRoles.includes("coordinator");
   const [auditData, setAuditData] = useState<AuditEntry[]>([]);
@@ -94,14 +94,11 @@ const Audit = () => {
     <div className="min-h-screen bg-background">
       <Navbar />
       <div className="container mx-auto px-4 py-6 sm:py-8">
-        <div className="mb-6 sm:mb-8 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-          <div>
-            <h1 className="text-2xl sm:text-3xl font-bold">Histórico de Atividades</h1>
-            <p className="text-sm text-muted-foreground">
-              Registro de todas as ações realizadas na campanha
-            </p>
-          </div>
-          {isMaster && <CampaignSelector value={selectedCampanhaId} onChange={setSelectedCampanhaId} />}
+        <div className="mb-6 sm:mb-8">
+          <h1 className="text-2xl sm:text-3xl font-bold">Histórico de Atividades</h1>
+          <p className="text-sm text-muted-foreground">
+            Registro de todas as ações realizadas na campanha
+          </p>
         </div>
 
         <AuditTimeline data={auditData} loading={loading} />

@@ -8,14 +8,12 @@ import { useAuth } from "@/hooks/useAuth";
 import { useDashboardData } from "@/components/dashboard/useDashboardData";
 import { useRecurrenceAlerts, useEffectivenessRanking } from "@/components/dashboard/useDashboardAlerts";
 import { Button } from "@/components/ui/button";
-import { CampaignSelector } from "@/components/dashboard/CampaignSelector";
 import { SupportersHeatmap } from "@/components/dashboard/SupportersHeatmap";
 import { LeafletHeatmap } from "@/components/dashboard/LeafletHeatmap";
 import { SimultaneityWidget } from "@/components/dashboard/SimultaneityWidget";
 
 const Dashboard = () => {
-  const { userRoles, selectedCampanhaId, setSelectedCampanhaId } = useAuth();
-  const isMaster = userRoles.includes("master");
+  const { selectedCampanhaId } = useAuth();
   const campanhaId = selectedCampanhaId;
   const { stats, supporterPoints, heatmapData, activeCheckins, loading } = useDashboardData(campanhaId);
   const navigate = useNavigate();
@@ -47,14 +45,9 @@ const Dashboard = () => {
     <div className="min-h-screen bg-background">
       <Navbar />
       <div className="container mx-auto px-4 py-6 sm:py-8">
-        <div className="mb-6 sm:mb-8 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-          <div>
-            <h1 className="text-2xl sm:text-3xl font-bold">Dossiê de Bolso</h1>
-            <p className="text-sm text-muted-foreground">Visão executiva da campanha</p>
-          </div>
-          <div className="flex items-center gap-2 sm:gap-3 overflow-x-auto">
-            {isMaster && <CampaignSelector value={selectedCampanhaId} onChange={setSelectedCampanhaId} />}
-          </div>
+        <div className="mb-6 sm:mb-8">
+          <h1 className="text-2xl sm:text-3xl font-bold">Dossiê de Bolso</h1>
+          <p className="text-sm text-muted-foreground">Visão executiva da campanha</p>
         </div>
 
         <div className="space-y-6">

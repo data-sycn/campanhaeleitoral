@@ -21,7 +21,7 @@ interface Supporter {
 }
 
 const Supporters = () => {
-  const { user, campanhaId } = useAuth();
+  const { user, campanhaId, isMaster } = useAuth();
   const { toast } = useToast();
   const [supporters, setSupporters] = useState<Supporter[]>([]);
   const [loading, setLoading] = useState(true);
@@ -32,17 +32,18 @@ const Supporters = () => {
   }, [user, campanhaId]);
 
   const fetchSupporters = async () => {
-    if (!user || !campanhaId) {
+    if (!user || (!campanhaId && !isMaster)) {
       setLoading(false);
       return;
     }
 
     try {
-      const { data, error } = await supabase
+      let query = supabase
         .from('supporters')
         .select('id, nome, email, telefone, bairro, cidade, created_at')
-        .eq('campanha_id', campanhaId)
         .order('created_at', { ascending: false });
+      if (campanhaId) query = query.eq('campanha_id', campanhaId);
+      const { data, error } = await query;
 
       if (error) {
         toast({ title: "Erro ao carregar apoiadores", description: error.message, variant: "destructive" });

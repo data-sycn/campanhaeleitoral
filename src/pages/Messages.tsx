@@ -24,7 +24,7 @@ interface TeamMessage {
 }
 
 const Messages = () => {
-  const { user, campanhaId, isCoordinator } = useAuth();
+  const { user, campanhaId, isCoordinator, isMaster } = useAuth();
   const { toast } = useToast();
   const [messages, setMessages] = useState<TeamMessage[]>([]);
   const [loading, setLoading] = useState(true);
@@ -33,17 +33,18 @@ const Messages = () => {
   const [form, setForm] = useState({ titulo: "", conteudo: "", cidade: "", prioridade: "normal" });
 
   const fetchMessages = useCallback(async () => {
-    if (!campanhaId) { setLoading(false); return; }
-    const { data, error } = await (supabase
+    if (!campanhaId && !isMaster) { setLoading(false); return; }
+    let query = supabase
       .from("team_messages" as any)
       .select("*")
-      .eq("campanha_id", campanhaId)
       .order("created_at", { ascending: false })
-      .limit(100) as any);
+      .limit(100) as any;
+    if (campanhaId) query = query.eq("campanha_id", campanhaId);
+    const { data, error } = await query;
 
     if (!error) setMessages((data as TeamMessage[]) || []);
     setLoading(false);
-  }, [campanhaId]);
+  }, [campanhaId, isMaster]);
 
   useEffect(() => { fetchMessages(); }, [fetchMessages]);
 

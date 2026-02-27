@@ -33,7 +33,7 @@ const sources = [
 ] as const;
 
 export function BudgetRevenues() {
-  const { user, campanhaId } = useAuth();
+  const { user, campanhaId, isMaster } = useAuth();
   const { toast } = useToast();
   const [revenues, setRevenues] = useState<Revenue[]>([]);
   const [loading, setLoading] = useState(true);
@@ -83,7 +83,7 @@ export function BudgetRevenues() {
     setCreating(true);
     try {
       if (!campanhaId) {
-        toast({ title: "Erro", description: "Você precisa estar vinculado a uma campanha", variant: "destructive" });
+        toast({ title: "Erro", description: isMaster ? "Selecione uma campanha primeiro." : "Você precisa estar vinculado a uma campanha", variant: "destructive" });
         return;
       }
       const { error } = await supabase.from("revenues" as any).insert({

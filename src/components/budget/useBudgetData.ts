@@ -20,7 +20,7 @@ export interface BudgetFormData {
 }
 
 export function useBudgetData() {
-  const { user, campanhaId, profile } = useAuth();
+  const { user, campanhaId, profile, isMaster } = useAuth();
   const { toast } = useToast();
   const [budgets, setBudgets] = useState<Budget[]>([]);
   const [loading, setLoading] = useState(true);
@@ -66,7 +66,7 @@ export function useBudgetData() {
       if (!campanhaId) {
         toast({
           title: "Erro",
-          description: "Você precisa estar vinculado a uma campanha para criar orçamentos",
+          description: isMaster ? "Selecione uma campanha primeiro." : "Você precisa estar vinculado a uma campanha para criar orçamentos",
           variant: "destructive"
         });
         return false;

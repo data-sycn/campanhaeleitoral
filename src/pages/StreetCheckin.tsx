@@ -47,7 +47,7 @@ const STATUS_COBERTURA_LABELS: Record<string, { label: string; color: string }> 
 };
 
 const StreetCheckin = () => {
-  const { user, campanhaId } = useAuth();
+  const { user, campanhaId, isMaster } = useAuth();
   const { toast } = useToast();
   const [streets, setStreets] = useState<Street[]>([]);
   const [checkins, setCheckins] = useState<Checkin[]>([]);
@@ -69,12 +69,15 @@ const StreetCheckin = () => {
   const [photoPreview, setPhotoPreview] = useState<string | null>(null);
 
   const fetchData = useCallback(async () => {
-    if (!user || !campanhaId) { setLoading(false); return; }
+    if (!user || (!campanhaId && !isMaster)) { setLoading(false); return; }
     try {
-      const [streetsRes, checkinsRes] = await Promise.all([
-        supabase.from("streets").select("*").eq("campanha_id", campanhaId).order("nome"),
-        supabase.from("street_checkins").select("*, streets(nome, bairro, cidade)").eq("campanha_id", campanhaId).order("started_at", { ascending: false }).limit(50),
-      ]);
+      let streetsQ = supabase.from("streets").select("*").order("nome");
+      let checkinsQ = supabase.from("street_checkins").select("*, streets(nome, bairro, cidade)").order("started_at", { ascending: false }).limit(50);
+      if (campanhaId) {
+        streetsQ = streetsQ.eq("campanha_id", campanhaId);
+        checkinsQ = checkinsQ.eq("campanha_id", campanhaId);
+      }
+      const [streetsRes, checkinsRes] = await Promise.all([streetsQ, checkinsQ]);
       setStreets((streetsRes.data as any[]) || []);
       setCheckins((checkinsRes.data as any[]) || []);
     } catch (err) {
@@ -82,7 +85,7 @@ const StreetCheckin = () => {
     } finally {
       setLoading(false);
     }
-  }, [user, campanhaId]);
+  }, [user, campanhaId, isMaster]);
 
   useEffect(() => { 
     fetchData(); 

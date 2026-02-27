@@ -40,7 +40,7 @@ const initialForm: SupporterFormData = {
 };
 
 export function SupporterForm({ onSuccess, onCancel }: SupporterFormProps) {
-  const { campanhaId } = useAuth();
+  const { campanhaId, isMaster } = useAuth();
   const { toast } = useToast();
   const [form, setForm] = useState<SupporterFormData>(initialForm);
   const [saving, setSaving] = useState(false);
@@ -66,7 +66,7 @@ export function SupporterForm({ onSuccess, onCancel }: SupporterFormProps) {
     }
 
     if (!campanhaId) {
-      toast({ title: "Erro", description: "Campanha não identificada.", variant: "destructive" });
+      toast({ title: "Erro", description: isMaster ? "Selecione uma campanha primeiro." : "Campanha não identificada.", variant: "destructive" });
       return;
     }
 

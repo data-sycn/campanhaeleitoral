@@ -43,7 +43,7 @@ const paymentMethods = [
 ] as const;
 
 const Expenses = () => {
-  const { user, campanhaId, profile } = useAuth();
+  const { user, campanhaId, profile, isMaster } = useAuth();
   const { toast } = useToast();
   const [expenses, setExpenses] = useState<Expense[]>([]);
   const [loading, setLoading] = useState(true);
@@ -90,7 +90,7 @@ const Expenses = () => {
 
     try {
       if (!campanhaId) {
-        toast({ title: "Erro", description: "Você precisa estar vinculado a uma campanha para registrar despesas", variant: "destructive" });
+        toast({ title: "Erro", description: isMaster ? "Selecione uma campanha primeiro." : "Você precisa estar vinculado a uma campanha para registrar despesas", variant: "destructive" });
         return;
       }
 

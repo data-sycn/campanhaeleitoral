@@ -42,7 +42,7 @@ const STATUS_CONFIG: Record<string, { label: string; color: string }> = {
 };
 
 const RouteAssignmentPage = () => {
-  const { user, campanhaId, isAdmin } = useAuth();
+  const { user, campanhaId, isAdmin, isMaster } = useAuth();
   const { toast } = useToast();
   const [assignments, setAssignments] = useState<RouteAssignment[]>([]);
   const [streets, setStreets] = useState<Street[]>([]);
@@ -65,11 +65,17 @@ const RouteAssignmentPage = () => {
   const [profileMap, setProfileMap] = useState<Record<string, Profile>>({});
 
   const fetchData = useCallback(async () => {
-    if (!user || !campanhaId) { setLoading(false); return; }
+    if (!user || (!campanhaId && !isMaster)) { setLoading(false); return; }
 
+    let assignQuery = supabase.from("route_assignments" as any).select("*").order("data_planejada", { ascending: true }) as any;
+    let streetsQuery = supabase.from("streets").select("id, nome, bairro, cidade").order("nome");
+    if (campanhaId) {
+      assignQuery = assignQuery.eq("campanha_id", campanhaId);
+      streetsQuery = streetsQuery.eq("campanha_id", campanhaId);
+    }
     const [assignmentsRes, streetsRes, profilesRes] = await Promise.all([
-      supabase.from("route_assignments" as any).select("*").eq("campanha_id", campanhaId).order("data_planejada", { ascending: true }) as any,
-      supabase.from("streets").select("id, nome, bairro, cidade").eq("campanha_id", campanhaId).order("nome"),
+      assignQuery,
+      streetsQuery,
       supabase.from("profiles").select("id, name"),
     ]);
 
@@ -90,7 +96,7 @@ const RouteAssignmentPage = () => {
     setProfileMap(pMap);
 
     setLoading(false);
-  }, [user, campanhaId]);
+  }, [user, campanhaId, isMaster]);
 
   useEffect(() => { fetchData(); }, [fetchData]);
 

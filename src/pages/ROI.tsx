@@ -17,7 +17,7 @@ interface CityROI {
 }
 
 const ROI = () => {
-  const { profile, campanhaId } = useAuth();
+  const { profile, campanhaId, isMaster } = useAuth();
   const [cityData, setCityData] = useState<CityROI[]>([]);
   const [loading, setLoading] = useState(true);
   const [showImport, setShowImport] = useState(false);
@@ -25,7 +25,7 @@ const ROI = () => {
   const candidateId = profile?.candidate_id;
 
   const fetchROI = useCallback(async () => {
-    if (!campanhaId || !candidateId) { setLoading(false); return; }
+    if ((!campanhaId && !isMaster) || !candidateId) { setLoading(false); return; }
 
     // Fetch expenses by city, votes, and approved resource requests
     const [expensesRes, resourcesRes, votesRes] = await Promise.all([

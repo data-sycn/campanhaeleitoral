@@ -8,7 +8,8 @@ import { BarChart3, Shield, AlertTriangle, Trophy } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { useDashboardData } from "@/components/dashboard/useDashboardData";
 import { useRecurrenceAlerts, useEffectivenessRanking } from "@/components/dashboard/useDashboardAlerts";
-import { DashboardModuleGrid } from "@/components/dashboard/DashboardModuleGrid";
+import { Button } from "@/components/ui/button";
+import { LayoutGrid } from "lucide-react";
 import { CampaignSelector } from "@/components/dashboard/CampaignSelector";
 import { SupportersHeatmap } from "@/components/dashboard/SupportersHeatmap";
 import { LeafletHeatmap } from "@/components/dashboard/LeafletHeatmap";
@@ -55,10 +56,14 @@ const Dashboard = () => {
             <h1 className="text-3xl font-bold">Dossiê de Bolso</h1>
             <p className="text-muted-foreground">Visão executiva da campanha</p>
           </div>
-          {isMaster && <CampaignSelector value={campanhaId} onChange={setCampanhaId} />}
+          <div className="flex items-center gap-3">
+            {isMaster && <CampaignSelector value={campanhaId} onChange={setCampanhaId} />}
+            <Button variant="outline" onClick={() => navigate("/modulos")} className="gap-2">
+              <LayoutGrid className="w-4 h-4" />
+              Módulos
+            </Button>
+          </div>
         </div>
-
-        <DashboardModuleGrid />
 
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
           <TabsList>

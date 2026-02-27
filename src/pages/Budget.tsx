@@ -11,7 +11,7 @@ import { Navbar } from "@/components/Navbar";
 
 const Budget = () => {
   const [activeModule, setActiveModule] = useState<string>("overview");
-  const { budgets, loading, creating, activeBudget, createBudget } = useBudgetData();
+  const { budgets, loading, creating, activeBudget, createBudget, updateBudget, deleteBudget } = useBudgetData();
 
   if (loading) {
     return (
@@ -43,6 +43,8 @@ const Budget = () => {
             activeBudget={activeBudget}
             creating={creating}
             createBudget={createBudget}
+            updateBudget={updateBudget}
+            deleteBudget={deleteBudget}
           />
         )}
 

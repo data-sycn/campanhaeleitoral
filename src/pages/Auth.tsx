@@ -22,22 +22,20 @@ const Auth = () => {
     setIsLoading(true);
 
     try {
-      // Look up user ID by PIN using security definer function
-      const { data: userId, error: lookupError } = await supabase
-        .rpc('get_user_id_by_pin', { p_pin: value });
+      // Look up email by PIN
+      const { data: email, error: lookupError } = await supabase
+        .rpc('get_email_by_pin', { p_pin: value });
 
-      if (lookupError || !userId) {
+      if (lookupError || !email) {
         toast({ title: "PIN inválido", description: "Nenhum usuário encontrado com este PIN.", variant: "destructive" });
         setPin("");
         setIsLoading(false);
         return;
       }
 
-      // Use internal email pattern and PIN as password
-      const internalEmail = `${userId}@internal.app`;
-      
+      // PIN is the password, email was found via lookup
       const { error } = await supabase.auth.signInWithPassword({
-        email: internalEmail,
+        email,
         password: value,
       });
 

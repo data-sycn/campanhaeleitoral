@@ -902,6 +902,35 @@ export type Database = {
           },
         ]
       }
+      user_campanhas: {
+        Row: {
+          campanha_id: string
+          created_at: string
+          id: string
+          user_id: string
+        }
+        Insert: {
+          campanha_id: string
+          created_at?: string
+          id?: string
+          user_id: string
+        }
+        Update: {
+          campanha_id?: string
+          created_at?: string
+          id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_campanhas_campanha_id_fkey"
+            columns: ["campanha_id"]
+            isOneToOne: false
+            referencedRelation: "campanhas"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       user_candidates: {
         Row: {
           candidate_id: string
@@ -2019,7 +2048,13 @@ export type Database = {
       }
     }
     Enums: {
-      app_role: "admin" | "candidate" | "supporter" | "master" | "coordinator"
+      app_role:
+        | "admin"
+        | "candidate"
+        | "supporter"
+        | "master"
+        | "coordinator"
+        | "supervisor"
       expense_category:
         | "publicidade"
         | "transporte"
@@ -2170,7 +2205,14 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
-      app_role: ["admin", "candidate", "supporter", "master", "coordinator"],
+      app_role: [
+        "admin",
+        "candidate",
+        "supporter",
+        "master",
+        "coordinator",
+        "supervisor",
+      ],
       expense_category: [
         "publicidade",
         "transporte",

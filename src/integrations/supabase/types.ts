@@ -534,6 +534,62 @@ export type Database = {
           },
         ]
       }
+      revenues: {
+        Row: {
+          amount: number
+          campanha_id: string | null
+          created_at: string
+          created_by: string | null
+          date: string
+          description: string
+          donor_cpf_cnpj: string | null
+          donor_name: string | null
+          id: string
+          notes: string | null
+          receipt_url: string | null
+          source: string
+          updated_at: string
+        }
+        Insert: {
+          amount: number
+          campanha_id?: string | null
+          created_at?: string
+          created_by?: string | null
+          date: string
+          description: string
+          donor_cpf_cnpj?: string | null
+          donor_name?: string | null
+          id?: string
+          notes?: string | null
+          receipt_url?: string | null
+          source?: string
+          updated_at?: string
+        }
+        Update: {
+          amount?: number
+          campanha_id?: string | null
+          created_at?: string
+          created_by?: string | null
+          date?: string
+          description?: string
+          donor_cpf_cnpj?: string | null
+          donor_name?: string | null
+          id?: string
+          notes?: string | null
+          receipt_url?: string | null
+          source?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "revenues_campanha_id_fkey"
+            columns: ["campanha_id"]
+            isOneToOne: false
+            referencedRelation: "campanhas"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       route_assignments: {
         Row: {
           assigned_by: string

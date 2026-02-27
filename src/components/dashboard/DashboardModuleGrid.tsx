@@ -1,5 +1,5 @@
 import { useNavigate } from "react-router-dom";
-import { BarChart3, DollarSign, Users, FileText, Settings, MapPin, Package, Route, MessageCircle, TrendingUp } from "lucide-react";
+import { BarChart3, DollarSign, Users, FileText, Settings, MapPin, Package, Route, MessageCircle, TrendingUp, History } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { useDashboardData } from "./useDashboardData";
 import { useAuth } from "@/hooks/useAuth";
@@ -78,6 +78,14 @@ export function DashboardModuleGrid() {
       route: "/reports",
       stat: `${stats.reportsCount} disponíveis`,
       gradient: "from-orange-500 to-red-500",
+    },
+    {
+      id: "historico",
+      title: "Histórico",
+      icon: History,
+      route: "/historico",
+      stat: "Atividades",
+      gradient: "from-slate-500 to-gray-600",
     },
   ];
 

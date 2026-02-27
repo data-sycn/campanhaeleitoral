@@ -107,6 +107,38 @@ export function useBudgetData() {
     }
   };
 
+  const updateBudget = async (id: string, data: Partial<{ title: string; total_planned: number; notes: string | null; active: boolean }>) => {
+    try {
+      const { error } = await supabase.from('budgets').update(data as any).eq('id', id);
+      if (error) {
+        toast({ title: "Erro ao atualizar orçamento", description: error.message, variant: "destructive" });
+        return false;
+      }
+      toast({ title: "Orçamento atualizado!" });
+      await fetchBudgets();
+      return true;
+    } catch (error) {
+      console.error('Error updating budget:', error);
+      return false;
+    }
+  };
+
+  const deleteBudget = async (id: string) => {
+    try {
+      const { error } = await supabase.from('budgets').delete().eq('id', id);
+      if (error) {
+        toast({ title: "Erro ao excluir orçamento", description: error.message, variant: "destructive" });
+        return false;
+      }
+      toast({ title: "Orçamento excluído!" });
+      await fetchBudgets();
+      return true;
+    } catch (error) {
+      console.error('Error deleting budget:', error);
+      return false;
+    }
+  };
+
   useEffect(() => {
     fetchBudgets();
   }, [user, campanhaId]);
@@ -121,6 +153,8 @@ export function useBudgetData() {
     activeBudget,
     totalPlanned,
     createBudget,
+    updateBudget,
+    deleteBudget,
     refetch: fetchBudgets
   };
 }

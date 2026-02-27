@@ -15,9 +15,11 @@ interface BudgetPlannedProps {
   activeBudget: ReturnType<typeof useBudgetData>["activeBudget"];
   creating: boolean;
   createBudget: (data: BudgetFormData) => Promise<boolean>;
+  updateBudget: ReturnType<typeof useBudgetData>["updateBudget"];
+  deleteBudget: ReturnType<typeof useBudgetData>["deleteBudget"];
 }
 
-export function BudgetPlanned({ budgets, activeBudget, creating, createBudget }: BudgetPlannedProps) {
+export function BudgetPlanned({ budgets, activeBudget, creating, createBudget, updateBudget, deleteBudget }: BudgetPlannedProps) {
   const [subTab, setSubTab] = useState("budgets");
   const [showForm, setShowForm] = useState(false);
   const [isAllocationDialogOpen, setIsAllocationDialogOpen] = useState(false);
@@ -60,7 +62,7 @@ export function BudgetPlanned({ budgets, activeBudget, creating, createBudget }:
           {showForm && (
             <BudgetForm onSubmit={handleCreateBudget} onCancel={() => setShowForm(false)} isSubmitting={creating} />
           )}
-          <BudgetList budgets={budgets} onCreateClick={() => setShowForm(true)} />
+          <BudgetList budgets={budgets} onCreateClick={() => setShowForm(true)} onUpdate={updateBudget} onDelete={deleteBudget} />
         </TabsContent>
 
         <TabsContent value="allocations" className="space-y-4">

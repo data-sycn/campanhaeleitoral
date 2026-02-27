@@ -2,9 +2,8 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Navbar } from "@/components/Navbar";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
-import { BarChart3, Shield, AlertTriangle, Trophy } from "lucide-react";
+import { AlertTriangle, Trophy } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { useDashboardData } from "@/components/dashboard/useDashboardData";
 import { useRecurrenceAlerts, useEffectivenessRanking } from "@/components/dashboard/useDashboardAlerts";
@@ -14,14 +13,12 @@ import { CampaignSelector } from "@/components/dashboard/CampaignSelector";
 import { SupportersHeatmap } from "@/components/dashboard/SupportersHeatmap";
 import { LeafletHeatmap } from "@/components/dashboard/LeafletHeatmap";
 import { SimultaneityWidget } from "@/components/dashboard/SimultaneityWidget";
-import { AuditTimeline } from "@/components/dashboard/AuditTimeline";
 
 const Dashboard = () => {
   const { userRoles } = useAuth();
   const isMaster = userRoles.includes("master");
   const [campanhaId, setCampanhaId] = useState<string | null>(null);
-  const { stats, supporterPoints, heatmapData, auditData, activeCheckins, loading } = useDashboardData(campanhaId);
-  const [activeTab, setActiveTab] = useState("overview");
+  const { stats, supporterPoints, heatmapData, activeCheckins, loading } = useDashboardData(campanhaId);
   const navigate = useNavigate();
 
   const recurrenceAlerts = useRecurrenceAlerts(campanhaId);
@@ -65,104 +62,91 @@ const Dashboard = () => {
           </div>
         </div>
 
-        <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-          <TabsList className="w-full sm:w-auto">
-            <TabsTrigger value="overview" className="gap-2 flex-1 sm:flex-none"><BarChart3 className="w-4 h-4" /> <span className="hidden xs:inline">Visão Geral</span><span className="xs:hidden">Geral</span></TabsTrigger>
-            <TabsTrigger value="audit" className="gap-2 flex-1 sm:flex-none"><Shield className="w-4 h-4" /> Auditoria</TabsTrigger>
-          </TabsList>
+        <div className="space-y-6">
+          {/* Recurrence Alerts */}
+          {recurrenceAlerts.length > 0 && (
+            <Card className="border-orange-500/30">
+              <CardHeader className="pb-3">
+                <CardTitle className="text-base flex items-center gap-2 text-orange-600">
+                  <AlertTriangle className="w-4 h-4" />
+                  Alertas de Recorrência
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-2">
+                  {recurrenceAlerts.slice(0, 5).map((alert) => (
+                    <div key={alert.street_id} className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 p-3 bg-orange-500/5 rounded-lg">
+                      <div className="min-w-0">
+                        <p className="font-medium text-sm truncate">{alert.street_name}</p>
+                        <p className="text-xs text-muted-foreground truncate">
+                          {alert.bairro && `${alert.bairro} — `}{alert.cidade}
+                        </p>
+                      </div>
+                      <div className="flex items-center gap-2 sm:text-right shrink-0">
+                        <Badge variant="outline" className="text-orange-600 border-orange-300 text-xs">
+                          {alert.days_since}d sem visita
+                        </Badge>
+                        {alert.cidade && (
+                          <button
+                            onClick={() => navigate(`/dossie/${encodeURIComponent(alert.cidade!)}`)}
+                            className="text-xs text-primary hover:underline whitespace-nowrap"
+                          >
+                            Ver dossiê →
+                          </button>
+                        )}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+          )}
 
-          <TabsContent value="overview" className="space-y-6">
-
-            {/* Recurrence Alerts */}
-            {recurrenceAlerts.length > 0 && (
-              <Card className="border-orange-500/30">
-                <CardHeader className="pb-3">
-                  <CardTitle className="text-base flex items-center gap-2 text-orange-600">
-                    <AlertTriangle className="w-4 h-4" />
-                    Alertas de Recorrência
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-2">
-                    {recurrenceAlerts.slice(0, 5).map((alert) => (
-                      <div key={alert.street_id} className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 p-3 bg-orange-500/5 rounded-lg">
-                        <div className="min-w-0">
-                          <p className="font-medium text-sm truncate">{alert.street_name}</p>
-                          <p className="text-xs text-muted-foreground truncate">
-                            {alert.bairro && `${alert.bairro} — `}{alert.cidade}
+          {/* Effectiveness Ranking */}
+          {effectivenessRanking.length > 0 && (
+            <Card>
+              <CardHeader className="pb-3">
+                <CardTitle className="text-base flex items-center gap-2">
+                  <Trophy className="w-4 h-4 text-yellow-500" />
+                  Ranking de Efetividade por Cidade
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-2">
+                  {effectivenessRanking.slice(0, 5).map((item, idx) => (
+                    <div key={item.cidade} className="flex items-center justify-between p-3 bg-muted/30 rounded-lg">
+                      <div className="flex items-center gap-3">
+                        <span className={`font-bold text-lg ${idx === 0 ? 'text-yellow-500' : idx === 1 ? 'text-gray-400' : idx === 2 ? 'text-amber-600' : 'text-muted-foreground'}`}>
+                          #{idx + 1}
+                        </span>
+                        <div>
+                          <p className="font-medium text-sm">{item.cidade}</p>
+                          <p className="text-xs text-muted-foreground">
+                            {item.streets_visited} ruas • {formatCurrency(item.total_cost)}
                           </p>
                         </div>
-                        <div className="flex items-center gap-2 sm:text-right shrink-0">
-                          <Badge variant="outline" className="text-orange-600 border-orange-300 text-xs">
-                            {alert.days_since}d sem visita
-                          </Badge>
-                          {alert.cidade && (
-                            <button
-                              onClick={() => navigate(`/dossie/${encodeURIComponent(alert.cidade!)}`)}
-                              className="text-xs text-primary hover:underline whitespace-nowrap"
-                            >
-                              Ver dossiê →
-                            </button>
-                          )}
-                        </div>
                       </div>
-                    ))}
-                  </div>
-                </CardContent>
-              </Card>
-            )}
+                      <Badge variant="secondary">
+                        {formatCurrency(item.cost_per_street)}/rua
+                      </Badge>
+                    </div>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+          )}
 
-            {/* Effectiveness Ranking */}
-            {effectivenessRanking.length > 0 && (
-              <Card>
-                <CardHeader className="pb-3">
-                  <CardTitle className="text-base flex items-center gap-2">
-                    <Trophy className="w-4 h-4 text-yellow-500" />
-                    Ranking de Efetividade por Cidade
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-2">
-                    {effectivenessRanking.slice(0, 5).map((item, idx) => (
-                      <div key={item.cidade} className="flex items-center justify-between p-3 bg-muted/30 rounded-lg">
-                        <div className="flex items-center gap-3">
-                          <span className={`font-bold text-lg ${idx === 0 ? 'text-yellow-500' : idx === 1 ? 'text-gray-400' : idx === 2 ? 'text-amber-600' : 'text-muted-foreground'}`}>
-                            #{idx + 1}
-                          </span>
-                          <div>
-                            <p className="font-medium text-sm">{item.cidade}</p>
-                            <p className="text-xs text-muted-foreground">
-                              {item.streets_visited} ruas • {formatCurrency(item.total_cost)}
-                            </p>
-                          </div>
-                        </div>
-                        <Badge variant="secondary">
-                          {formatCurrency(item.cost_per_street)}/rua
-                        </Badge>
-                      </div>
-                    ))}
-                  </div>
-                </CardContent>
-              </Card>
-            )}
-
-            {/* Leaflet Map + Simultaneity Widget */}
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-              <div className="lg:col-span-2">
-                <LeafletHeatmap data={supporterPoints} loading={false} />
-              </div>
-              <SimultaneityWidget data={activeCheckins} loading={false} />
+          {/* Leaflet Map + Simultaneity Widget */}
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <div className="lg:col-span-2">
+              <LeafletHeatmap data={supporterPoints} loading={false} />
             </div>
+            <SimultaneityWidget data={activeCheckins} loading={false} />
+          </div>
 
-            {/* Supporters Heatmap */}
-            <SupportersHeatmap data={heatmapData} loading={false} />
-          </TabsContent>
-
-
-          <TabsContent value="audit">
-            <AuditTimeline data={auditData} loading={false} />
-          </TabsContent>
-        </Tabs>
+          {/* Supporters Heatmap */}
+          <SupportersHeatmap data={heatmapData} loading={false} />
+        </div>
       </div>
     </div>
   );

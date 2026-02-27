@@ -1,13 +1,13 @@
 import { NavItem } from "./NavItem";
-import { LayoutDashboard } from "lucide-react";
+import { LayoutGrid } from "lucide-react";
 
 export function NavLinks() {
   return (
     <div className="hidden md:flex items-center gap-1">
       <NavItem
-        icon={LayoutDashboard}
-        label="Dashboard"
-        path="/dashboard"
+        icon={LayoutGrid}
+        label="Módulos"
+        path="/modulos"
       />
     </div>
   );

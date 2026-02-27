@@ -6,7 +6,7 @@ export function NavLinks() {
     <div className="hidden md:flex items-center gap-1">
       <NavItem
         icon={LayoutDashboard}
-        label="Trocar Módulo"
+        label="Dashboard"
         path="/dashboard"
       />
     </div>

@@ -1,5 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Badge } from "@/components/ui/badge";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -8,9 +9,19 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Settings, LogOut, User } from "lucide-react";
+import { Settings, LogOut, User, LayoutGrid, Crown, Shield, UserCheck } from "lucide-react";
 import { User as SupabaseUser } from "@supabase/supabase-js";
 import { useNavigate } from "react-router-dom";
+import { useAuth } from "@/hooks/useAuth";
+
+const ROLE_LABELS: Record<string, { label: string; icon: typeof Crown }> = {
+  master: { label: "Desenvolvedor", icon: Crown },
+  admin: { label: "Administrador", icon: Shield },
+  coordinator: { label: "Coordenador", icon: UserCheck },
+  supervisor: { label: "Supervisor", icon: UserCheck },
+  candidate: { label: "Candidato", icon: User },
+  supporter: { label: "Apoiador", icon: User },
+};
 
 interface NavUserMenuProps {
   user: SupabaseUser;
@@ -19,8 +30,11 @@ interface NavUserMenuProps {
 
 export function NavUserMenu({ user, onSignOut }: NavUserMenuProps) {
   const navigate = useNavigate();
-  const userName = user.user_metadata?.name || user.email?.split("@")[0] || "Usuário";
+  const { profile, userRoles, campanhaId, isMaster } = useAuth();
+  const userName = profile?.name || user.user_metadata?.name || user.email?.split("@")[0] || "Usuário";
   const userInitials = userName.split(" ").map((n: string) => n[0]).join("").toUpperCase().slice(0, 2);
+  const primaryRole = userRoles[0];
+  const roleInfo = primaryRole ? ROLE_LABELS[primaryRole] : null;
 
   return (
     <DropdownMenu>
@@ -37,13 +51,39 @@ export function NavUserMenu({ user, onSignOut }: NavUserMenuProps) {
           </Avatar>
         </Button>
       </DropdownMenuTrigger>
-      <DropdownMenuContent align="end" className="w-64">
+      <DropdownMenuContent align="end" className="w-72">
         <DropdownMenuLabel>
-          <div className="flex flex-col space-y-1">
-            <p className="text-sm font-medium">{userName}</p>
-            <p className="text-xs text-muted-foreground truncate">{user.email}</p>
+          <div className="flex flex-col space-y-2">
+            <div className="flex items-center gap-2">
+              <Avatar className="w-10 h-10">
+                <AvatarFallback className="bg-primary text-primary-foreground text-sm">
+                  {userInitials}
+                </AvatarFallback>
+              </Avatar>
+              <div className="min-w-0">
+                <p className="text-sm font-semibold truncate">{userName}</p>
+                <p className="text-xs text-muted-foreground truncate">{user.email}</p>
+              </div>
+            </div>
+            {roleInfo && (
+              <div className="flex items-center gap-1.5">
+                <Badge variant="secondary" className="text-xs gap-1">
+                  {isMaster && <Crown className="w-3 h-3" />}
+                  {roleInfo.label}
+                </Badge>
+                <span className="text-xs text-muted-foreground">
+                  {isMaster ? "Acesso global" : campanhaId ? "Vinculado" : "Sem campanha"}
+                </span>
+              </div>
+            )}
           </div>
         </DropdownMenuLabel>
+        
+        <DropdownMenuSeparator />
+        <DropdownMenuItem onClick={() => navigate("/modulos")}>
+          <LayoutGrid className="mr-2 h-4 w-4" />
+          Trocar Módulo
+        </DropdownMenuItem>
         
         <DropdownMenuSeparator />
         <DropdownMenuItem onClick={() => navigate("/profile")}>

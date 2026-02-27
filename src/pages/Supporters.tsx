@@ -74,15 +74,15 @@ const Supporters = () => {
     <div className="min-h-screen bg-background">
       <Navbar />
       <div className="container mx-auto px-4 py-8">
-        <div className="flex items-center justify-between mb-8">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
           <div>
-            <h1 className="text-3xl font-bold">Apoiadores</h1>
-            <p className="text-muted-foreground">Gerencie os apoiadores da campanha</p>
+            <h1 className="text-2xl sm:text-3xl font-bold">Apoiadores</h1>
+            <p className="text-sm text-muted-foreground">Gerencie os apoiadores da campanha</p>
           </div>
           <Button
             onClick={() => setShowRegisterForm(!showRegisterForm)}
             variant="campaign"
-            className="gap-2"
+            className="gap-2 w-full sm:w-auto"
           >
             <UserPlus className="w-4 h-4" />
             {showRegisterForm ? "Fechar" : "Cadastrar Apoiador"}
@@ -133,21 +133,28 @@ const Supporters = () => {
           ) : (
             supporters.map((supporter) => (
               <Card key={supporter.id}>
-                <CardContent className="p-6">
-                  <div className="flex items-center gap-4">
-                    <Avatar className="w-12 h-12">
-                      <AvatarFallback className="bg-primary text-primary-foreground">
+                <CardContent className="p-4 sm:p-6">
+                  <div className="flex items-start gap-3 sm:gap-4">
+                    <Avatar className="w-10 h-10 sm:w-12 sm:h-12 shrink-0">
+                      <AvatarFallback className="bg-primary text-primary-foreground text-xs sm:text-sm">
                         {supporter.nome.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2)}
                       </AvatarFallback>
                     </Avatar>
-                    <div className="flex-1">
-                      <h4 className="font-semibold">{supporter.nome}</h4>
-                      <div className="flex flex-wrap gap-3 text-sm text-muted-foreground mt-1">
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-start justify-between gap-2">
+                        <h4 className="font-semibold text-sm sm:text-base truncate">{supporter.nome}</h4>
+                        {supporter.created_at && (
+                          <Badge variant="secondary" className="text-xs shrink-0 hidden sm:inline-flex">
+                            {new Date(supporter.created_at).toLocaleDateString('pt-BR')}
+                          </Badge>
+                        )}
+                      </div>
+                      <div className="flex flex-wrap gap-2 sm:gap-3 text-xs sm:text-sm text-muted-foreground mt-1">
                         {supporter.telefone && (
                           <span className="flex items-center gap-1"><Phone className="w-3 h-3" />{supporter.telefone}</span>
                         )}
                         {supporter.email && (
-                          <span className="flex items-center gap-1"><Mail className="w-3 h-3" />{supporter.email}</span>
+                          <span className="flex items-center gap-1 truncate max-w-[180px]"><Mail className="w-3 h-3" />{supporter.email}</span>
                         )}
                         {(supporter.bairro || supporter.cidade) && (
                           <span className="flex items-center gap-1">
@@ -157,11 +164,6 @@ const Supporters = () => {
                         )}
                       </div>
                     </div>
-                    {supporter.created_at && (
-                      <Badge variant="secondary">
-                        {new Date(supporter.created_at).toLocaleDateString('pt-BR')}
-                      </Badge>
-                    )}
                   </div>
                 </CardContent>
               </Card>

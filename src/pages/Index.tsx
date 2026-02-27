@@ -45,10 +45,10 @@ const Index = () => {
       <Navbar />
       <CampaignHero />
       
-      <section className="py-20 bg-muted/30">
+      <section className="py-12 sm:py-20 bg-muted/30">
         <div className="container mx-auto px-4 text-center">
-          <h2 className="text-3xl font-bold mb-6">Pronto para profissionalizar sua campanha?</h2>
-          <p className="text-xl text-muted-foreground mb-10 max-w-2xl mx-auto">
+          <h2 className="text-2xl sm:text-3xl font-bold mb-4 sm:mb-6">Pronto para profissionalizar sua campanha?</h2>
+          <p className="text-base sm:text-xl text-muted-foreground mb-8 sm:mb-10 max-w-2xl mx-auto">
             Junte-se a centenas de candidatos que já utilizam o CampanhaGov para gerir seus recursos e equipes.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center max-w-md mx-auto">

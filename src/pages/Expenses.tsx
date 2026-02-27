@@ -140,12 +140,12 @@ const Expenses = () => {
     <div className="min-h-screen bg-background">
       <Navbar />
       <div className="container mx-auto px-4 py-8">
-      <div className="flex items-center justify-between mb-8">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
         <div>
-          <h1 className="text-3xl font-bold">Despesas</h1>
-          <p className="text-muted-foreground">Controle de gastos da campanha</p>
+          <h1 className="text-2xl sm:text-3xl font-bold">Despesas</h1>
+          <p className="text-sm text-muted-foreground">Controle de gastos da campanha</p>
         </div>
-        <Button onClick={() => setShowForm(!showForm)} variant="campaign" className="gap-2">
+        <Button onClick={() => setShowForm(!showForm)} variant="campaign" className="gap-2 w-full sm:w-auto">
           <PlusCircle className="w-4 h-4" /> Nova Despesa
         </Button>
       </div>
@@ -234,19 +234,19 @@ const Expenses = () => {
         ) : (
           expenses.map((expense) => (
             <Card key={expense.id}>
-              <CardContent className="p-6">
-                <div className="flex items-start justify-between">
-                  <div className="flex-1">
-                    <div className="flex items-center gap-2 mb-2">
-                      <Calendar className="w-4 h-4 text-muted-foreground" />
+              <CardContent className="p-4 sm:p-6">
+                <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-2">
+                  <div className="flex-1 min-w-0">
+                    <div className="flex flex-wrap items-center gap-2 mb-2">
+                      <Calendar className="w-4 h-4 text-muted-foreground shrink-0" />
                       <span className="text-sm text-muted-foreground">{new Date(expense.date).toLocaleDateString('pt-BR')}</span>
-                      <span className="text-sm bg-muted px-2 py-1 rounded">{categories.find(c => c.value === expense.category)?.label}</span>
+                      <span className="text-xs sm:text-sm bg-muted px-2 py-0.5 sm:py-1 rounded">{categories.find(c => c.value === expense.category)?.label}</span>
                     </div>
-                    <h4 className="font-semibold mb-1">{expense.description}</h4>
-                    <p className="text-sm text-muted-foreground">{paymentMethods.find(p => p.value === expense.payment_method)?.label}</p>
+                    <h4 className="font-semibold mb-1 text-sm sm:text-base truncate">{expense.description}</h4>
+                    <p className="text-xs sm:text-sm text-muted-foreground">{paymentMethods.find(p => p.value === expense.payment_method)?.label}</p>
                   </div>
-                  <div className="text-right">
-                    <p className="text-lg font-bold">
+                  <div className="text-left sm:text-right shrink-0">
+                    <p className="text-base sm:text-lg font-bold">
                       R$ {expense.amount.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                     </p>
                   </div>

@@ -103,7 +103,7 @@ export function DashboardModuleGrid() {
   }
 
   return (
-    <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 mb-8">
+    <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4 mb-8">
       {modules.map((mod) => {
         const Icon = mod.icon;
         return (
@@ -111,16 +111,16 @@ export function DashboardModuleGrid() {
             key={mod.id}
             onClick={() => navigate(mod.route)}
             className={cn(
-              "cursor-pointer transition-all hover:shadow-lg hover:scale-[1.02]",
+              "cursor-pointer transition-all hover:shadow-lg active:scale-[0.98] hover:scale-[1.02]",
               "border border-border/50 hover:border-primary/30"
             )}
           >
-            <CardContent className="p-4 flex flex-col items-center text-center gap-2">
-              <div className="w-10 h-10 rounded-xl flex items-center justify-center bg-primary/10">
-                <Icon className="w-5 h-5 text-primary" />
+            <CardContent className="p-3 sm:p-4 flex flex-col items-center text-center gap-1.5 sm:gap-2">
+              <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl flex items-center justify-center bg-primary/10">
+                <Icon className="w-4 h-4 sm:w-5 sm:h-5 text-primary" />
               </div>
-              <span className="font-semibold text-sm">{mod.title}</span>
-              <span className="text-xs text-muted-foreground">{mod.stat}</span>
+              <span className="font-semibold text-xs sm:text-sm">{mod.title}</span>
+              <span className="text-[10px] sm:text-xs text-muted-foreground line-clamp-2">{mod.stat}</span>
             </CardContent>
           </Card>
         );

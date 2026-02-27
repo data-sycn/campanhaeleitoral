@@ -22,16 +22,16 @@ export function CampaignHero() {
       />
       
       {/* Content */}
-      <div className="relative container mx-auto px-4 py-20 lg:py-28">
+      <div className="relative container mx-auto px-4 py-12 sm:py-20 lg:py-28">
         <div className="max-w-4xl mx-auto text-center">
           {/* Badge */}
-          <Badge variant="outline" className="mb-6 px-4 py-2 text-sm bg-primary text-primary-foreground border-0">
-            <Shield className="w-4 h-4 mr-2" />
-            Plataforma Oficial de Gestão de Campanhas
+          <Badge variant="outline" className="mb-4 sm:mb-6 px-3 sm:px-4 py-1.5 sm:py-2 text-xs sm:text-sm bg-primary text-primary-foreground border-0">
+            <Shield className="w-3 h-3 sm:w-4 sm:h-4 mr-1.5 sm:mr-2" />
+            Plataforma de Gestão de Campanhas
           </Badge>
 
           {/* Main Heading */}
-          <h1 className="text-4xl lg:text-6xl font-bold mb-6">
+          <h1 className="text-3xl sm:text-4xl lg:text-6xl font-bold mb-4 sm:mb-6">
             Gerencie sua{" "}
             <span className="bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
               Campanha Política
@@ -40,25 +40,25 @@ export function CampaignHero() {
           </h1>
 
           {/* Subtitle */}
-          <p className="text-xl text-muted-foreground mb-8 max-w-3xl mx-auto leading-relaxed">
+          <p className="text-base sm:text-xl text-muted-foreground mb-6 sm:mb-8 max-w-3xl mx-auto leading-relaxed">
             Centralize análises de votos históricos, controle orçamentário, gestão de equipe 
             e relatórios detalhados em uma única plataforma segura e profissional.
           </p>
 
           {/* CTA Buttons */}
-          <div className="flex flex-col sm:flex-row gap-4 justify-center mb-12">
-            <Button variant="hero" size="lg" className="text-lg px-8 py-6">
+          <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center mb-8 sm:mb-12">
+            <Button variant="hero" size="lg" className="text-base sm:text-lg px-6 sm:px-8 py-5 sm:py-6">
               <Users className="w-5 h-5 mr-2" />
               Acessar Plataforma
             </Button>
-            <Button variant="outline" size="lg" className="text-lg px-8 py-6">
+            <Button variant="outline" size="lg" className="text-base sm:text-lg px-6 sm:px-8 py-5 sm:py-6">
               <BarChart3 className="w-5 h-5 mr-2" />
               Ver Demonstração
             </Button>
           </div>
 
           {/* Features Grid */}
-          <div className="grid md:grid-cols-3 gap-6 mt-16">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 sm:gap-6 mt-10 sm:mt-16">
             <div className="p-6 rounded-xl bg-card shadow-card transition-smooth hover:shadow-elevated">
               <div className="w-12 h-12 bg-primary rounded-lg flex items-center justify-center mb-4 mx-auto">
                 <BarChart3 className="w-6 h-6 text-primary-foreground" />

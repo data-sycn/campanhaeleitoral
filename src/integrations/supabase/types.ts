@@ -365,6 +365,7 @@ export type Database = {
       }
       profiles: {
         Row: {
+          avatar_url: string | null
           campanha_id: string | null
           candidate_id: string | null
           created_at: string
@@ -376,6 +377,7 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          avatar_url?: string | null
           campanha_id?: string | null
           candidate_id?: string | null
           created_at?: string
@@ -387,6 +389,7 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          avatar_url?: string | null
           campanha_id?: string | null
           candidate_id?: string | null
           created_at?: string
@@ -807,6 +810,7 @@ export type Database = {
           email: string | null
           endereco: string | null
           estado: string | null
+          foto_url: string | null
           geolocation: unknown
           id: string
           latitude: number | null
@@ -825,6 +829,7 @@ export type Database = {
           email?: string | null
           endereco?: string | null
           estado?: string | null
+          foto_url?: string | null
           geolocation?: unknown
           id?: string
           latitude?: number | null
@@ -843,6 +848,7 @@ export type Database = {
           email?: string | null
           endereco?: string | null
           estado?: string | null
+          foto_url?: string | null
           geolocation?: unknown
           id?: string
           latitude?: number | null

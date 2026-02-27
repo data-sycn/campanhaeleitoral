@@ -24,6 +24,7 @@ import Invite from "./pages/Invite";
 import Modulos from "./pages/Modulos";
 import Audit from "./pages/Audit";
 import Install from "./pages/Install";
+import Profile from "./pages/Profile";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -55,6 +56,7 @@ const App = () => (
             <Route path="/historico" element={<ProtectedRoute><Audit /></ProtectedRoute>} />
             <Route path="/convite/:token" element={<Invite />} />
             <Route path="/install" element={<Install />} />
+            <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </BrowserRouter>

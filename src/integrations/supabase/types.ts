@@ -97,9 +97,10 @@ export type Database = {
           created_at: string
           id: string
           notes: string | null
+          title: string | null
           total_planned: number
           updated_at: string
-          year: number
+          year: number | null
         }
         Insert: {
           active?: boolean
@@ -108,9 +109,10 @@ export type Database = {
           created_at?: string
           id?: string
           notes?: string | null
+          title?: string | null
           total_planned?: number
           updated_at?: string
-          year: number
+          year?: number | null
         }
         Update: {
           active?: boolean
@@ -119,9 +121,10 @@ export type Database = {
           created_at?: string
           id?: string
           notes?: string | null
+          title?: string | null
           total_planned?: number
           updated_at?: string
-          year?: number
+          year?: number | null
         }
         Relationships: [
           {

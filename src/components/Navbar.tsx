@@ -11,6 +11,7 @@ import {
   NavUserMenu,
   NavMobileMenu,
 } from "./navigation/index";
+import { NavActiveCampaign } from "./navigation/NavActiveCampaign";
 
 export function Navbar() {
   const { user, signOut } = useAuth();
@@ -29,6 +30,7 @@ export function Navbar() {
         <div className="flex items-center gap-6">
           <NavLogo />
           {user && <NavLinks />}
+          {user && <NavActiveCampaign />}
         </div>
         <div className="flex items-center gap-2">
           {offlineCount > 0 && (

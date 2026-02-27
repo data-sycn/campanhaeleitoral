@@ -7,7 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
-import { Loader2, Link2, Save } from "lucide-react";
+import { Loader2, Link2, Save, Crown } from "lucide-react";
 
 export function AdminUserCampanhas() {
   const { toast } = useToast();
@@ -22,7 +22,24 @@ export function AdminUserCampanhas() {
         .select("id, name, campanha_id")
         .order("name");
       if (error) throw error;
-      return profiles;
+
+      // Fetch roles to identify master users
+      const { data: roles } = await supabase
+        .from("user_roles")
+        .select("user_id, role");
+
+      const rolesMap = new Map<string, string[]>();
+      roles?.forEach((r) => {
+        const existing = rolesMap.get(r.user_id) || [];
+        existing.push(r.role);
+        rolesMap.set(r.user_id, existing);
+      });
+
+      return profiles?.map((p) => ({
+        ...p,
+        roles: rolesMap.get(p.id) || [],
+        isMaster: rolesMap.get(p.id)?.includes("master") || false,
+      }));
     },
   });
 
@@ -109,36 +126,52 @@ export function AdminUserCampanhas() {
               const hasPending = pendingChanges[user.id] !== undefined;
               return (
                 <TableRow key={user.id}>
-                  <TableCell className="font-medium">{user.name}</TableCell>
+                  <TableCell className="font-medium">
+                    <div className="flex items-center gap-2">
+                      {user.name}
+                      {user.isMaster && (
+                        <Badge variant="outline" className="gap-1 text-xs">
+                          <Crown className="w-3 h-3" />
+                          Master
+                        </Badge>
+                      )}
+                    </div>
+                  </TableCell>
                   <TableCell>
-                    {current ? (
+                    {user.isMaster ? (
+                      <span className="text-muted-foreground text-sm italic">Acesso global</span>
+                    ) : current ? (
                       <Badge variant="secondary">
                         {current.nome} {current.partido && `(${current.partido})`}
                       </Badge>
                     ) : (
-                      <span className="text-muted-foreground text-sm">Nenhuma</span>
+                      <span className="text-destructive text-sm font-medium">Sem vínculo</span>
                     )}
                   </TableCell>
                   <TableCell>
-                    <Select
-                      value={pendingChanges[user.id] ?? user.campanha_id ?? "__none__"}
-                      onValueChange={(v) => handleChange(user.id, v)}
-                    >
-                      <SelectTrigger className="w-[220px]">
-                        <SelectValue placeholder="Selecione" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="__none__">Nenhuma</SelectItem>
-                        {campanhas?.map((c) => (
-                          <SelectItem key={c.id} value={c.id}>
-                            {c.nome} {c.partido && `(${c.partido})`}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
+                    {user.isMaster ? (
+                      <span className="text-muted-foreground text-sm">Não necessário</span>
+                    ) : (
+                      <Select
+                        value={pendingChanges[user.id] ?? user.campanha_id ?? "__none__"}
+                        onValueChange={(v) => handleChange(user.id, v)}
+                      >
+                        <SelectTrigger className="w-[220px]">
+                          <SelectValue placeholder="Selecione" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="__none__">Nenhuma</SelectItem>
+                          {campanhas?.map((c) => (
+                            <SelectItem key={c.id} value={c.id}>
+                              {c.nome} {c.partido && `(${c.partido})`}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    )}
                   </TableCell>
                   <TableCell>
-                    {hasPending && (
+                    {hasPending && !user.isMaster && (
                       <Button
                         size="sm"
                         onClick={() => handleSave(user.id)}

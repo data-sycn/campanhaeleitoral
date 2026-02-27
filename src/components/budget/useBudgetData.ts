@@ -19,8 +19,9 @@ export interface BudgetFormData {
   notes: string;
 }
 
-export function useBudgetData() {
-  const { user, campanhaId, profile, isMaster } = useAuth();
+export function useBudgetData(overrideCampanhaId?: string | null) {
+  const { user, campanhaId: profileCampanhaId, profile, isMaster } = useAuth();
+  const campanhaId = isMaster && overrideCampanhaId ? overrideCampanhaId : profileCampanhaId;
   const { toast } = useToast();
   const [budgets, setBudgets] = useState<Budget[]>([]);
   const [loading, setLoading] = useState(true);

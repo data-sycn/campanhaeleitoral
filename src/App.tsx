@@ -21,6 +21,7 @@ import RouteAssignment from "./pages/RouteAssignment";
 import Messages from "./pages/Messages";
 import ROI from "./pages/ROI";
 import Invite from "./pages/Invite";
+import Modulos from "./pages/Modulos";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -48,6 +49,7 @@ const App = () => (
             <Route path="/roteiro" element={<ProtectedRoute><RouteAssignment /></ProtectedRoute>} />
             <Route path="/mensagens" element={<ProtectedRoute><Messages /></ProtectedRoute>} />
             <Route path="/roi" element={<ProtectedRoute><ROI /></ProtectedRoute>} />
+            <Route path="/modulos" element={<ProtectedRoute><Modulos /></ProtectedRoute>} />
             <Route path="/convite/:token" element={<Invite />} />
             <Route path="*" element={<NotFound />} />
           </Routes>

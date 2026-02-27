@@ -22,6 +22,7 @@ import Messages from "./pages/Messages";
 import ROI from "./pages/ROI";
 import Invite from "./pages/Invite";
 import Modulos from "./pages/Modulos";
+import Install from "./pages/Install";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -51,6 +52,7 @@ const App = () => (
             <Route path="/roi" element={<ProtectedRoute><ROI /></ProtectedRoute>} />
             <Route path="/modulos" element={<ProtectedRoute><Modulos /></ProtectedRoute>} />
             <Route path="/convite/:token" element={<Invite />} />
+            <Route path="/install" element={<Install />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </BrowserRouter>

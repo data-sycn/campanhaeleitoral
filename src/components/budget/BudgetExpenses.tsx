@@ -85,20 +85,21 @@ export function BudgetExpenses() {
     if (!user) return;
     setCreating(true);
     try {
-      if (!campanhaId) {
-        toast({ title: "Erro", description: isMaster ? "Selecione uma campanha primeiro." : "Você precisa estar vinculado a uma campanha para registrar despesas", variant: "destructive" });
+      if (!campanhaId && !isMaster) {
+        toast({ title: "Erro", description: "Você precisa estar vinculado a uma campanha para registrar despesas", variant: "destructive" });
         return;
       }
-      const { error } = await supabase.from('expenses').insert({
+      const insertData: any = {
         candidate_id: profile?.candidate_id || undefined,
-        campanha_id: campanhaId,
         date: form.date,
         category: form.category as Database["public"]["Enums"]["expense_category"],
         description: form.description,
         amount: parseFloat(form.amount),
         payment_method: form.payment_method as Database["public"]["Enums"]["payment_method"],
         created_by: user.id
-      });
+      };
+      if (campanhaId) insertData.campanha_id = campanhaId;
+      const { error } = await supabase.from('expenses').insert(insertData);
       if (error) {
         toast({ title: "Erro ao registrar despesa", description: error.message, variant: "destructive" });
       } else {

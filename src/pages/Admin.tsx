@@ -6,8 +6,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Users, Shield, Building2, Link2, GitBranch } from "lucide-react";
 import { AdminUsers } from "@/components/admin/AdminUsers";
 import { AdminPermissions } from "@/components/admin/AdminPermissions";
-import { AdminCandidates } from "@/components/admin/AdminCandidates";
-import { AdminUserCandidates } from "@/components/admin/AdminUserCandidates";
+import { AdminCampanhas } from "@/components/admin/AdminCampanhas";
+import { AdminUserCampanhas } from "@/components/admin/AdminUserCampanhas";
 import { AdminHierarchy } from "@/components/admin/AdminHierarchy";
 
 const Admin = () => {
@@ -33,7 +33,7 @@ const Admin = () => {
     <div className="container mx-auto px-4 py-8">
       <div className="mb-6">
         <h1 className="text-3xl font-bold">Administrador</h1>
-        <p className="text-muted-foreground">Gerencie usuários, permissões e candidatos</p>
+        <p className="text-muted-foreground">Gerencie usuários, permissões e campanhas</p>
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab}>
@@ -46,9 +46,9 @@ const Admin = () => {
             <Shield className="w-4 h-4" />
             <span className="hidden sm:inline">Permissões</span>
           </TabsTrigger>
-          <TabsTrigger value="candidates" className="gap-2">
+          <TabsTrigger value="campanhas" className="gap-2">
             <Building2 className="w-4 h-4" />
-            <span className="hidden sm:inline">Candidatos</span>
+            <span className="hidden sm:inline">Campanhas</span>
           </TabsTrigger>
           <TabsTrigger value="access" className="gap-2">
             <Link2 className="w-4 h-4" />
@@ -68,12 +68,12 @@ const Admin = () => {
           <AdminPermissions />
         </TabsContent>
 
-        <TabsContent value="candidates">
-          <AdminCandidates />
+        <TabsContent value="campanhas">
+          <AdminCampanhas />
         </TabsContent>
 
         <TabsContent value="access">
-          <AdminUserCandidates />
+          <AdminUserCampanhas />
         </TabsContent>
 
         <TabsContent value="hierarchy">

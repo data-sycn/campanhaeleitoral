@@ -8,7 +8,6 @@ import { useAuth } from "@/hooks/useAuth";
 import { useDashboardData } from "@/components/dashboard/useDashboardData";
 import { useRecurrenceAlerts, useEffectivenessRanking } from "@/components/dashboard/useDashboardAlerts";
 import { Button } from "@/components/ui/button";
-import { LayoutGrid } from "lucide-react";
 import { CampaignSelector } from "@/components/dashboard/CampaignSelector";
 import { SupportersHeatmap } from "@/components/dashboard/SupportersHeatmap";
 import { LeafletHeatmap } from "@/components/dashboard/LeafletHeatmap";
@@ -55,10 +54,6 @@ const Dashboard = () => {
           </div>
           <div className="flex items-center gap-2 sm:gap-3 overflow-x-auto">
             {isMaster && <CampaignSelector value={selectedCampanhaId} onChange={setSelectedCampanhaId} />}
-            <Button variant="outline" onClick={() => navigate("/modulos")} className="gap-2 shrink-0">
-              <LayoutGrid className="w-4 h-4" />
-              <span className="hidden sm:inline">Módulos</span>
-            </Button>
           </div>
         </div>
 

@@ -1,5 +1,5 @@
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { BarChart3, DollarSign, PieChart, Receipt } from "lucide-react";
+import { BarChart3, ClipboardList, Receipt } from "lucide-react";
 
 interface BudgetModuleTabsProps {
   activeModule: string;
@@ -8,15 +8,14 @@ interface BudgetModuleTabsProps {
 
 const modules = [
   { id: "overview", label: "Visão Geral", icon: BarChart3 },
-  { id: "budgets", label: "Orçamentos", icon: DollarSign },
-  { id: "allocations", label: "Alocações", icon: PieChart },
-  { id: "expenses", label: "Despesas", icon: Receipt },
+  { id: "planned", label: "Orçamento Planejado", icon: ClipboardList },
+  { id: "executed", label: "Orçamento Executado", icon: Receipt },
 ];
 
 export function BudgetModuleTabs({ activeModule, onModuleChange }: BudgetModuleTabsProps) {
   return (
     <Tabs value={activeModule} onValueChange={onModuleChange} className="mb-6">
-      <TabsList className="grid w-full grid-cols-4 lg:w-auto lg:inline-flex">
+      <TabsList className="grid w-full grid-cols-3 lg:w-auto lg:inline-flex">
         {modules.map((module) => {
           const Icon = module.icon;
           return (

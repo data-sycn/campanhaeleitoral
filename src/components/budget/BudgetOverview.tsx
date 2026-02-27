@@ -27,11 +27,13 @@ export function BudgetOverview({ budgets, activeBudget }: BudgetOverviewProps) {
 
   useEffect(() => {
     const fetchExecution = async () => {
-      if (!campanhaId && !isMaster) return;
-      const { data } = await supabase
+      let query = supabase
         .from("v_execucao_orcamentaria")
-        .select("*")
-        .eq("campanha_id", campanhaId);
+        .select("*");
+      if (campanhaId) {
+        query = query.eq("campanha_id", campanhaId);
+      }
+      const { data } = await query;
       setBudgetExecution((data as any[]) || []);
     };
     fetchExecution();

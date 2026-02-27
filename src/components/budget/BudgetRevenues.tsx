@@ -82,12 +82,11 @@ export function BudgetRevenues() {
     if (!user) return;
     setCreating(true);
     try {
-      if (!campanhaId) {
-        toast({ title: "Erro", description: isMaster ? "Selecione uma campanha primeiro." : "Você precisa estar vinculado a uma campanha", variant: "destructive" });
+      if (!campanhaId && !isMaster) {
+        toast({ title: "Erro", description: "Você precisa estar vinculado a uma campanha", variant: "destructive" });
         return;
       }
-      const { error } = await supabase.from("revenues" as any).insert({
-        campanha_id: campanhaId,
+      const insertData: any = {
         date: form.date,
         source: form.source,
         description: form.description,
@@ -96,7 +95,9 @@ export function BudgetRevenues() {
         donor_cpf_cnpj: form.donor_cpf_cnpj || null,
         notes: form.notes || null,
         created_by: user.id,
-      } as any);
+      };
+      if (campanhaId) insertData.campanha_id = campanhaId;
+      const { error } = await supabase.from("revenues" as any).insert(insertData as any);
       if (error) {
         toast({ title: "Erro ao registrar receita", description: error.message, variant: "destructive" });
       } else {

@@ -1,0 +1,1 @@
+DELETE FROM public.supporters WHERE campanha_id = 'bdb4fadb-3514-4745-b65d-953a7d0be3e8';

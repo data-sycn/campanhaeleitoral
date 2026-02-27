@@ -5,10 +5,11 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import { PlusCircle, Banknote, Calendar } from "lucide-react";
+import { PlusCircle, Banknote, Calendar, Pencil, Trash2, X, Check } from "lucide-react";
 
 interface Revenue {
   id: string;
@@ -38,6 +39,8 @@ export function BudgetRevenues() {
   const [loading, setLoading] = useState(true);
   const [creating, setCreating] = useState(false);
   const [showForm, setShowForm] = useState(false);
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [editForm, setEditForm] = useState({ date: "", source: "", description: "", amount: "", donor_name: "", donor_cpf_cnpj: "", notes: "" });
 
   const [form, setForm] = useState({
     date: new Date().toISOString().split("T")[0],
@@ -106,6 +109,57 @@ export function BudgetRevenues() {
       console.error("Error creating revenue:", error);
     } finally {
       setCreating(false);
+    }
+  };
+
+  const startEdit = (revenue: Revenue) => {
+    setEditingId(revenue.id);
+    setEditForm({
+      date: revenue.date,
+      source: revenue.source,
+      description: revenue.description,
+      amount: String(revenue.amount),
+      donor_name: revenue.donor_name || "",
+      donor_cpf_cnpj: revenue.donor_cpf_cnpj || "",
+      notes: revenue.notes || "",
+    });
+  };
+
+  const handleUpdate = async () => {
+    if (!editingId) return;
+    try {
+      const { error } = await (supabase.from("revenues" as any) as any).update({
+        date: editForm.date,
+        source: editForm.source,
+        description: editForm.description,
+        amount: parseFloat(editForm.amount),
+        donor_name: editForm.donor_name || null,
+        donor_cpf_cnpj: editForm.donor_cpf_cnpj || null,
+        notes: editForm.notes || null,
+      }).eq("id", editingId);
+      if (error) {
+        toast({ title: "Erro ao atualizar receita", description: error.message, variant: "destructive" });
+      } else {
+        toast({ title: "Receita atualizada!" });
+        setEditingId(null);
+        fetchRevenues();
+      }
+    } catch (error) {
+      console.error("Error updating revenue:", error);
+    }
+  };
+
+  const handleDelete = async (id: string) => {
+    try {
+      const { error } = await (supabase.from("revenues" as any) as any).delete().eq("id", id);
+      if (error) {
+        toast({ title: "Erro ao excluir receita", description: error.message, variant: "destructive" });
+      } else {
+        toast({ title: "Receita excluída!" });
+        fetchRevenues();
+      }
+    } catch (error) {
+      console.error("Error deleting revenue:", error);
     }
   };
 
@@ -213,24 +267,86 @@ export function BudgetRevenues() {
           revenues.map((revenue) => (
             <Card key={revenue.id}>
               <CardContent className="p-6">
-                <div className="flex items-start justify-between">
-                  <div className="flex-1">
-                    <div className="flex items-center gap-2 mb-2">
-                      <Calendar className="w-4 h-4 text-muted-foreground" />
-                      <span className="text-sm text-muted-foreground">{new Date(revenue.date).toLocaleDateString("pt-BR")}</span>
-                      <span className="text-sm bg-emerald-100 text-emerald-800 dark:bg-emerald-900/30 dark:text-emerald-400 px-2 py-1 rounded">
-                        {sources.find((s) => s.value === revenue.source)?.label || revenue.source}
-                      </span>
+                {editingId === revenue.id ? (
+                  <div className="space-y-4">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div className="space-y-2">
+                        <Label>Data</Label>
+                        <Input type="date" value={editForm.date} onChange={(e) => setEditForm(prev => ({ ...prev, date: e.target.value }))} />
+                      </div>
+                      <div className="space-y-2">
+                        <Label>Fonte</Label>
+                        <Select value={editForm.source} onValueChange={(v) => setEditForm(prev => ({ ...prev, source: v }))}>
+                          <SelectTrigger><SelectValue /></SelectTrigger>
+                          <SelectContent>
+                            {sources.map((s) => <SelectItem key={s.value} value={s.value}>{s.label}</SelectItem>)}
+                          </SelectContent>
+                        </Select>
+                      </div>
                     </div>
-                    <h4 className="font-semibold mb-1">{revenue.description}</h4>
-                    {revenue.donor_name && <p className="text-sm text-muted-foreground">Doador: {revenue.donor_name}</p>}
+                    <div className="space-y-2">
+                      <Label>Descrição</Label>
+                      <Textarea value={editForm.description} onChange={(e) => setEditForm(prev => ({ ...prev, description: e.target.value }))} />
+                    </div>
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                      <div className="space-y-2">
+                        <Label>Valor (R$)</Label>
+                        <Input type="number" step="0.01" value={editForm.amount} onChange={(e) => setEditForm(prev => ({ ...prev, amount: e.target.value }))} />
+                      </div>
+                      <div className="space-y-2">
+                        <Label>Doador</Label>
+                        <Input value={editForm.donor_name} onChange={(e) => setEditForm(prev => ({ ...prev, donor_name: e.target.value }))} />
+                      </div>
+                      <div className="space-y-2">
+                        <Label>CPF/CNPJ</Label>
+                        <Input value={editForm.donor_cpf_cnpj} onChange={(e) => setEditForm(prev => ({ ...prev, donor_cpf_cnpj: e.target.value }))} />
+                      </div>
+                    </div>
+                    <div className="space-y-2">
+                      <Label>Observações</Label>
+                      <Textarea value={editForm.notes} onChange={(e) => setEditForm(prev => ({ ...prev, notes: e.target.value }))} />
+                    </div>
+                    <div className="flex gap-2">
+                      <Button size="sm" variant="campaign" onClick={handleUpdate} className="gap-1"><Check className="w-4 h-4" /> Salvar</Button>
+                      <Button size="sm" variant="outline" onClick={() => setEditingId(null)} className="gap-1"><X className="w-4 h-4" /> Cancelar</Button>
+                    </div>
                   </div>
-                  <div className="text-right">
-                    <p className="text-lg font-bold text-emerald-600 dark:text-emerald-400">
-                      + R$ {revenue.amount.toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                    </p>
+                ) : (
+                  <div className="flex items-start justify-between">
+                    <div className="flex-1">
+                      <div className="flex items-center gap-2 mb-2">
+                        <Calendar className="w-4 h-4 text-muted-foreground" />
+                        <span className="text-sm text-muted-foreground">{new Date(revenue.date).toLocaleDateString("pt-BR")}</span>
+                        <span className="text-sm bg-emerald-100 text-emerald-800 dark:bg-emerald-900/30 dark:text-emerald-400 px-2 py-1 rounded">
+                          {sources.find((s) => s.value === revenue.source)?.label || revenue.source}
+                        </span>
+                      </div>
+                      <h4 className="font-semibold mb-1">{revenue.description}</h4>
+                      {revenue.donor_name && <p className="text-sm text-muted-foreground">Doador: {revenue.donor_name}</p>}
+                    </div>
+                    <div className="flex items-center gap-3">
+                      <p className="text-lg font-bold text-emerald-600 dark:text-emerald-400">
+                        + R$ {revenue.amount.toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                      </p>
+                      <Button size="icon" variant="ghost" onClick={() => startEdit(revenue)}><Pencil className="w-4 h-4" /></Button>
+                      <AlertDialog>
+                        <AlertDialogTrigger asChild>
+                          <Button size="icon" variant="ghost" className="text-destructive hover:text-destructive"><Trash2 className="w-4 h-4" /></Button>
+                        </AlertDialogTrigger>
+                        <AlertDialogContent>
+                          <AlertDialogHeader>
+                            <AlertDialogTitle>Excluir receita?</AlertDialogTitle>
+                            <AlertDialogDescription>Esta ação não pode ser desfeita.</AlertDialogDescription>
+                          </AlertDialogHeader>
+                          <AlertDialogFooter>
+                            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                            <AlertDialogAction onClick={() => handleDelete(revenue.id)} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">Excluir</AlertDialogAction>
+                          </AlertDialogFooter>
+                        </AlertDialogContent>
+                      </AlertDialog>
+                    </div>
                   </div>
-                </div>
+                )}
               </CardContent>
             </Card>
           ))

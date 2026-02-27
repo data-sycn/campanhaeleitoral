@@ -31,7 +31,7 @@ export function NavUserMenu({ user, onSignOut }: NavUserMenuProps) {
           </span>
           <Avatar className="w-8 h-8">
             <AvatarImage src="" />
-            <AvatarFallback className="text-xs gradient-primary text-white">
+            <AvatarFallback className="text-xs bg-primary text-primary-foreground">
               {userInitials}
             </AvatarFallback>
           </Avatar>

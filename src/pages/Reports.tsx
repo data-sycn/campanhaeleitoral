@@ -222,8 +222,8 @@ const Reports = () => {
           <Card>
             <CardContent className="p-6">
               <div className="flex items-center gap-4">
-                <div className="w-12 h-12 gradient-primary rounded-xl flex items-center justify-center print:bg-primary">
-                  <FileText className="w-6 h-6 text-white" />
+                 <div className="w-12 h-12 bg-primary/10 rounded-xl flex items-center justify-center print:bg-primary">
+                   <FileText className="w-6 h-6 text-primary print:text-primary-foreground" />
                 </div>
                 <div>
                   <h3 className="text-2xl font-bold">R$ {totalExpenses.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</h3>
@@ -235,8 +235,8 @@ const Reports = () => {
           <Card>
             <CardContent className="p-6">
               <div className="flex items-center gap-4">
-                <div className="w-12 h-12 gradient-civic rounded-xl flex items-center justify-center print:bg-secondary">
-                  <TrendingUp className="w-6 h-6 text-white" />
+                 <div className="w-12 h-12 bg-success/10 rounded-xl flex items-center justify-center print:bg-secondary">
+                   <TrendingUp className="w-6 h-6 text-success" />
                 </div>
                 <div>
                   <h3 className="text-2xl font-bold">R$ {totalBudget.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</h3>
@@ -248,8 +248,8 @@ const Reports = () => {
           <Card>
             <CardContent className="p-6">
               <div className="flex items-center gap-4">
-                <div className="w-12 h-12 gradient-accent rounded-xl flex items-center justify-center print:bg-accent">
-                  <BarChart3 className="w-6 h-6 text-white" />
+                 <div className="w-12 h-12 bg-accent rounded-xl flex items-center justify-center print:bg-accent">
+                   <BarChart3 className="w-6 h-6 text-accent-foreground" />
                 </div>
                 <div>
                   <h3 className="text-2xl font-bold">{budgetUsedPercentage.toFixed(1)}%</h3>

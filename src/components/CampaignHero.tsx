@@ -25,7 +25,7 @@ export function CampaignHero() {
       <div className="relative container mx-auto px-4 py-20 lg:py-28">
         <div className="max-w-4xl mx-auto text-center">
           {/* Badge */}
-          <Badge variant="outline" className="mb-6 px-4 py-2 text-sm gradient-primary text-white border-0">
+          <Badge variant="outline" className="mb-6 px-4 py-2 text-sm bg-primary text-primary-foreground border-0">
             <Shield className="w-4 h-4 mr-2" />
             Plataforma Oficial de Gestão de Campanhas
           </Badge>
@@ -59,9 +59,9 @@ export function CampaignHero() {
 
           {/* Features Grid */}
           <div className="grid md:grid-cols-3 gap-6 mt-16">
-            <div className="p-6 rounded-xl gradient-card shadow-card transition-smooth hover:shadow-elevated">
-              <div className="w-12 h-12 gradient-primary rounded-lg flex items-center justify-center mb-4 mx-auto">
-                <BarChart3 className="w-6 h-6 text-white" />
+            <div className="p-6 rounded-xl bg-card shadow-card transition-smooth hover:shadow-elevated">
+              <div className="w-12 h-12 bg-primary rounded-lg flex items-center justify-center mb-4 mx-auto">
+                <BarChart3 className="w-6 h-6 text-primary-foreground" />
               </div>
               <h3 className="font-semibold mb-2">Análise de Dados</h3>
               <p className="text-sm text-muted-foreground">
@@ -69,9 +69,9 @@ export function CampaignHero() {
               </p>
             </div>
 
-            <div className="p-6 rounded-xl gradient-card shadow-card transition-smooth hover:shadow-elevated">
-              <div className="w-12 h-12 gradient-secondary rounded-lg flex items-center justify-center mb-4 mx-auto">
-                <TrendingUp className="w-6 h-6 text-white" />
+            <div className="p-6 rounded-xl bg-card shadow-card transition-smooth hover:shadow-elevated">
+              <div className="w-12 h-12 bg-success rounded-lg flex items-center justify-center mb-4 mx-auto">
+                <TrendingUp className="w-6 h-6 text-success-foreground" />
               </div>
               <h3 className="font-semibold mb-2">Gestão Financeira</h3>
               <p className="text-sm text-muted-foreground">
@@ -79,9 +79,9 @@ export function CampaignHero() {
               </p>
             </div>
 
-            <div className="p-6 rounded-xl gradient-card shadow-card transition-smooth hover:shadow-elevated">
-              <div className="w-12 h-12 gradient-hero rounded-lg flex items-center justify-center mb-4 mx-auto">
-                <Users className="w-6 h-6 text-white" />
+            <div className="p-6 rounded-xl bg-card shadow-card transition-smooth hover:shadow-elevated">
+              <div className="w-12 h-12 bg-primary rounded-lg flex items-center justify-center mb-4 mx-auto">
+                <Users className="w-6 h-6 text-primary-foreground" />
               </div>
               <h3 className="font-semibold mb-2">Colaboração</h3>
               <p className="text-sm text-muted-foreground">

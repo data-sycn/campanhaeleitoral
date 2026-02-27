@@ -153,8 +153,8 @@ const Expenses = () => {
       <Card className="mb-8">
         <CardContent className="p-6">
           <div className="flex items-center gap-4">
-            <div className="w-12 h-12 gradient-primary rounded-xl flex items-center justify-center">
-              <Receipt className="w-6 h-6 text-white" />
+            <div className="w-12 h-12 bg-primary/10 rounded-xl flex items-center justify-center">
+              <Receipt className="w-6 h-6 text-primary" />
             </div>
             <div>
               <h3 className="text-2xl font-bold">

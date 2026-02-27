@@ -12,11 +12,11 @@ const Modulos = () => {
   return (
     <div className="min-h-screen bg-background">
       <Navbar />
-      <div className="container mx-auto px-4 py-8">
-        <div className="mb-8 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+      <div className="container mx-auto px-4 py-6 sm:py-8">
+        <div className="mb-6 sm:mb-8 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div>
-            <h1 className="text-3xl font-bold">Módulos</h1>
-            <p className="text-muted-foreground">Acesse os módulos da plataforma</p>
+            <h1 className="text-2xl sm:text-3xl font-bold">Módulos</h1>
+            <p className="text-sm text-muted-foreground">Acesse os módulos da plataforma</p>
           </div>
           {isMaster && <CampaignSelector value={campanhaId} onChange={setCampanhaId} />}
         </div>

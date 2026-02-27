@@ -50,25 +50,25 @@ const Dashboard = () => {
   return (
     <div className="min-h-screen bg-background">
       <Navbar />
-      <div className="container mx-auto px-4 py-8">
-        <div className="mb-8 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+      <div className="container mx-auto px-4 py-6 sm:py-8">
+        <div className="mb-6 sm:mb-8 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div>
-            <h1 className="text-3xl font-bold">Dossiê de Bolso</h1>
-            <p className="text-muted-foreground">Visão executiva da campanha</p>
+            <h1 className="text-2xl sm:text-3xl font-bold">Dossiê de Bolso</h1>
+            <p className="text-sm text-muted-foreground">Visão executiva da campanha</p>
           </div>
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2 sm:gap-3 overflow-x-auto">
             {isMaster && <CampaignSelector value={campanhaId} onChange={setCampanhaId} />}
-            <Button variant="outline" onClick={() => navigate("/modulos")} className="gap-2">
+            <Button variant="outline" onClick={() => navigate("/modulos")} className="gap-2 shrink-0">
               <LayoutGrid className="w-4 h-4" />
-              Módulos
+              <span className="hidden sm:inline">Módulos</span>
             </Button>
           </div>
         </div>
 
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-          <TabsList>
-            <TabsTrigger value="overview" className="gap-2"><BarChart3 className="w-4 h-4" /> Visão Geral</TabsTrigger>
-            <TabsTrigger value="audit" className="gap-2"><Shield className="w-4 h-4" /> Auditoria</TabsTrigger>
+          <TabsList className="w-full sm:w-auto">
+            <TabsTrigger value="overview" className="gap-2 flex-1 sm:flex-none"><BarChart3 className="w-4 h-4" /> <span className="hidden xs:inline">Visão Geral</span><span className="xs:hidden">Geral</span></TabsTrigger>
+            <TabsTrigger value="audit" className="gap-2 flex-1 sm:flex-none"><Shield className="w-4 h-4" /> Auditoria</TabsTrigger>
           </TabsList>
 
           <TabsContent value="overview" className="space-y-6">
@@ -85,21 +85,21 @@ const Dashboard = () => {
                 <CardContent>
                   <div className="space-y-2">
                     {recurrenceAlerts.slice(0, 5).map((alert) => (
-                      <div key={alert.street_id} className="flex items-center justify-between p-3 bg-orange-500/5 rounded-lg">
-                        <div>
-                          <p className="font-medium text-sm">{alert.street_name}</p>
-                          <p className="text-xs text-muted-foreground">
+                      <div key={alert.street_id} className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 p-3 bg-orange-500/5 rounded-lg">
+                        <div className="min-w-0">
+                          <p className="font-medium text-sm truncate">{alert.street_name}</p>
+                          <p className="text-xs text-muted-foreground truncate">
                             {alert.bairro && `${alert.bairro} — `}{alert.cidade}
                           </p>
                         </div>
-                        <div className="text-right">
-                          <Badge variant="outline" className="text-orange-600 border-orange-300">
-                            {alert.days_since} dias sem visita
+                        <div className="flex items-center gap-2 sm:text-right shrink-0">
+                          <Badge variant="outline" className="text-orange-600 border-orange-300 text-xs">
+                            {alert.days_since}d sem visita
                           </Badge>
                           {alert.cidade && (
                             <button
                               onClick={() => navigate(`/dossie/${encodeURIComponent(alert.cidade!)}`)}
-                              className="block text-xs text-primary hover:underline mt-1"
+                              className="text-xs text-primary hover:underline whitespace-nowrap"
                             >
                               Ver dossiê →
                             </button>

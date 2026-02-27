@@ -3,6 +3,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { AvatarUpload } from "@/components/ui/avatar-upload";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
@@ -43,6 +44,7 @@ export function SupporterForm({ onSuccess, onCancel }: SupporterFormProps) {
   const { campanhaId, isMaster } = useAuth();
   const { toast } = useToast();
   const [form, setForm] = useState<SupporterFormData>(initialForm);
+  const [fotoUrl, setFotoUrl] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
 
@@ -84,12 +86,14 @@ export function SupporterForm({ onSuccess, onCancel }: SupporterFormProps) {
         estado: data.estado || null,
         cep: data.cep || null,
         cpf: data.cpf || null,
-      });
+        foto_url: fotoUrl,
+      } as any);
 
       if (error) throw error;
 
       toast({ title: "Apoiador cadastrado!", description: `${data.nome} foi adicionado com sucesso.` });
       setForm(initialForm);
+      setFotoUrl(null);
       onSuccess();
     } catch (err: any) {
       toast({ title: "Erro ao cadastrar", description: err.message, variant: "destructive" });
@@ -106,6 +110,21 @@ export function SupporterForm({ onSuccess, onCancel }: SupporterFormProps) {
       </CardHeader>
       <CardContent>
         <form onSubmit={handleSubmit} className="space-y-4">
+          {/* Foto */}
+          <div className="flex items-center gap-4">
+            <AvatarUpload
+              currentUrl={fotoUrl}
+              fallback={form.nome ? form.nome.charAt(0).toUpperCase() : "A"}
+              onUploaded={setFotoUrl}
+              folder="supporters"
+              size="md"
+            />
+            <div>
+              <p className="text-sm font-medium">Foto do Apoiador</p>
+              <p className="text-xs text-muted-foreground">Clique no ícone da câmera para adicionar</p>
+            </div>
+          </div>
+
           {/* Nome */}
           <div className="space-y-2">
             <Label htmlFor="nome">Nome Completo *</Label>

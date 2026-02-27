@@ -32,6 +32,7 @@ export function NavUserMenu({ user, onSignOut }: NavUserMenuProps) {
   const navigate = useNavigate();
   const { profile, userRoles, campanhaId, isMaster } = useAuth();
   const userName = profile?.name || user.user_metadata?.name || user.email?.split("@")[0] || "Usuário";
+  const avatarUrl = (profile as any)?.avatar_url || null;
   const userInitials = userName.split(" ").map((n: string) => n[0]).join("").toUpperCase().slice(0, 2);
   const primaryRole = userRoles[0];
   const roleInfo = primaryRole ? ROLE_LABELS[primaryRole] : null;
@@ -44,7 +45,7 @@ export function NavUserMenu({ user, onSignOut }: NavUserMenuProps) {
             {userName}
           </span>
           <Avatar className="w-8 h-8">
-            <AvatarImage src="" />
+            <AvatarImage src={avatarUrl || ""} />
             <AvatarFallback className="text-xs bg-primary text-primary-foreground">
               {userInitials}
             </AvatarFallback>
@@ -56,6 +57,7 @@ export function NavUserMenu({ user, onSignOut }: NavUserMenuProps) {
           <div className="flex flex-col space-y-2">
             <div className="flex items-center gap-2">
               <Avatar className="w-10 h-10">
+                <AvatarImage src={avatarUrl || ""} />
                 <AvatarFallback className="bg-primary text-primary-foreground text-sm">
                   {userInitials}
                 </AvatarFallback>

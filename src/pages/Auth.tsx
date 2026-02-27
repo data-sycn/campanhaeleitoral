@@ -1,185 +1,121 @@
 import { useState } from "react";
 import { Navigate } from "react-router-dom";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { InputOTP, InputOTPGroup, InputOTPSlot } from "@/components/ui/input-otp";
 import { useAuth } from "@/hooks/useAuth";
-import { BarChart3 } from "lucide-react";
+import { BarChart3, Loader2 } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/hooks/use-toast";
 
 const Auth = () => {
-  const { user, signIn, signUp } = useAuth();
+  const { user } = useAuth();
+  const { toast } = useToast();
+  const [pin, setPin] = useState("");
   const [isLoading, setIsLoading] = useState(false);
 
-  const [loginForm, setLoginForm] = useState({
-    email: "",
-    password: ""
-  });
-
-  const [signupForm, setSignupForm] = useState({
-    name: "",
-    email: "",
-    password: "",
-    confirmPassword: ""
-  });
-
-  // Redirect if already authenticated - AFTER all hooks
   if (user) {
     return <Navigate to="/dashboard" replace />;
   }
 
-  const handleLogin = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const handlePinComplete = async (value: string) => {
+    if (value.length !== 4) return;
     setIsLoading(true);
-    await signIn(loginForm.email, loginForm.password);
-    setIsLoading(false);
-  };
 
-  const handleSignup = async (e: React.FormEvent) => {
-    e.preventDefault();
-    
-    if (signupForm.password !== signupForm.confirmPassword) {
-      return;
+    try {
+      // Look up the user by PIN in profiles or a known mapping
+      // Since PIN = password, we need to find the email associated with this PIN
+      const { data: profile, error: lookupError } = await supabase
+        .from('profiles')
+        .select('id')
+        .eq('pin', value)
+        .maybeSingle();
+
+      if (lookupError || !profile) {
+        toast({ title: "PIN inválido", description: "Nenhum usuário encontrado com este PIN.", variant: "destructive" });
+        setPin("");
+        setIsLoading(false);
+        return;
+      }
+
+      // Get the user's email from auth metadata via an edge function or use a stored email
+      // For simplicity, we'll store email on profiles and use it
+      const { data: profileWithEmail } = await supabase
+        .from('profiles')
+        .select('name')
+        .eq('id', profile.id)
+        .single();
+
+      // Use the user id as email pattern: {id}@internal.app
+      const internalEmail = `${profile.id}@internal.app`;
+      
+      const { error } = await supabase.auth.signInWithPassword({
+        email: internalEmail,
+        password: value,
+      });
+
+      if (error) {
+        toast({ title: "PIN inválido", description: "Não foi possível autenticar.", variant: "destructive" });
+        setPin("");
+      }
+    } catch (err) {
+      toast({ title: "Erro", description: "Erro ao tentar autenticar.", variant: "destructive" });
+      setPin("");
+    } finally {
+      setIsLoading(false);
     }
-
-    setIsLoading(true);
-    await signUp(signupForm.email, signupForm.password, signupForm.name);
-    setIsLoading(false);
   };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-primary/10 via-background to-secondary/10 flex items-center justify-center p-4">
-      <div className="w-full max-w-md">
+      <div className="w-full max-w-sm">
         {/* Logo */}
-        <div className="flex items-center justify-center gap-3 mb-8">
-          <div className="w-12 h-12 gradient-hero rounded-xl flex items-center justify-center">
-            <BarChart3 className="w-7 h-7 text-white" />
+        <div className="flex flex-col items-center gap-3 mb-8">
+          <div className="w-16 h-16 gradient-hero rounded-2xl flex items-center justify-center shadow-lg">
+            <BarChart3 className="w-9 h-9 text-white" />
           </div>
-          <div>
+          <div className="text-center">
             <h1 className="text-2xl font-bold">CampanhaGov</h1>
             <p className="text-sm text-muted-foreground">Gestão de Campanhas</p>
           </div>
         </div>
 
-        <Tabs defaultValue="login" className="w-full">
-          <TabsList className="grid w-full grid-cols-2">
-            <TabsTrigger value="login">Entrar</TabsTrigger>
-            <TabsTrigger value="signup">Cadastrar</TabsTrigger>
-          </TabsList>
-
-          <TabsContent value="login">
-            <Card>
-              <CardHeader>
-                <CardTitle>Fazer Login</CardTitle>
-                <CardDescription>
-                  Entre com suas credenciais para acessar a plataforma
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <form onSubmit={handleLogin} className="space-y-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="login-email">Email</Label>
-                    <Input
-                      id="login-email"
-                      type="email"
-                      placeholder="seu@email.com"
-                      value={loginForm.email}
-                      onChange={(e) => setLoginForm(prev => ({ ...prev, email: e.target.value }))}
-                      required
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="login-password">Senha</Label>
-                    <Input
-                      id="login-password"
-                      type="password"
-                      placeholder="••••••••"
-                      value={loginForm.password}
-                      onChange={(e) => setLoginForm(prev => ({ ...prev, password: e.target.value }))}
-                      required
-                    />
-                  </div>
-                  <Button 
-                    type="submit" 
-                    className="w-full" 
-                    disabled={isLoading}
-                    variant="campaign"
-                  >
-                    {isLoading ? "Entrando..." : "Entrar"}
-                  </Button>
-                </form>
-              </CardContent>
-            </Card>
-          </TabsContent>
-
-          <TabsContent value="signup">
-            <Card>
-              <CardHeader>
-                <CardTitle>Criar Conta</CardTitle>
-                <CardDescription>
-                  Cadastre-se para começar a usar a plataforma
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <form onSubmit={handleSignup} className="space-y-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="signup-name">Nome Completo</Label>
-                    <Input
-                      id="signup-name"
-                      type="text"
-                      placeholder="Seu nome completo"
-                      value={signupForm.name}
-                      onChange={(e) => setSignupForm(prev => ({ ...prev, name: e.target.value }))}
-                      required
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="signup-email">Email</Label>
-                    <Input
-                      id="signup-email"
-                      type="email"
-                      placeholder="seu@email.com"
-                      value={signupForm.email}
-                      onChange={(e) => setSignupForm(prev => ({ ...prev, email: e.target.value }))}
-                      required
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="signup-password">Senha</Label>
-                    <Input
-                      id="signup-password"
-                      type="password"
-                      placeholder="••••••••"
-                      value={signupForm.password}
-                      onChange={(e) => setSignupForm(prev => ({ ...prev, password: e.target.value }))}
-                      required
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="signup-confirm">Confirmar Senha</Label>
-                    <Input
-                      id="signup-confirm"
-                      type="password"
-                      placeholder="••••••••"
-                      value={signupForm.confirmPassword}
-                      onChange={(e) => setSignupForm(prev => ({ ...prev, confirmPassword: e.target.value }))}
-                      required
-                    />
-                  </div>
-                  <Button 
-                    type="submit" 
-                    className="w-full"
-                    disabled={isLoading || signupForm.password !== signupForm.confirmPassword}
-                    variant="campaign"
-                  >
-                    {isLoading ? "Criando conta..." : "Criar Conta"}
-                  </Button>
-                </form>
-              </CardContent>
-            </Card>
-          </TabsContent>
-        </Tabs>
+        <Card>
+          <CardHeader className="text-center">
+            <CardTitle>Acesso ao Sistema</CardTitle>
+            <CardDescription>
+              Digite seu PIN de 4 dígitos para entrar
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="flex flex-col items-center gap-6">
+            {isLoading ? (
+              <div className="flex flex-col items-center gap-3 py-4">
+                <Loader2 className="w-8 h-8 animate-spin text-primary" />
+                <p className="text-sm text-muted-foreground">Autenticando...</p>
+              </div>
+            ) : (
+              <InputOTP
+                maxLength={4}
+                value={pin}
+                onChange={(value) => {
+                  setPin(value);
+                  if (value.length === 4) {
+                    handlePinComplete(value);
+                  }
+                }}
+              >
+                <InputOTPGroup>
+                  <InputOTPSlot index={0} className="w-14 h-14 text-2xl font-bold" />
+                  <InputOTPSlot index={1} className="w-14 h-14 text-2xl font-bold" />
+                  <InputOTPSlot index={2} className="w-14 h-14 text-2xl font-bold" />
+                  <InputOTPSlot index={3} className="w-14 h-14 text-2xl font-bold" />
+                </InputOTPGroup>
+              </InputOTP>
+            )}
+            <p className="text-xs text-muted-foreground text-center">
+              Acesso restrito. Contate o administrador para obter seu PIN.
+            </p>
+          </CardContent>
+        </Card>
       </div>
     </div>
   );

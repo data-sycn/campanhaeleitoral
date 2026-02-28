@@ -78,10 +78,10 @@ const Auth = () => {
     setIsLoading(true);
 
     try {
-      // For now PIN is the password, so authenticate with PIN
+      // Authenticate with real password
       const { error } = await supabase.auth.signInWithPassword({
         email,
-        password: pin, // PIN is password in current model
+        password,
       });
 
       if (error) {

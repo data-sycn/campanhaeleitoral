@@ -908,6 +908,33 @@ export type Database = {
           },
         ]
       }
+      trusted_devices: {
+        Row: {
+          created_at: string
+          device_name: string | null
+          device_token: string
+          id: string
+          last_used_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          device_name?: string | null
+          device_token: string
+          id?: string
+          last_used_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          device_name?: string | null
+          device_token?: string
+          id?: string
+          last_used_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       user_campanhas: {
         Row: {
           campanha_id: string
@@ -2052,6 +2079,7 @@ export type Database = {
         }
         Returns: string
       }
+      validate_pin: { Args: { p_pin: string }; Returns: boolean }
     }
     Enums: {
       app_role:

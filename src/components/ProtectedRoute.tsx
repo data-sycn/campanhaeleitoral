@@ -1,5 +1,7 @@
+import { useState } from "react";
 import { Navigate, useLocation } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
+import { PinGate } from "@/components/PinGate";
 
 interface ProtectedRouteProps {
   children: React.ReactNode;
@@ -8,6 +10,9 @@ interface ProtectedRouteProps {
 export const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
   const { user, loading } = useAuth();
   const location = useLocation();
+  const [pinVerified, setPinVerified] = useState(
+    () => sessionStorage.getItem("pin_verified") === "true"
+  );
 
   if (loading) {
     return (
@@ -22,6 +27,11 @@ export const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
 
   if (!user) {
     return <Navigate to="/auth" state={{ from: location }} replace />;
+  }
+
+  // User is authenticated but PIN not verified this session
+  if (!pinVerified) {
+    return <PinGate onSuccess={() => setPinVerified(true)} />;
   }
 
   return <>{children}</>;

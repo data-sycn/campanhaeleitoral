@@ -46,10 +46,14 @@ Deno.serve(async (req) => {
       return new Response(JSON.stringify({ error: 'Forbidden: admin or master required' }), { status: 403, headers: corsHeaders });
     }
 
-    const { email, name, pin, role, campanha_id } = await req.json();
+    const { email, name, password, pin, role, campanha_id } = await req.json();
 
-    if (!email || !name || !pin || pin.length !== 4) {
-      return new Response(JSON.stringify({ error: 'Email, name, and 4-digit PIN are required' }), { status: 400, headers: corsHeaders });
+    if (!email || !name || !password || password.length < 6) {
+      return new Response(JSON.stringify({ error: 'Email, name, and password (min 6 chars) are required' }), { status: 400, headers: corsHeaders });
+    }
+
+    if (!pin || pin.length !== 4) {
+      return new Response(JSON.stringify({ error: '4-digit PIN is required' }), { status: 400, headers: corsHeaders });
     }
 
     // Check PIN uniqueness
@@ -63,10 +67,10 @@ Deno.serve(async (req) => {
       return new Response(JSON.stringify({ error: 'PIN already in use' }), { status: 409, headers: corsHeaders });
     }
 
-    // Create auth user with PIN as password
+    // Create auth user with the REAL password (not PIN)
     const { data: authUser, error: authError } = await adminClient.auth.admin.createUser({
       email,
-      password: pin,
+      password,
       email_confirm: true,
       user_metadata: { name },
     });

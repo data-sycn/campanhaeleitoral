@@ -3,12 +3,13 @@ import { Navigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Users, Shield, Building2, Link2, GitBranch } from "lucide-react";
+import { Users, Shield, Building2, Link2, GitBranch, UserCheck } from "lucide-react";
 import { AdminUsers } from "@/components/admin/AdminUsers";
 import { AdminPermissions } from "@/components/admin/AdminPermissions";
 import { AdminCampanhas } from "@/components/admin/AdminCampanhas";
 import { AdminUserCampanhas } from "@/components/admin/AdminUserCampanhas";
 import { AdminHierarchy } from "@/components/admin/AdminHierarchy";
+import { AdminUserSupporters } from "@/components/admin/AdminUserSupporters";
 
 const Admin = () => {
   const [activeTab, setActiveTab] = useState("users");
@@ -37,7 +38,7 @@ const Admin = () => {
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab}>
-        <TabsList className="grid w-full grid-cols-5 lg:w-auto lg:inline-flex mb-6">
+        <TabsList className="grid w-full grid-cols-6 lg:w-auto lg:inline-flex mb-6">
           <TabsTrigger value="users" className="gap-2">
             <Users className="w-4 h-4" />
             <span className="hidden sm:inline">Usuários</span>
@@ -53,6 +54,10 @@ const Admin = () => {
           <TabsTrigger value="access" className="gap-2">
             <Link2 className="w-4 h-4" />
             <span className="hidden sm:inline">Acesso</span>
+          </TabsTrigger>
+          <TabsTrigger value="vinculos" className="gap-2">
+            <UserCheck className="w-4 h-4" />
+            <span className="hidden sm:inline">Vínculos</span>
           </TabsTrigger>
           <TabsTrigger value="hierarchy" className="gap-2">
             <GitBranch className="w-4 h-4" />
@@ -74,6 +79,10 @@ const Admin = () => {
 
         <TabsContent value="access">
           <AdminUserCampanhas />
+        </TabsContent>
+
+        <TabsContent value="vinculos">
+          <AdminUserSupporters />
         </TabsContent>
 
         <TabsContent value="hierarchy">

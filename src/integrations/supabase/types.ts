@@ -427,6 +427,7 @@ export type Database = {
           name: string
           parent_id: string | null
           pin: string | null
+          supporter_id: string | null
           updated_at: string
         }
         Insert: {
@@ -439,6 +440,7 @@ export type Database = {
           name: string
           parent_id?: string | null
           pin?: string | null
+          supporter_id?: string | null
           updated_at?: string
         }
         Update: {
@@ -451,6 +453,7 @@ export type Database = {
           name?: string
           parent_id?: string | null
           pin?: string | null
+          supporter_id?: string | null
           updated_at?: string
         }
         Relationships: [
@@ -473,6 +476,20 @@ export type Database = {
             columns: ["parent_id"]
             isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "profiles_supporter_id_fkey"
+            columns: ["supporter_id"]
+            isOneToOne: false
+            referencedRelation: "supporters"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "profiles_supporter_id_fkey"
+            columns: ["supporter_id"]
+            isOneToOne: false
+            referencedRelation: "supporters_heatmap"
             referencedColumns: ["id"]
           },
         ]

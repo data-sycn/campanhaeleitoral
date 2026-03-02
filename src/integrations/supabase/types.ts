@@ -363,6 +363,59 @@ export type Database = {
           },
         ]
       }
+      municipios: {
+        Row: {
+          campanha_id: string
+          coordenador_id: string | null
+          created_at: string
+          estado: string
+          id: string
+          meta_votos: number | null
+          nome: string
+          notes: string | null
+          populacao: number | null
+          status: string
+          updated_at: string
+          zona_eleitoral: string | null
+        }
+        Insert: {
+          campanha_id: string
+          coordenador_id?: string | null
+          created_at?: string
+          estado: string
+          id?: string
+          meta_votos?: number | null
+          nome: string
+          notes?: string | null
+          populacao?: number | null
+          status?: string
+          updated_at?: string
+          zona_eleitoral?: string | null
+        }
+        Update: {
+          campanha_id?: string
+          coordenador_id?: string | null
+          created_at?: string
+          estado?: string
+          id?: string
+          meta_votos?: number | null
+          nome?: string
+          notes?: string | null
+          populacao?: number | null
+          status?: string
+          updated_at?: string
+          zona_eleitoral?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "municipios_campanha_id_fkey"
+            columns: ["campanha_id"]
+            isOneToOne: false
+            referencedRelation: "campanhas"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
           avatar_url: string | null

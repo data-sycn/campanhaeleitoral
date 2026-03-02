@@ -1,11 +1,10 @@
 import { useState } from "react";
-import { Navigate, useNavigate } from "react-router-dom";
+import { Navigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { Navbar } from "@/components/Navbar";
 
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Button } from "@/components/ui/button";
-import { Users, Shield, Building2, Link2, GitBranch, UserCheck, FileText, ArrowLeft } from "lucide-react";
+import { Users, Shield, Building2, Link2, GitBranch, UserCheck, FileText } from "lucide-react";
 import { AdminUsers } from "@/components/admin/AdminUsers";
 import { AdminPermissions } from "@/components/admin/AdminPermissions";
 import { AdminCampanhas } from "@/components/admin/AdminCampanhas";
@@ -17,7 +16,7 @@ import { AdminExternalForm } from "@/components/admin/AdminExternalForm";
 const Admin = () => {
   const [activeTab, setActiveTab] = useState("users");
   const { isAdmin, loading } = useAuth();
-  const navigate = useNavigate();
+  
 
   if (loading) {
     return (
@@ -37,15 +36,9 @@ const Admin = () => {
     <div className="min-h-screen bg-background">
       <Navbar />
       <div className="container mx-auto px-4 py-8">
-      <div className="mb-6 flex items-center gap-4">
-        <Button variant="outline" size="sm" onClick={() => navigate("/modulos")}>
-          <ArrowLeft className="w-4 h-4 mr-2" />
-          Módulos
-        </Button>
-        <div>
-          <h1 className="text-3xl font-bold">Administrador</h1>
-          <p className="text-muted-foreground">Gerencie usuários, permissões e campanhas</p>
-        </div>
+      <div className="mb-6">
+        <h1 className="text-3xl font-bold">Administrador</h1>
+        <p className="text-muted-foreground">Gerencie usuários, permissões e campanhas</p>
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab}>

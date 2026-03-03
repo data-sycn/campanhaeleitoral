@@ -118,43 +118,8 @@ export function CascadingAddressForm({ visible, creating, onSubmit, onCancel }: 
     };
   }, [ready, visible]);
 
-  // Bairro autocomplete (biased to city location)
-  useEffect(() => {
-    if (!ready || !visible || !bairroRef.current || !cidadeLocation) return;
-
-    // Destroy previous instance
-    if (bairroAutoRef.current) {
-      window.google.maps.event.clearInstanceListeners(bairroAutoRef.current);
-      bairroAutoRef.current = null;
-    }
-
-    const circle = new window.google.maps.Circle({
-      center: cidadeLocation,
-      radius: 30000, // 30km
-    });
-
-    const ac = new window.google.maps.places.Autocomplete(bairroRef.current, {
-      types: ["geocode"],
-      componentRestrictions: { country: "br" },
-      fields: ["address_components"],
-    });
-    ac.setBounds(circle.getBounds());
-
-    ac.addListener("place_changed", () => {
-      const place = ac.getPlace();
-      if (!place.address_components) return;
-
-      const bairroComp = place.address_components.find((c: any) =>
-        c.types.includes("sublocality_level_1") || c.types.includes("sublocality") || c.types.includes("neighborhood")
-      );
-      setBairro(bairroComp?.long_name || "");
-      setRua("");
-
-      setTimeout(() => ruaRef.current?.focus(), 100);
-    });
-
-    bairroAutoRef.current = ac;
-  }, [ready, visible, cidadeLocation]);
+  // Bairro is free text (Google doesn't filter neighborhoods well)
+  // No autocomplete needed here
 
   // Rua autocomplete (biased to city location)
   useEffect(() => {

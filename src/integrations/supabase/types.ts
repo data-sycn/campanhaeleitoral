@@ -52,6 +52,80 @@ export type Database = {
           },
         ]
       }
+      agenda_events: {
+        Row: {
+          bairro: string | null
+          campanha_id: string
+          cidade: string | null
+          created_at: string
+          created_by: string | null
+          data_fim: string | null
+          data_inicio: string
+          descricao: string | null
+          id: string
+          local: string | null
+          notas: string | null
+          participantes: string[] | null
+          prioridade: string
+          recorrente: boolean
+          responsavel_id: string | null
+          status: string
+          tipo: string
+          titulo: string
+          updated_at: string
+        }
+        Insert: {
+          bairro?: string | null
+          campanha_id: string
+          cidade?: string | null
+          created_at?: string
+          created_by?: string | null
+          data_fim?: string | null
+          data_inicio: string
+          descricao?: string | null
+          id?: string
+          local?: string | null
+          notas?: string | null
+          participantes?: string[] | null
+          prioridade?: string
+          recorrente?: boolean
+          responsavel_id?: string | null
+          status?: string
+          tipo?: string
+          titulo: string
+          updated_at?: string
+        }
+        Update: {
+          bairro?: string | null
+          campanha_id?: string
+          cidade?: string | null
+          created_at?: string
+          created_by?: string | null
+          data_fim?: string | null
+          data_inicio?: string
+          descricao?: string | null
+          id?: string
+          local?: string | null
+          notas?: string | null
+          participantes?: string[] | null
+          prioridade?: string
+          recorrente?: boolean
+          responsavel_id?: string | null
+          status?: string
+          tipo?: string
+          titulo?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "agenda_events_campanha_id_fkey"
+            columns: ["campanha_id"]
+            isOneToOne: false
+            referencedRelation: "campanhas"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       audit_log: {
         Row: {
           action: string

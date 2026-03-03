@@ -22,6 +22,7 @@ export const ROUTE_REGISTRY: RouteEntry[] = [
   { id: "municipios", label: "Municípios", route: "/municipios" },
   { id: "checkin", label: "Check-in", route: "/checkin" },
   { id: "resources", label: "Recursos", route: "/resources" },
+  { id: "agenda", label: "Agenda", route: "/agenda" },
   { id: "roteiro", label: "Roteiro", route: "/roteiro" },
   { id: "mensagens", label: "Mensagens", route: "/mensagens" },
   { id: "reports", label: "Relatórios", route: "/reports" },

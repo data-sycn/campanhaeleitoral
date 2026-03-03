@@ -1,90 +1,39 @@
 
 
-## Plan: Split "Permissões" into "Atribuir Função" + "Controle de Acesso"
+## Problema
 
-### Overview
+Atualmente, a aba **Usuários** no Admin lista **todos** os perfis do sistema para qualquer Admin, porque a RLS de `profiles` permite que admins vejam tudo (`has_role(auth.uid(), 'admin')`). O comportamento correto é:
 
-Divide the current Permissions tab into two sub-tabs and create a new access control system where admins configure which roles can access which modules/pages via a checkbox matrix, stored in the database. The system will enforce these rules at runtime.
+- **Master**: vê todos os usuários globalmente (já funciona)
+- **Admin**: vê apenas usuários vinculados às mesmas campanhas que ele
 
-### Database
+## Abordagem
 
-**New table: `access_control`**
-- `id` uuid PK
-- `campanha_id` uuid NOT NULL (FK campanhas)
-- `role` app_role NOT NULL
-- `route` text NOT NULL (e.g. `/dashboard`, `/admin/permissions`)
-- `allowed` boolean DEFAULT true
-- `created_at`, `updated_at` timestamps
-- UNIQUE constraint on `(campanha_id, role, route)`
+Filtrar no lado do cliente (pós-query) os usuários que compartilham campanha com o admin logado. A lógica:
 
-RLS: Master full access; Admin can manage for their campanhas.
+1. Buscar as campanhas do admin atual (via `profiles.campanha_id` + `user_campanhas`)
+2. Filtrar a lista de usuários para mostrar apenas aqueles cujo `campanha_id` está no conjunto de campanhas do admin
+3. Master continua vendo tudo sem filtro
 
-### Route/Module Registry
+### Arquivo: `src/components/admin/AdminUsers.tsx`
 
-A static config defining the hierarchy of modules and sub-pages:
+- Importar `useAuth` para obter `isMaster`, `campanhaId`
+- Adicionar query para buscar `user_campanhas` do admin atual (para saber todas as campanhas vinculadas)
+- Após carregar os perfis, filtrar: se `isMaster`, mostrar todos; se admin, mostrar apenas perfis cujo `campanha_id` está nas campanhas do admin
+- Também considerar usuários vinculados via `user_campanhas` (não apenas `profiles.campanha_id`)
 
-```text
-dashboard        → /dashboard
-financeiro       → /budget, /expenses
-pessoas          → /supporters
-municipios       → /municipios
-checkin          → /checkin
-resources        → /resources
-roteiro          → /roteiro
-mensagens        → /mensagens
-reports          → /reports
-historico        → /historico
-roi              → /roi
-admin            → /admin
-  ├─ users       → /admin?tab=users
-  ├─ permissions → /admin?tab=permissions
-  ├─ campanhas   → /admin?tab=campanhas
-  ├─ access      → /admin?tab=access
-  ├─ vinculos    → /admin?tab=vinculos
-  ├─ hierarchy   → /admin?tab=hierarchy
-  └─ external    → /admin?tab=external-form
+### Detalhes técnicos
+
+```
+Query adicional:
+  - user_campanhas WHERE user_id = auth.uid() → lista de campanha_ids do admin
+  - profiles.campanha_id do admin atual
+
+Filtro aplicado:
+  - Se isMaster → sem filtro
+  - Se admin → user.campanha_id IN [campanhas do admin] 
+    OU user.id aparece em user_campanhas com alguma campanha do admin
 ```
 
-### UI Changes
-
-1. **AdminPermissions.tsx** — becomes a container with two inner tabs:
-   - **"Atribuir Função"** — current role assignment UI (unchanged)
-   - **"Controle de Acesso"** — new checkbox matrix
-
-2. **Access Control Matrix UI:**
-   - Rows = roles (supporter, political_leader, local_coordinator, supervisor, coordinator, candidate; admin/master only if isMaster)
-   - Columns = modules, expandable to show sub-pages
-   - Each cell = a Checkbox (checked = allowed)
-   - Changes save immediately via upsert to `access_control` table
-   - Grouped by module with collapsible sub-routes (e.g., Admin tabs)
-
-3. **Extract role assignment** into `AdminRoleAssignment.tsx` (move existing code from AdminPermissions)
-
-4. **Create `AdminAccessControl.tsx`** — the new matrix component
-
-### Runtime Enforcement
-
-1. **New hook: `useAccessControl`** — fetches `access_control` rows for the user's campaign and roles, returns a `canAccess(route)` function
-2. **ProtectedRoute** — after auth + PIN check, call `canAccess` for the current route; if denied, redirect to `/modulos` with a toast
-3. **DashboardModuleGrid** and **ModuleSwitcher** — hide modules where `canAccess` returns false
-4. **Admin.tsx** — hide tabs the user cannot access
-
-### Default Behavior
-
-When no `access_control` row exists for a role+route combination, default to **allowed** (backward compatible). The matrix shows all as checked initially. Unchecking creates/updates a row with `allowed=false`.
-
-### Files to Create/Modify
-
-| File | Action |
-|------|--------|
-| Migration SQL | Create `access_control` table |
-| `src/components/admin/AdminRoleAssignment.tsx` | New — extracted from AdminPermissions |
-| `src/components/admin/AdminAccessControl.tsx` | New — checkbox matrix |
-| `src/components/admin/AdminPermissions.tsx` | Refactor into two sub-tabs |
-| `src/hooks/useAccessControl.ts` | New — fetch + check access |
-| `src/components/ProtectedRoute.tsx` | Add access control check |
-| `src/components/dashboard/DashboardModuleGrid.tsx` | Filter by access |
-| `src/components/navigation/ModuleSwitcher.tsx` | Filter by access |
-| `src/pages/Admin.tsx` | Filter tabs by access |
-| `src/integrations/supabase/types.ts` | Auto-updated after migration |
+Isso requer uma segunda query para buscar `user_campanhas` de todos os usuários (para cross-reference), ou filtrar usando os `campanha_id` dos profiles. A abordagem mais simples: filtrar pelo `campanha_id` do profile + buscar `user_campanhas` para ambos admin e usuários.
 

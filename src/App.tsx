@@ -24,6 +24,7 @@ import Invite from "./pages/Invite";
 import Modulos from "./pages/Modulos";
 import Municipios from "./pages/Municipios";
 import Audit from "./pages/Audit";
+import Agenda from "./pages/Agenda";
 import Install from "./pages/Install";
 import Profile from "./pages/Profile";
 import ExternalRegister from "./pages/ExternalRegister";
@@ -51,6 +52,7 @@ const App = () => (
             <Route path="/admin" element={<ProtectedRoute><Admin /></ProtectedRoute>} />
             <Route path="/checkin" element={<ProtectedRoute><StreetCheckin /></ProtectedRoute>} />
             <Route path="/resources" element={<ProtectedRoute><Resources /></ProtectedRoute>} />
+            <Route path="/agenda" element={<ProtectedRoute><Agenda /></ProtectedRoute>} />
             <Route path="/roteiro" element={<ProtectedRoute><RouteAssignment /></ProtectedRoute>} />
             <Route path="/mensagens" element={<ProtectedRoute><Messages /></ProtectedRoute>} />
             <Route path="/roi" element={<ProtectedRoute><ROI /></ProtectedRoute>} />

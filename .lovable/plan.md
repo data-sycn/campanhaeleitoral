@@ -1,26 +1,90 @@
 
 
-## Plan: Replace Google Places with IBGE API for Municipality Autocomplete
+## Plan: Split "Permissões" into "Atribuir Função" + "Controle de Acesso"
 
-### What changes
+### Overview
 
-Replace the Google Places autocomplete in the Municípios form with a custom autocomplete powered by the IBGE API (`servicodados.ibge.gov.br/api/v1/localidades/municipios`).
+Divide the current Permissions tab into two sub-tabs and create a new access control system where admins configure which roles can access which modules/pages via a checkbox matrix, stored in the database. The system will enforce these rules at runtime.
 
-### Implementation
+### Database
 
-1. **Remove Google Places logic** from `Municipios.tsx` — delete the entire `useEffect` that loads Google Maps script and initializes the Autocomplete instance (lines ~60-135).
+**New table: `access_control`**
+- `id` uuid PK
+- `campanha_id` uuid NOT NULL (FK campanhas)
+- `role` app_role NOT NULL
+- `route` text NOT NULL (e.g. `/dashboard`, `/admin/permissions`)
+- `allowed` boolean DEFAULT true
+- `created_at`, `updated_at` timestamps
+- UNIQUE constraint on `(campanha_id, role, route)`
 
-2. **Add IBGE autocomplete** — fetch the full municipality list from IBGE once (on component mount or dialog open), then filter locally as the user types in the "Nome" field. Show a dropdown with matching cities (name + UF). On selection, auto-fill:
-   - `nome` (city name)
-   - `estado` (UF)
-   - `populacao` (via IBGE population API, using the municipality's IBGE code)
+RLS: Master full access; Admin can manage for their campanhas.
 
-3. **UI** — use a simple filtered list below the input (similar to a combobox), styled with existing Tailwind classes. No external dependency needed.
+### Route/Module Registry
 
-### Technical details
+A static config defining the hierarchy of modules and sub-pages:
 
-- IBGE municipalities endpoint: `https://servicodados.ibge.gov.br/api/v1/localidades/municipios?orderBy=nome` (~5,570 results, ~800KB, cached in state)
-- Population endpoint: `https://servicodados.ibge.gov.br/api/v3/agregados/4714/periodos/-6/variaveis/93?localidades=N6[{ibgeId}]`
-- Filter with normalized string matching (remove accents), limit visible suggestions to ~10
-- Store IBGE code per municipality to avoid re-fetching the full list for population lookup
+```text
+dashboard        → /dashboard
+financeiro       → /budget, /expenses
+pessoas          → /supporters
+municipios       → /municipios
+checkin          → /checkin
+resources        → /resources
+roteiro          → /roteiro
+mensagens        → /mensagens
+reports          → /reports
+historico        → /historico
+roi              → /roi
+admin            → /admin
+  ├─ users       → /admin?tab=users
+  ├─ permissions → /admin?tab=permissions
+  ├─ campanhas   → /admin?tab=campanhas
+  ├─ access      → /admin?tab=access
+  ├─ vinculos    → /admin?tab=vinculos
+  ├─ hierarchy   → /admin?tab=hierarchy
+  └─ external    → /admin?tab=external-form
+```
+
+### UI Changes
+
+1. **AdminPermissions.tsx** — becomes a container with two inner tabs:
+   - **"Atribuir Função"** — current role assignment UI (unchanged)
+   - **"Controle de Acesso"** — new checkbox matrix
+
+2. **Access Control Matrix UI:**
+   - Rows = roles (supporter, political_leader, local_coordinator, supervisor, coordinator, candidate; admin/master only if isMaster)
+   - Columns = modules, expandable to show sub-pages
+   - Each cell = a Checkbox (checked = allowed)
+   - Changes save immediately via upsert to `access_control` table
+   - Grouped by module with collapsible sub-routes (e.g., Admin tabs)
+
+3. **Extract role assignment** into `AdminRoleAssignment.tsx` (move existing code from AdminPermissions)
+
+4. **Create `AdminAccessControl.tsx`** — the new matrix component
+
+### Runtime Enforcement
+
+1. **New hook: `useAccessControl`** — fetches `access_control` rows for the user's campaign and roles, returns a `canAccess(route)` function
+2. **ProtectedRoute** — after auth + PIN check, call `canAccess` for the current route; if denied, redirect to `/modulos` with a toast
+3. **DashboardModuleGrid** and **ModuleSwitcher** — hide modules where `canAccess` returns false
+4. **Admin.tsx** — hide tabs the user cannot access
+
+### Default Behavior
+
+When no `access_control` row exists for a role+route combination, default to **allowed** (backward compatible). The matrix shows all as checked initially. Unchecking creates/updates a row with `allowed=false`.
+
+### Files to Create/Modify
+
+| File | Action |
+|------|--------|
+| Migration SQL | Create `access_control` table |
+| `src/components/admin/AdminRoleAssignment.tsx` | New — extracted from AdminPermissions |
+| `src/components/admin/AdminAccessControl.tsx` | New — checkbox matrix |
+| `src/components/admin/AdminPermissions.tsx` | Refactor into two sub-tabs |
+| `src/hooks/useAccessControl.ts` | New — fetch + check access |
+| `src/components/ProtectedRoute.tsx` | Add access control check |
+| `src/components/dashboard/DashboardModuleGrid.tsx` | Filter by access |
+| `src/components/navigation/ModuleSwitcher.tsx` | Filter by access |
+| `src/pages/Admin.tsx` | Filter tabs by access |
+| `src/integrations/supabase/types.ts` | Auto-updated after migration |
 

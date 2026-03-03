@@ -11,6 +11,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { Crown, Shield, UserCheck, User as UserIcon, Mail, Calendar, Building2, Loader2, Save } from "lucide-react";
+import { ProfileDataCard } from "@/components/profile/ProfileDataCard";
 
 const ROLE_CONFIG: Record<string, { label: string; icon: typeof Crown; color: string }> = {
   master: { label: "Desenvolvedor", icon: Crown, color: "text-yellow-500" },
@@ -27,6 +28,7 @@ const Profile = () => {
   const [name, setName] = useState("");
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
   const [campaignName, setCampaignName] = useState<string | null>(null);
+  const [supporterData, setSupporterData] = useState<any>(null);
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
@@ -48,6 +50,15 @@ const Profile = () => {
         }
       });
   }, [campanhaId]);
+
+  useEffect(() => {
+    const supporterId = (profile as any)?.supporter_id;
+    if (!supporterId) { setSupporterData(null); return; }
+    supabase.from("supporters")
+      .select("nome, email, telefone, cpf, endereco, bairro, cidade, estado, cep, funcao_politica, observacao, foto_url")
+      .eq("id", supporterId).single()
+      .then(({ data }) => setSupporterData(data || null));
+  }, [profile]);
 
   const handleSave = async () => {
     if (!user) return;
@@ -194,6 +205,11 @@ const Profile = () => {
             </div>
           </CardContent>
         </Card>
+
+        {/* Ficha Cadastral */}
+        <div className="mt-6">
+          <ProfileDataCard supporter={supporterData} userEmail={user.email || null} />
+        </div>
       </div>
     </div>
   );

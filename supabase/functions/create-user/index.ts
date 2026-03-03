@@ -42,11 +42,17 @@ Deno.serve(async (req) => {
       .eq('user_id', callerId);
 
     const roles = callerRoles?.map((r: any) => r.role) || [];
-    if (!roles.includes('admin') && !roles.includes('master')) {
+    const callerIsMaster = roles.includes('master');
+    if (!roles.includes('admin') && !callerIsMaster) {
       return new Response(JSON.stringify({ error: 'Forbidden: admin or master required' }), { status: 403, headers: corsHeaders });
     }
 
     const { email, name, password, pin, role, campanha_id } = await req.json();
+
+    // Only master can assign admin or master roles
+    if ((role === 'admin' || role === 'master') && !callerIsMaster) {
+      return new Response(JSON.stringify({ error: 'Forbidden: only master can assign admin or master roles' }), { status: 403, headers: corsHeaders });
+    }
 
     if (!email || !name || !password || password.length < 6) {
       return new Response(JSON.stringify({ error: 'Email, name, and password (min 6 chars) are required' }), { status: 400, headers: corsHeaders });

@@ -264,13 +264,13 @@ export function AdminUsers() {
                   <SelectTrigger>
                     <SelectValue />
                   </SelectTrigger>
-                  <SelectContent>
+                <SelectContent>
                     <SelectItem value="supporter">Apoiador</SelectItem>
                     <SelectItem value="supervisor">Supervisor de Área</SelectItem>
                     <SelectItem value="coordinator">Coordenador Geral</SelectItem>
                     <SelectItem value="candidate">Candidato</SelectItem>
-                    <SelectItem value="admin">Administrador de Sistema</SelectItem>
-                    <SelectItem value="master">Master (Desenvolvedor)</SelectItem>
+                    {isMaster && <SelectItem value="admin">Administrador de Sistema</SelectItem>}
+                    {isMaster && <SelectItem value="master">Master (Desenvolvedor)</SelectItem>}
                   </SelectContent>
                 </Select>
               </div>

@@ -1,45 +1,26 @@
 
 
-## Analysis: Campanha vs Candidato Redundancy
+## Plan: Replace Google Places with IBGE API for Municipality Autocomplete
 
-You are correct. The two entities overlap significantly:
+### What changes
 
-| Campo | `candidates` | `campanhas` |
-|-------|-------------|-------------|
-| Nome | `name` | `nome` |
-| Partido | `party` | `partido` |
-| Cargo | `position` | `cargo` |
-| Municipio | -- | `municipio` |
-| UF | -- | `uf` |
-| Numero | -- | `numero_candidato` |
-| Cor/Logo | -- | `cor_primaria`, `logo_url` |
+Replace the Google Places autocomplete in the Municípios form with a custom autocomplete powered by the IBGE API (`servicodados.ibge.gov.br/api/v1/localidades/municipios`).
 
-The `candidates` table is a legacy artifact. All business data (budgets, expenses, revenues, supporters, etc.) already uses `campanha_id`. The `candidates` table and its associated UI (AdminCandidates, AdminUserCandidates tabs) are dead weight.
+### Implementation
 
-## Plan: Unify into Campanhas
+1. **Remove Google Places logic** from `Municipios.tsx` — delete the entire `useEffect` that loads Google Maps script and initializes the Autocomplete instance (lines ~60-135).
 
-### Step 1 - Replace AdminCandidates with AdminCampanhas
-- Create `AdminCampanhas.tsx` component that manages the `campanhas` table
-- Form fields: nome, partido, cargo, numero_candidato, municipio, uf, cor_primaria
-- Full CRUD (create, edit, delete with soft-delete via `deleted_at`)
+2. **Add IBGE autocomplete** — fetch the full municipality list from IBGE once (on component mount or dialog open), then filter locally as the user types in the "Nome" field. Show a dropdown with matching cities (name + UF). On selection, auto-fill:
+   - `nome` (city name)
+   - `estado` (UF)
+   - `populacao` (via IBGE population API, using the municipality's IBGE code)
 
-### Step 2 - Replace AdminUserCandidates with AdminUserCampanhas
-- Rename the "Acesso" tab to manage user-to-campanha associations
-- Instead of linking users to `candidates`, update `profiles.campanha_id` directly
-- Show a table of users with their current campanha assignment and allow changing it
+3. **UI** — use a simple filtered list below the input (similar to a combobox), styled with existing Tailwind classes. No external dependency needed.
 
-### Step 3 - Update Admin.tsx tabs
-- Replace "Candidatos" tab with "Campanhas" using the new component
-- Replace "Acesso" tab to use the new campanha-based assignment
-- Remove imports of legacy components
+### Technical details
 
-### Step 4 - Remove legacy components
-- Delete `AdminCandidates.tsx`
-- Delete `AdminUserCandidates.tsx`
-- Remove `AdminCandidates` and `AdminUserCandidates` from `admin/index.ts`
-
-### Technical notes
-- No database migration needed; `campanhas` table already exists with all necessary fields
-- RLS on `campanhas` already allows master full access and users to read their own
-- The `candidates` table and `user_candidates` table remain in DB for backward compatibility but will no longer be used in the UI
+- IBGE municipalities endpoint: `https://servicodados.ibge.gov.br/api/v1/localidades/municipios?orderBy=nome` (~5,570 results, ~800KB, cached in state)
+- Population endpoint: `https://servicodados.ibge.gov.br/api/v3/agregados/4714/periodos/-6/variaveis/93?localidades=N6[{ibgeId}]`
+- Filter with normalized string matching (remove accents), limit visible suggestions to ~10
+- Store IBGE code per municipality to avoid re-fetching the full list for population lookup
 

@@ -61,7 +61,7 @@ const StreetCheckin = () => {
   const [creating, setCreating] = useState(false);
   const streetInputRef = useRef<HTMLInputElement>(null);
 
-  const { ready: placesReady, setOnSelect } = useGooglePlaces(streetInputRef);
+  const { ready: placesReady, setOnSelect } = useGooglePlaces(streetInputRef, showAddStreet);
 
   useEffect(() => {
     setOnSelect((place) => {

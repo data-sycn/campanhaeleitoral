@@ -41,7 +41,7 @@ function loadGoogleScript(apiKey: string): Promise<void> {
   });
 }
 
-export function useGooglePlaces(inputRef: React.RefObject<HTMLInputElement | null>) {
+export function useGooglePlaces(inputRef: React.RefObject<HTMLInputElement | null>, visible: boolean = true) {
   const autocompleteRef = useRef<any>(null);
   const [ready, setReady] = useState(false);
   const onSelectRef = useRef<((place: PlaceResult) => void) | null>(null);
@@ -60,7 +60,7 @@ export function useGooglePlaces(inputRef: React.RefObject<HTMLInputElement | nul
   }, []);
 
   useEffect(() => {
-    if (!ready || !inputRef.current || autocompleteRef.current) return;
+    if (!ready || !visible || !inputRef.current || autocompleteRef.current) return;
 
     const autocomplete = new window.google.maps.places.Autocomplete(inputRef.current, {
       types: ["address"],
@@ -87,7 +87,14 @@ export function useGooglePlaces(inputRef: React.RefObject<HTMLInputElement | nul
     });
 
     autocompleteRef.current = autocomplete;
-  }, [ready, inputRef]);
+
+    return () => {
+      // Clean up on hide so it re-attaches on next show
+      if (!visible) {
+        autocompleteRef.current = null;
+      }
+    };
+  }, [ready, visible, inputRef]);
 
   return { ready, setOnSelect };
 }

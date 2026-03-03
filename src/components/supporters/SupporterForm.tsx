@@ -1,4 +1,4 @@
-import { useState, useCallback } from "react";
+import { useState, useCallback, useRef, useEffect } from "react";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -10,6 +10,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { geocodeAddress } from "@/lib/geocode";
+import { useIBGEMunicipios } from "@/hooks/useIBGEMunicipios";
 import { z } from "zod";
 import { Loader2, Search } from "lucide-react";
 
@@ -99,8 +100,8 @@ const initialForm: SupporterFormData = {
   email: "",
   endereco: "",
   bairro: "",
-  cidade: "Barreiras",
-  estado: "BA",
+  cidade: "",
+  estado: "",
   cep: "",
   cpf: "",
   funcao_politica: "",
@@ -117,6 +118,32 @@ export function SupporterForm({ onSuccess, onCancel }: SupporterFormProps) {
   const [cepLoading, setCepLoading] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
 
+  // IBGE autocomplete for cidade
+  const ibge = useIBGEMunicipios();
+  const suggestionsRef = useRef<HTMLDivElement>(null);
+  const cidadeInputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    const handler = (e: MouseEvent) => {
+      if (
+        suggestionsRef.current &&
+        !suggestionsRef.current.contains(e.target as Node) &&
+        cidadeInputRef.current &&
+        !cidadeInputRef.current.contains(e.target as Node)
+      ) {
+        ibge.close();
+      }
+    };
+    document.addEventListener("mousedown", handler);
+    return () => document.removeEventListener("mousedown", handler);
+  }, [ibge.close]);
+
+  const handleSelectMunicipio = (m: { id: number; nome: string; uf: string }) => {
+    setForm(f => ({ ...f, cidade: m.nome, estado: m.uf }));
+    ibge.setQuery(m.nome);
+    ibge.close();
+  };
+
   const handleChange = (field: keyof SupporterFormData, value: string) => {
     setForm((prev) => ({ ...prev, [field]: value }));
     if (errors[field]) setErrors((prev) => ({ ...prev, [field]: "" }));
@@ -124,6 +151,11 @@ export function SupporterForm({ onSuccess, onCancel }: SupporterFormProps) {
 
   const handleMaskedChange = (field: keyof SupporterFormData, value: string, maskFn: (v: string) => string) => {
     handleChange(field, maskFn(value));
+  };
+
+  const handleCidadeChange = (value: string) => {
+    handleChange("cidade", value);
+    ibge.setQuery(value);
   };
 
   // --- CEP Lookup (ViaCEP) ---
@@ -148,6 +180,7 @@ export function SupporterForm({ onSuccess, onCancel }: SupporterFormProps) {
         cidade: data.localidade || prev.cidade,
         estado: data.uf || prev.estado,
       }));
+      ibge.setQuery(data.localidade || "");
       toast({ title: "Endereço preenchido", description: `${data.logradouro}, ${data.bairro} - ${data.localidade}/${data.uf}` });
     } catch {
       toast({ title: "Erro ao buscar CEP", description: "Tente novamente.", variant: "destructive" });
@@ -186,7 +219,6 @@ export function SupporterForm({ onSuccess, onCancel }: SupporterFormProps) {
     try {
       const data = result.data;
 
-      // Geocode address automatically
       const coords = await geocodeAddress({
         endereco: data.endereco,
         bairro: data.bairro,
@@ -195,7 +227,6 @@ export function SupporterForm({ onSuccess, onCancel }: SupporterFormProps) {
         cep: data.cep,
       });
 
-      // Build insert payload with PostGIS geolocation
       const insertPayload: Record<string, any> = {
         campanha_id: effectiveCampanhaId,
         nome: data.nome,
@@ -214,7 +245,6 @@ export function SupporterForm({ onSuccess, onCancel }: SupporterFormProps) {
         longitude: coords?.lng ?? null,
       };
 
-      // Send PostGIS POINT if coords available
       if (coords) {
         insertPayload.geolocation = `SRID=4326;POINT(${coords.lng} ${coords.lat})`;
       }
@@ -226,6 +256,7 @@ export function SupporterForm({ onSuccess, onCancel }: SupporterFormProps) {
       toast({ title: "Pessoa cadastrada!", description: `${data.nome} foi adicionado(a) com sucesso.` });
       setForm(initialForm);
       setFotoUrl(null);
+      ibge.setQuery("");
       onSuccess();
     } catch (err: any) {
       toast({ title: "Erro ao cadastrar", description: err.message, variant: "destructive" });
@@ -329,66 +360,36 @@ export function SupporterForm({ onSuccess, onCancel }: SupporterFormProps) {
             {errors.cpf && <p className="text-sm text-destructive">{errors.cpf}</p>}
           </div>
 
-          {/* CEP com busca */}
-          <div className="space-y-2">
-            <Label htmlFor="cep">CEP</Label>
-            <div className="flex gap-2">
-              <Input
-                id="cep"
-                value={form.cep}
-                onChange={(e) => handleMaskedChange("cep", e.target.value, maskCEP)}
-                onKeyDown={handleCepKeyDown}
-                placeholder="47800-000"
-                maxLength={9}
-                className="flex-1"
-              />
-              <Button
-                type="button"
-                variant="outline"
-                size="icon"
-                onClick={lookupCEP}
-                disabled={cepLoading}
-                title="Buscar CEP"
-              >
-                {cepLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Search className="w-4 h-4" />}
-              </Button>
-            </div>
-            <p className="text-xs text-muted-foreground">Digite o CEP e clique na lupa para preencher o endereço automaticamente</p>
-          </div>
-
-          {/* Endereço */}
-          <div className="space-y-2">
-            <Label htmlFor="endereco">Endereço</Label>
-            <Input
-              id="endereco"
-              value={form.endereco}
-              onChange={(e) => handleChange("endereco", e.target.value)}
-              placeholder="Rua, número, complemento"
-              maxLength={200}
-            />
-          </div>
-
-          {/* Bairro + Cidade + Estado */}
+          {/* Cidade + Estado (IBGE autocomplete) */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div className="space-y-2">
-              <Label htmlFor="bairro">Bairro</Label>
-              <Input
-                id="bairro"
-                value={form.bairro}
-                onChange={(e) => handleChange("bairro", e.target.value)}
-                placeholder="Bairro"
-                maxLength={100}
-              />
-            </div>
-            <div className="space-y-2">
+            <div className="space-y-2 relative md:col-span-2">
               <Label htmlFor="cidade">Cidade</Label>
               <Input
                 id="cidade"
-                value={form.cidade}
-                onChange={(e) => handleChange("cidade", e.target.value)}
-                placeholder="Cidade"
+                ref={cidadeInputRef}
+                value={ibge.query || form.cidade}
+                onChange={(e) => handleCidadeChange(e.target.value)}
+                placeholder="Digite o nome da cidade"
+                autoComplete="off"
                 maxLength={100}
               />
+              {ibge.isOpen && (
+                <div
+                  ref={suggestionsRef}
+                  className="absolute z-50 top-full left-0 right-0 mt-1 bg-popover border rounded-md shadow-md max-h-52 overflow-y-auto"
+                >
+                  {ibge.suggestions.map((s) => (
+                    <button
+                      key={s.id}
+                      type="button"
+                      className="w-full text-left px-3 py-2 text-sm hover:bg-accent hover:text-accent-foreground transition-colors"
+                      onClick={() => handleSelectMunicipio(s)}
+                    >
+                      {s.nome} <span className="text-muted-foreground">— {s.uf}</span>
+                    </button>
+                  ))}
+                </div>
+              )}
             </div>
             <div className="space-y-2">
               <Label htmlFor="estado">UF</Label>
@@ -398,8 +399,60 @@ export function SupporterForm({ onSuccess, onCancel }: SupporterFormProps) {
                 onChange={(e) => handleChange("estado", e.target.value.toUpperCase())}
                 placeholder="BA"
                 maxLength={2}
+                readOnly
+                className="bg-muted"
               />
             </div>
+          </div>
+
+          {/* CEP (opcional) + Endereço */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="space-y-2">
+              <Label htmlFor="cep">CEP <span className="text-muted-foreground text-xs">(opcional)</span></Label>
+              <div className="flex gap-2">
+                <Input
+                  id="cep"
+                  value={form.cep}
+                  onChange={(e) => handleMaskedChange("cep", e.target.value, maskCEP)}
+                  onKeyDown={handleCepKeyDown}
+                  placeholder="47800-000"
+                  maxLength={9}
+                  className="flex-1"
+                />
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="icon"
+                  onClick={lookupCEP}
+                  disabled={cepLoading || !form.cep}
+                  title="Buscar CEP"
+                >
+                  {cepLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Search className="w-4 h-4" />}
+                </Button>
+              </div>
+            </div>
+            <div className="space-y-2 md:col-span-2">
+              <Label htmlFor="endereco">Endereço</Label>
+              <Input
+                id="endereco"
+                value={form.endereco}
+                onChange={(e) => handleChange("endereco", e.target.value)}
+                placeholder="Rua, número, complemento"
+                maxLength={200}
+              />
+            </div>
+          </div>
+
+          {/* Bairro */}
+          <div className="space-y-2">
+            <Label htmlFor="bairro">Bairro</Label>
+            <Input
+              id="bairro"
+              value={form.bairro}
+              onChange={(e) => handleChange("bairro", e.target.value)}
+              placeholder="Bairro"
+              maxLength={100}
+            />
           </div>
 
           {/* Observação */}

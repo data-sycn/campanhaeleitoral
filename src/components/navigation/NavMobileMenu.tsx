@@ -6,22 +6,42 @@ import {
   SheetTitle,
   SheetTrigger,
 } from "@/components/ui/sheet";
-import { Menu, BarChart3, DollarSign, Receipt, Users, FileText } from "lucide-react";
+import { Menu, BarChart3, DollarSign, Users, FileText, MapPin, Package, CalendarDays, Route, MessageCircle, TrendingUp, History, Building2, Settings, LayoutGrid } from "lucide-react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { useState } from "react";
+import { useAuth } from "@/hooks/useAuth";
+import { useAccessControl } from "@/hooks/useAccessControl";
+import { cn } from "@/lib/utils";
 
 const navItems = [
-  { icon: BarChart3, label: "Dashboard", path: "/" },
-  { icon: DollarSign, label: "Orçamento", path: "/budget" },
-  { icon: Receipt, label: "Despesas", path: "/expenses" },
+  { icon: LayoutGrid, label: "Módulos", path: "/modulos" },
+  { icon: BarChart3, label: "Dashboard", path: "/dashboard" },
+  { icon: DollarSign, label: "Financeiro", path: "/budget" },
   { icon: Users, label: "Pessoas", path: "/supporters" },
+  { icon: Building2, label: "Municípios", path: "/municipios" },
+  { icon: MapPin, label: "Check-in", path: "/checkin" },
+  { icon: Package, label: "Recursos", path: "/resources" },
+  { icon: CalendarDays, label: "Agenda", path: "/agenda" },
+  { icon: Route, label: "Roteiro", path: "/roteiro" },
+  { icon: MessageCircle, label: "Mensagens", path: "/mensagens" },
   { icon: FileText, label: "Relatórios", path: "/reports" },
+  { icon: History, label: "Histórico", path: "/historico" },
+];
+
+const adminItems = [
+  { icon: TrendingUp, label: "ROI", path: "/roi" },
+  { icon: Settings, label: "Admin", path: "/admin" },
 ];
 
 export function NavMobileMenu() {
   const [open, setOpen] = useState(false);
   const navigate = useNavigate();
   const location = useLocation();
+  const { isAdmin } = useAuth();
+  const { canAccess } = useAccessControl();
+
+  const allItems = isAdmin ? [...navItems, ...adminItems] : navItems;
+  const filteredItems = allItems.filter(item => canAccess(item.path));
 
   const handleNavigate = (path: string) => {
     navigate(path);
@@ -44,15 +64,15 @@ export function NavMobileMenu() {
             CampanhaGov
           </SheetTitle>
         </SheetHeader>
-        <nav className="flex flex-col gap-2 mt-6">
-          {navItems.map((item) => {
+        <nav className="flex flex-col gap-1 mt-6">
+          {filteredItems.map((item) => {
             const Icon = item.icon;
             const isActive = location.pathname === item.path;
             return (
               <Button
                 key={item.path}
                 variant={isActive ? "secondary" : "ghost"}
-                className="justify-start gap-3"
+                className={cn("justify-start gap-3", isActive && "font-semibold")}
                 onClick={() => handleNavigate(item.path)}
               >
                 <Icon className="w-4 h-4" />

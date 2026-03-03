@@ -442,6 +442,57 @@ export type Database = {
           },
         ]
       }
+      municipio_historico_votacao: {
+        Row: {
+          campanha_id: string
+          cargo: string
+          created_at: string
+          eleicao_ano: number
+          id: string
+          municipio_id: string
+          notes: string | null
+          updated_at: string
+          votacao: number
+        }
+        Insert: {
+          campanha_id: string
+          cargo: string
+          created_at?: string
+          eleicao_ano: number
+          id?: string
+          municipio_id: string
+          notes?: string | null
+          updated_at?: string
+          votacao?: number
+        }
+        Update: {
+          campanha_id?: string
+          cargo?: string
+          created_at?: string
+          eleicao_ano?: number
+          id?: string
+          municipio_id?: string
+          notes?: string | null
+          updated_at?: string
+          votacao?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "municipio_historico_votacao_campanha_id_fkey"
+            columns: ["campanha_id"]
+            isOneToOne: false
+            referencedRelation: "campanhas"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "municipio_historico_votacao_municipio_id_fkey"
+            columns: ["municipio_id"]
+            isOneToOne: false
+            referencedRelation: "municipios"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       municipios: {
         Row: {
           campanha_id: string
@@ -453,6 +504,7 @@ export type Database = {
           nome: string
           notes: string | null
           populacao: number | null
+          prioridade: string
           status: string
           updated_at: string
           zona_eleitoral: string | null
@@ -467,6 +519,7 @@ export type Database = {
           nome: string
           notes?: string | null
           populacao?: number | null
+          prioridade?: string
           status?: string
           updated_at?: string
           zona_eleitoral?: string | null
@@ -481,6 +534,7 @@ export type Database = {
           nome?: string
           notes?: string | null
           populacao?: number | null
+          prioridade?: string
           status?: string
           updated_at?: string
           zona_eleitoral?: string | null

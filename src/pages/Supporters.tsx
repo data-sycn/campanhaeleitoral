@@ -5,10 +5,11 @@ import { useAuth } from "@/hooks/useAuth";
 import { useActiveCampanhaId } from "@/hooks/useCampanhaData";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import { Users, UserPlus, Phone, Mail, MapPin, Pencil, Trash2 } from "lucide-react";
+import { Users, UserPlus, Phone, Mail, MapPin, Pencil, Trash2, Link2, Copy } from "lucide-react";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Navbar } from "@/components/Navbar";
+import { useQuery } from "@tanstack/react-query";
 import { SupporterForm, SupporterEditData } from "@/components/supporters/SupporterForm";
 import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
@@ -41,6 +42,46 @@ const Supporters = () => {
   const [showForm, setShowForm] = useState(false);
   const [editingSupporter, setEditingSupporter] = useState<SupporterEditData | null>(null);
   const [deletingSupporter, setDeletingSupporter] = useState<Supporter | null>(null);
+
+  const BASE_URL = "https://www.gerencialcampanha.com.br";
+
+  const { data: inviteToken } = useQuery({
+    queryKey: ["invite-link-for-supporters", effectiveCampanhaId],
+    queryFn: async () => {
+      if (!effectiveCampanhaId) return null;
+      const { data } = await supabase
+        .from("invite_links")
+        .select("token")
+        .eq("campanha_id", effectiveCampanhaId)
+        .is("used_at", null)
+        .order("created_at", { ascending: false })
+        .limit(1)
+        .maybeSingle();
+      return data?.token ?? null;
+    },
+    enabled: !!effectiveCampanhaId,
+  });
+
+  const { data: formEnabled } = useQuery({
+    queryKey: ["external-form-enabled", effectiveCampanhaId],
+    queryFn: async () => {
+      if (!effectiveCampanhaId) return false;
+      const { data } = await supabase
+        .from("external_form_config")
+        .select("enabled")
+        .eq("campanha_id", effectiveCampanhaId)
+        .maybeSingle();
+      return data?.enabled ?? false;
+    },
+    enabled: !!effectiveCampanhaId,
+  });
+
+  const copyExternalLink = () => {
+    if (!inviteToken) return;
+    const url = `${BASE_URL}/cadastro/${inviteToken}`;
+    navigator.clipboard.writeText(url);
+    toast({ title: "Link copiado!", description: url });
+  };
 
   useEffect(() => {
     fetchSupporters();
@@ -122,14 +163,26 @@ const Supporters = () => {
             <h1 className="text-2xl sm:text-3xl font-bold">Gestão de Pessoas</h1>
             <p className="text-sm text-muted-foreground">Gerencie as pessoas vinculadas à campanha</p>
           </div>
-          <Button
-            onClick={() => { setEditingSupporter(null); setShowForm(!showForm); }}
-            variant="campaign"
-            className="gap-2 w-full sm:w-auto"
-          >
-            <UserPlus className="w-4 h-4" />
-            {showForm && !editingSupporter ? "Fechar" : "Cadastrar Pessoa"}
-          </Button>
+          <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
+            {formEnabled && inviteToken && (
+              <Button
+                onClick={copyExternalLink}
+                variant="outline"
+                className="gap-2 w-full sm:w-auto"
+              >
+                <Link2 className="w-4 h-4" />
+                Copiar Link de Cadastro
+              </Button>
+            )}
+            <Button
+              onClick={() => { setEditingSupporter(null); setShowForm(!showForm); }}
+              variant="campaign"
+              className="gap-2 w-full sm:w-auto"
+            >
+              <UserPlus className="w-4 h-4" />
+              {showForm && !editingSupporter ? "Fechar" : "Cadastrar Pessoa"}
+            </Button>
+          </div>
         </div>
 
         <Card className="mb-8">

@@ -9,22 +9,28 @@ export function NavActiveCampaign() {
   const [campaignName, setCampaignName] = useState<string | null>(null);
   const [adminCampanhas, setAdminCampanhas] = useState<{ id: string; nome: string; partido: string | null }[]>([]);
 
-  const canSelectCampaign = isMaster || (isAdmin && !campanhaId);
-  const activeCampanhaId = canSelectCampaign ? selectedCampanhaId : campanhaId;
+  const canSelectCampaign = isMaster || isAdmin;
+  const activeCampanhaId = canSelectCampaign ? (selectedCampanhaId || campanhaId) : campanhaId;
 
-  // Fetch available campaigns for admin users
+  // Fetch available campaigns for admin users (from user_campanhas)
   useEffect(() => {
-    if (!isAdmin || isMaster || campanhaId) return;
+    if (!isAdmin || isMaster) return;
     const fetchAdminCampanhas = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
       const { data } = await supabase
-        .from("campanhas")
-        .select("id, nome, partido, municipio, uf")
-        .is("deleted_at", null)
-        .order("nome");
-      if (data) setAdminCampanhas(data);
+        .from("user_campanhas")
+        .select("campanha_id, campanhas:campanha_id(id, nome, partido, municipio, uf, deleted_at)")
+        .eq("user_id", user.id);
+      if (data) {
+        const mapped = data
+          .map((d: any) => d.campanhas)
+          .filter((c: any) => c && c.deleted_at === null) as { id: string; nome: string; partido: string | null }[];
+        setAdminCampanhas(mapped);
+      }
     };
     fetchAdminCampanhas();
-  }, [isAdmin, isMaster, campanhaId]);
+  }, [isAdmin, isMaster]);
 
   useEffect(() => {
     if (!activeCampanhaId) {
@@ -48,7 +54,7 @@ export function NavActiveCampaign() {
   }, [activeCampanhaId]);
 
   // Admin users with multi-campaign: show selector
-  if (isAdmin && !isMaster && !campanhaId && adminCampanhas.length > 1) {
+  if (isAdmin && !isMaster && adminCampanhas.length > 1) {
     return (
       <div className="hidden sm:flex items-center gap-1.5">
         <Building2 className="w-3.5 h-3.5 text-muted-foreground" />

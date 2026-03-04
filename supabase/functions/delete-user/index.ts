@@ -57,7 +57,13 @@ Deno.serve(async (req) => {
       return new Response(JSON.stringify({ error: 'Cannot delete yourself' }), { status: 400, headers: corsHeaders });
     }
 
-    // Delete auth user
+    // Nullify parent_id references to prevent FK violation
+    await adminClient
+      .from('profiles')
+      .update({ parent_id: null })
+      .eq('parent_id', user_id);
+
+    // Delete auth user (cascades to profiles, user_roles, etc.)
     const { error: deleteError } = await adminClient.auth.admin.deleteUser(user_id);
     if (deleteError) {
       return new Response(JSON.stringify({ error: deleteError.message }), { status: 400, headers: corsHeaders });

@@ -13,11 +13,12 @@ import { useAuth } from "@/hooks/useAuth";
 import { useActiveCampanhaId } from "@/hooks/useCampanhaData";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { Separator } from "@/components/ui/separator";
 import {
   CalendarDays, Plus, Search, Loader2, MapPin, Clock, User,
   ChevronLeft, ChevronRight, Megaphone, Users, Mic, Car, Handshake,
   Building2, PartyPopper, Flag, Coffee, Tv, FileText, MoreHorizontal,
-  AlertTriangle, CheckCircle, XCircle, Edit, Trash2
+  AlertTriangle, CheckCircle, XCircle, Edit, Trash2, Crown, Phone
 } from "lucide-react";
 import { format, startOfMonth, endOfMonth, eachDayOfInterval, isSameDay, isSameMonth, addMonths, subMonths, isToday, parseISO, startOfWeek, endOfWeek } from "date-fns";
 import { ptBR } from "date-fns/locale";
@@ -46,6 +47,13 @@ interface AgendaEvent {
 interface Profile {
   id: string;
   name: string;
+}
+
+interface Lideranca {
+  id: string;
+  nome: string;
+  funcao_politica: string | null;
+  telefone: string | null;
 }
 
 /* ───── Config ───── */
@@ -90,6 +98,7 @@ const AgendaPage = () => {
   const [profiles, setProfiles] = useState<Profile[]>([]);
   const [profileMap, setProfileMap] = useState<Record<string, Profile>>({});
   const [loading, setLoading] = useState(true);
+  const [liderancas, setLiderancas] = useState<Lideranca[]>([]);
   const [showForm, setShowForm] = useState(false);
   const [editingEvent, setEditingEvent] = useState<AgendaEvent | null>(null);
   const [creating, setCreating] = useState(false);
@@ -102,7 +111,7 @@ const AgendaPage = () => {
 
   const emptyForm = {
     titulo: "", descricao: "", tipo: "reuniao", data_inicio: "", hora_inicio: "09:00",
-    data_fim: "", hora_fim: "", local: "", cidade: "", bairro: "",
+    local: "", cidade: "",
     responsavel_id: "", status: "confirmado", prioridade: "normal", notas: "",
   };
   const [form, setForm] = useState(emptyForm);
@@ -124,9 +133,16 @@ const AgendaPage = () => {
 
     if (activeCampanhaId) evQuery = evQuery.eq("campanha_id", activeCampanhaId);
 
-    const [evRes, profRes] = await Promise.all([
+    let liderQuery = supabase
+      .from("supporters")
+      .select("id, nome, funcao_politica, telefone")
+      .eq("lideranca_politica", true) as any;
+    if (activeCampanhaId) liderQuery = liderQuery.eq("campanha_id", activeCampanhaId);
+
+    const [evRes, profRes, liderRes] = await Promise.all([
       evQuery,
       supabase.from("profiles").select("id, name"),
+      liderQuery,
     ]);
 
     setEvents((evRes.data || []) as AgendaEvent[]);
@@ -135,6 +151,7 @@ const AgendaPage = () => {
     const pMap: Record<string, Profile> = {};
     profs.forEach((p) => (pMap[p.id] = p));
     setProfileMap(pMap);
+    setLiderancas((liderRes.data || []) as Lideranca[]);
     setLoading(false);
   }, [user, activeCampanhaId, isMaster, currentMonth]);
 
@@ -201,11 +218,8 @@ const AgendaPage = () => {
       tipo: ev.tipo,
       data_inicio: format(start, "yyyy-MM-dd"),
       hora_inicio: format(start, "HH:mm"),
-      data_fim: end ? format(end, "yyyy-MM-dd") : "",
-      hora_fim: end ? format(end, "HH:mm") : "",
       local: ev.local || "",
       cidade: ev.cidade || "",
-      bairro: ev.bairro || "",
       responsavel_id: ev.responsavel_id || "",
       status: ev.status,
       prioridade: ev.prioridade,
@@ -223,7 +237,6 @@ const AgendaPage = () => {
     setCreating(true);
 
     const dataInicio = `${form.data_inicio}T${form.hora_inicio}:00`;
-    const dataFim = form.data_fim && form.hora_fim ? `${form.data_fim}T${form.hora_fim}:00` : form.data_fim ? `${form.data_fim}T23:59:00` : null;
 
     const payload = {
       campanha_id: activeCampanhaId,
@@ -231,10 +244,10 @@ const AgendaPage = () => {
       descricao: form.descricao || null,
       tipo: form.tipo,
       data_inicio: dataInicio,
-      data_fim: dataFim,
+      data_fim: null,
       local: form.local || null,
       cidade: form.cidade || null,
-      bairro: form.bairro || null,
+      bairro: null,
       responsavel_id: form.responsavel_id || null,
       status: form.status,
       prioridade: form.prioridade,
@@ -576,22 +589,14 @@ const AgendaPage = () => {
                 </div>
               </div>
 
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label>Data Início *</Label>
+                  <Label>Data *</Label>
                   <Input type="date" value={form.data_inicio} onChange={(e) => setForm((p) => ({ ...p, data_inicio: e.target.value }))} required />
                 </div>
                 <div className="space-y-2">
-                  <Label>Hora Início</Label>
+                  <Label>Hora</Label>
                   <Input type="time" value={form.hora_inicio} onChange={(e) => setForm((p) => ({ ...p, hora_inicio: e.target.value }))} />
-                </div>
-                <div className="space-y-2">
-                  <Label>Data Fim</Label>
-                  <Input type="date" value={form.data_fim} onChange={(e) => setForm((p) => ({ ...p, data_fim: e.target.value }))} />
-                </div>
-                <div className="space-y-2">
-                  <Label>Hora Fim</Label>
-                  <Input type="time" value={form.hora_fim} onChange={(e) => setForm((p) => ({ ...p, hora_fim: e.target.value }))} />
                 </div>
               </div>
 
@@ -600,7 +605,7 @@ const AgendaPage = () => {
                 <Textarea value={form.descricao} onChange={(e) => setForm((p) => ({ ...p, descricao: e.target.value }))} placeholder="Detalhes do evento..." rows={3} />
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label>Local</Label>
                   <Input value={form.local} onChange={(e) => setForm((p) => ({ ...p, local: e.target.value }))} placeholder="Ex: Praça Central" />
@@ -609,11 +614,34 @@ const AgendaPage = () => {
                   <Label>Cidade</Label>
                   <Input value={form.cidade} onChange={(e) => setForm((p) => ({ ...p, cidade: e.target.value }))} placeholder="Ex: Recife" />
                 </div>
-                <div className="space-y-2">
-                  <Label>Bairro</Label>
-                  <Input value={form.bairro} onChange={(e) => setForm((p) => ({ ...p, bairro: e.target.value }))} placeholder="Ex: Boa Viagem" />
-                </div>
               </div>
+
+              {/* Lideranças Políticas */}
+              {liderancas.length > 0 && (
+                <div className="space-y-3">
+                  <Separator />
+                  <div className="flex items-center gap-2 text-sm font-semibold text-muted-foreground uppercase tracking-wider">
+                    <Crown className="w-4 h-4" />
+                    Lideranças Políticas
+                  </div>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                    {liderancas.map((l) => (
+                      <div key={l.id} className="flex items-center gap-3 p-2.5 rounded-lg border bg-muted/30">
+                        <div className="flex-1 min-w-0">
+                          <p className="text-sm font-medium truncate">{l.nome}</p>
+                          <p className="text-xs text-muted-foreground">{l.funcao_politica || "—"}</p>
+                        </div>
+                        {l.telefone && (
+                          <span className="flex items-center gap-1 text-xs text-muted-foreground">
+                            <Phone className="w-3 h-3" />
+                            {l.telefone}
+                          </span>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-2">

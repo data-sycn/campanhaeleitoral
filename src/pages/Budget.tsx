@@ -12,7 +12,7 @@ import { Navbar } from "@/components/Navbar";
 const Budget = () => {
   const [activeModule, setActiveModule] = useState<string>("overview");
   const { budgets, loading, creating, activeBudget, createBudget, updateBudget, deleteBudget } = useBudgetData();
-  
+
 
   if (loading) {
     return (

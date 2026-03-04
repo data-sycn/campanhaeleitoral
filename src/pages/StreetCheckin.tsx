@@ -38,7 +38,6 @@ interface Checkin {
   };
 }
 
-// Offline sync is now handled by the centralized offlineSync service
 
 const STATUS_COBERTURA_LABELS: Record<string, { label: string; color: string }> = {
   nao_visitada: { label: "Não visitada", color: "bg-muted text-muted-foreground" },

@@ -6,7 +6,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { FileText, Download, BarChart3, PieChart, TrendingUp, Users } from "lucide-react";
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart as RechartsPieChart, Cell } from 'recharts';
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart as RechartsPieChart, Pie, Cell } from 'recharts';
 import { Navbar } from "@/components/Navbar";
 
 interface ExpenseData {
@@ -277,7 +277,12 @@ const Reports = () => {
                 <CardContent>
                   {expensesByCategory.length > 0 ? (
                     <ResponsiveContainer width="100%" height={300}>
-                      <RechartsPieChart data={expensesByCategory}>
+                      <RechartsPieChart>
+                        <Pie data={expensesByCategory} dataKey="amount" nameKey="category" cx="50%" cy="50%" outerRadius={100} label={({ category }) => categoryLabels[category] || category}>
+                          {expensesByCategory.map((_, index) => (
+                            <Cell key={`cell-${index}`} fill={categoryColors[index % categoryColors.length]} />
+                          ))}
+                        </Pie>
                         <Tooltip formatter={(value: number) => [`R$ ${value.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`, 'Valor']} />
                       </RechartsPieChart>
                     </ResponsiveContainer>

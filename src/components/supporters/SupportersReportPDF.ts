@@ -57,7 +57,7 @@ export function generateSupportersReport(opts: ReportOptions) {
       <td>${s.telefone || "—"}</td>
       <td style="max-width:160px;overflow:hidden;text-overflow:ellipsis">${s.email || "—"}</td>
       <td>${[s.bairro, s.cidade].filter(Boolean).join(", ") || "—"}</td>
-      <td style="font-size:11px;color:#64748b">${s.created_at ? format(new Date(s.created_at), "dd/MM/yy") : "—"}</td>
+      
     </tr>`
     )
     .join("");
@@ -302,7 +302,7 @@ export function generateSupportersReport(opts: ReportOptions) {
             <th>Telefone</th>
             <th>E-mail</th>
             <th>Localidade</th>
-            <th>Cadastro</th>
+            
           </tr>
         </thead>
         <tbody>

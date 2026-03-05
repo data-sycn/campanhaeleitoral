@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
+import { useActiveCampanhaId } from "@/hooks/useCampanhaData";
 
 export interface Budget {
   id: string;
@@ -20,7 +21,8 @@ export interface BudgetFormData {
 }
 
 export function useBudgetData() {
-  const { user, campanhaId, profile, isMaster } = useAuth();
+  const { user, profile, isMaster } = useAuth();
+  const campanhaId = useActiveCampanhaId();
   const { toast } = useToast();
   const [budgets, setBudgets] = useState<Budget[]>([]);
   const [loading, setLoading] = useState(true);

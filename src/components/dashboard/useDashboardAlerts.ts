@@ -20,7 +20,7 @@ interface EffectivenessEntry {
 export function useRecurrenceAlerts(overrideCampanhaId?: string | null, thresholdDays = 7) {
   const { campanhaId: profileCampanhaId, userRoles } = useAuth();
   const isMaster = userRoles.includes("master");
-  const campanhaId = isMaster && overrideCampanhaId ? overrideCampanhaId : profileCampanhaId;
+  const campanhaId = overrideCampanhaId || profileCampanhaId;
   const [alerts, setAlerts] = useState<RecurrenceAlert[]>([]);
 
   const fetch = useCallback(async () => {
@@ -80,8 +80,7 @@ export function useRecurrenceAlerts(overrideCampanhaId?: string | null, threshol
 
 export function useEffectivenessRanking(overrideCampanhaId?: string | null) {
   const { campanhaId: profileCampanhaId, userRoles } = useAuth();
-  const isMaster = userRoles.includes("master");
-  const campanhaId = isMaster && overrideCampanhaId ? overrideCampanhaId : profileCampanhaId;
+  const campanhaId = overrideCampanhaId || profileCampanhaId;
   const [ranking, setRanking] = useState<EffectivenessEntry[]>([]);
 
   const fetch = useCallback(async () => {

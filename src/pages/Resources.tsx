@@ -9,6 +9,7 @@ import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
 import { useAuth } from "@/hooks/useAuth";
+import { useActiveCampanhaId } from "@/hooks/useCampanhaData";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { enqueueOffline } from "@/lib/offlineSync";
@@ -47,7 +48,8 @@ const STATUS_CONFIG: Record<string, { label: string; color: string; icon: any }>
 };
 
 const Resources = () => {
-  const { user, campanhaId, isAdmin, isMaster } = useAuth();
+  const { user, isAdmin, isMaster } = useAuth();
+  const campanhaId = useActiveCampanhaId();
   const { toast } = useToast();
   const [activeTab, setActiveTab] = useState("solicitacoes");
   const [requests, setRequests] = useState<ResourceRequest[]>([]);

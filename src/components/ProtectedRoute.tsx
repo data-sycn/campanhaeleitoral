@@ -3,14 +3,16 @@ import { Navigate, useLocation } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { useAccessControl } from "@/hooks/useAccessControl";
 import { PinGate } from "@/components/PinGate";
+import { CampaignGate } from "@/components/CampaignGate";
 import { useToast } from "@/hooks/use-toast";
+import { useActiveCampanhaId } from "@/hooks/useCampanhaData";
 
 interface ProtectedRouteProps {
   children: React.ReactNode;
 }
 
 export const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
-  const { user, loading } = useAuth();
+  const { user, loading, isAdmin, isMaster, campanhaId, selectedCampanhaId } = useAuth();
   const { canAccess, isLoading: accessLoading } = useAccessControl();
   const location = useLocation();
   const { toast } = useToast();
@@ -35,6 +37,12 @@ export const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
 
   if (!pinVerified) {
     return <PinGate onSuccess={() => setPinVerified(true)} />;
+  }
+
+  // Campaign gate: admin/master with multiple campaigns and no selection
+  const needsCampaignGate = (isAdmin || isMaster) && !campanhaId && !selectedCampanhaId;
+  if (needsCampaignGate) {
+    return <CampaignGate onSelected={() => {}} />;
   }
 
   // Check access control for current route

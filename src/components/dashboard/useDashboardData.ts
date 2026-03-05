@@ -55,7 +55,7 @@ export function useDashboardData(overrideCampanhaId?: string | null) {
   const { profile, userRoles, campanhaId: profileCampanhaId, isAdmin, isMaster } = useAuth();
   const isCoordinator = userRoles.includes("coordinator");
 
-  const campanhaId = isMaster && overrideCampanhaId ? overrideCampanhaId : profileCampanhaId;
+  const campanhaId = overrideCampanhaId || profileCampanhaId;
 
   const [stats, setStats] = useState<DashboardStats>({
     totalBudget: 0, budgetCount: 0, expensesCount: 0,

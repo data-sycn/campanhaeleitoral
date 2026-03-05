@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from "react";
 import { useAuth } from "@/hooks/useAuth";
+import { useActiveCampanhaId } from "@/hooks/useCampanhaData";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
@@ -32,7 +33,8 @@ const TIPOS_MATERIAL = [
 ];
 
 export const MaterialInventory = () => {
-  const { user, campanhaId, isMaster } = useAuth();
+  const { user, isMaster } = useAuth();
+  const campanhaId = useActiveCampanhaId();
   const { toast } = useToast();
   const [items, setItems] = useState<MaterialItem[]>([]);
   const [loading, setLoading] = useState(true);

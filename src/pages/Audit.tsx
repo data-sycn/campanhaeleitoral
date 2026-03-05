@@ -3,6 +3,7 @@ import { Navbar } from "@/components/Navbar";
 import { AuditTimeline } from "@/components/dashboard/AuditTimeline";
 
 import { useAuth } from "@/hooks/useAuth";
+import { useActiveCampanhaId } from "@/hooks/useCampanhaData";
 import { supabase } from "@/integrations/supabase/client";
 import { Json } from "@/integrations/supabase/types";
 
@@ -17,14 +18,13 @@ interface AuditEntry {
 }
 
 const Audit = () => {
-  const { userRoles, campanhaId: profileCampanhaId, profile, isAdmin, selectedCampanhaId } = useAuth();
+  const { userRoles, profile, isAdmin } = useAuth();
   const isMaster = userRoles.includes("master");
   const isCoordinator = userRoles.includes("coordinator");
   const [auditData, setAuditData] = useState<AuditEntry[]>([]);
   const [loading, setLoading] = useState(true);
 
-  const campanhaId = selectedCampanhaId;
-  const activeCampanhaId = isMaster && campanhaId ? campanhaId : profileCampanhaId;
+  const activeCampanhaId = useActiveCampanhaId();
 
   const fetchAudit = useCallback(async () => {
     if (!activeCampanhaId && !isMaster) {
@@ -64,7 +64,7 @@ const Audit = () => {
       // We need to check new_data for campanha_id match
       const filtered = (data as AuditEntry[] || []).filter((entry) => {
         // Master with no filter sees all
-        if (isMaster && !campanhaId) return true;
+        if (isMaster && !activeCampanhaId) return true;
         
         // Check if new_data contains campanha_id matching
         if (entry.new_data && typeof entry.new_data === "object" && !Array.isArray(entry.new_data)) {
@@ -84,7 +84,7 @@ const Audit = () => {
     } finally {
       setLoading(false);
     }
-  }, [activeCampanhaId, isMaster, campanhaId, isCoordinator, isAdmin, profile]);
+  }, [activeCampanhaId, isMaster, isCoordinator, isAdmin, profile]);
 
   useEffect(() => {
     fetchAudit();

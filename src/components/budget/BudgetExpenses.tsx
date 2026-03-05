@@ -7,6 +7,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { useAuth } from "@/hooks/useAuth";
+import { useActiveCampanhaId } from "@/hooks/useCampanhaData";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { PlusCircle, Receipt, Calendar, Pencil, Trash2, X, Check } from "lucide-react";
@@ -41,7 +42,8 @@ const paymentMethods = [
 ] as const;
 
 export function BudgetExpenses() {
-  const { user, campanhaId, profile, isMaster } = useAuth();
+  const { user, profile, isMaster } = useAuth();
+  const campanhaId = useActiveCampanhaId();
   const { toast } = useToast();
   const [expenses, setExpenses] = useState<Expense[]>([]);
   const [loading, setLoading] = useState(true);

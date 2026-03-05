@@ -73,93 +73,69 @@ export function generateAgendaProtocol(opts: ProtocolOptions) {
     }
 
     .header {
-      background: linear-gradient(135deg, #0d7377 0%, #14919b 50%, #0d7377 100%);
-      color: white;
-      padding: 40px 48px 32px;
-      position: relative;
-      overflow: hidden;
-    }
-
-    .header::after {
-      content: '';
-      position: absolute;
-      top: -50%;
-      right: -20%;
-      width: 400px;
-      height: 400px;
-      background: rgba(255,255,255,0.05);
-      border-radius: 50%;
+      background: white;
+      padding: 40px 48px 28px;
+      border-bottom: 3px solid #0d7377;
     }
 
     .header-top {
       display: flex;
       justify-content: space-between;
-      align-items: flex-start;
-      margin-bottom: 24px;
-      position: relative;
-      z-index: 1;
+      align-items: center;
+      margin-bottom: 20px;
     }
 
     .header-logo h1 {
-      font-size: 22px;
-      font-weight: 800;
-      letter-spacing: -0.5px;
+      font-size: 18px;
+      font-weight: 700;
+      color: #0d7377;
+      letter-spacing: -0.3px;
     }
 
     .header-logo p {
-      font-size: 13px;
-      opacity: 0.85;
+      font-size: 11px;
+      color: #94a3b8;
       margin-top: 2px;
+      text-transform: uppercase;
+      letter-spacing: 1px;
     }
 
     .protocol-badge {
-      background: rgba(255,255,255,0.15);
-      backdrop-filter: blur(10px);
-      border: 1px solid rgba(255,255,255,0.25);
-      border-radius: 8px;
-      padding: 10px 16px;
       text-align: right;
     }
 
     .protocol-badge .label {
-      font-size: 10px;
+      font-size: 9px;
       text-transform: uppercase;
       letter-spacing: 1.5px;
-      opacity: 0.8;
+      color: #94a3b8;
     }
 
     .protocol-badge .number {
-      font-size: 16px;
+      font-size: 14px;
       font-weight: 700;
-      margin-top: 2px;
+      color: #1e293b;
       font-family: monospace;
     }
 
-    .title-section {
-      position: relative;
-      z-index: 1;
-    }
-
-    .title-section .emoji {
-      font-size: 28px;
-      margin-bottom: 8px;
-    }
-
     .title-section h2 {
-      font-size: 28px;
+      font-size: 24px;
       font-weight: 800;
+      color: #1e293b;
       line-height: 1.2;
       letter-spacing: -0.5px;
     }
 
     .title-section .tipo-badge {
       display: inline-block;
-      background: rgba(255,255,255,0.2);
+      background: #f0fdfa;
+      color: #0d7377;
+      border: 1px solid #99f6e4;
       border-radius: 20px;
-      padding: 4px 14px;
-      font-size: 12px;
+      padding: 3px 12px;
+      font-size: 11px;
       font-weight: 600;
-      margin-top: 10px;
+      margin-top: 8px;
     }
 
     .content {
@@ -338,7 +314,6 @@ export function generateAgendaProtocol(opts: ProtocolOptions) {
         </div>
       </div>
       <div class="title-section">
-        <div class="emoji">${emoji}</div>
         <h2>${event.titulo}</h2>
         <span class="tipo-badge">${tipoLabel || event.tipo}</span>
       </div>

@@ -1,29 +1,26 @@
 
 
-## Plano: Ajustes de Visibilidade no Admin
+## Melhoria #1: Campanha + Função no Dialog de Criação de Usuário
 
-### 1. Aba "Campanhas" visivel apenas para Master
+### Problema
+Ao criar um usuário em AdminUsers, apenas nome, email, senha e PIN são enviados. O usuário é criado "solto" -- sem campanha e sem função. O admin precisa fazer 2 passos manuais extras, que podem ser esquecidos.
 
-**Arquivo:** `src/pages/Admin.tsx`
+### Solução
+Adicionar dois campos ao dialog de criação:
+1. **Campanha** (Select) -- pre-selecionada com a campanha ativa do admin
+2. **Função** (Select) -- lista de roles disponíveis (filtrando admin/master se não for master)
 
-Adicionar uma propriedade `masterOnly: true` na definicao da tab "campanhas" e filtrar no `visibleTabs` usando `isMaster` do `useAuth()`. Admins nao verao essa aba.
+### Alterações
 
-### 2. Aba "Usuarios" -- Admin ve apenas usuarios da campanha ativa
+**`src/components/admin/AdminUsers.tsx`**
+- Adicionar estados `newUserRole` e `newUserCampanhaId` (pre-setado com `activeCampanhaId`)
+- Adicionar dois `Select` no dialog: campanha e função
+- Enviar `role` e `campanha_id` no `createUserMutation` body
+- Resetar os novos campos no `resetCreateForm`
 
-O `AdminUsers.tsx` ja possui logica de filtragem por campanha para admins (`filteredUsers`). Porem, usa `adminCampaignIds` (todas as campanhas do admin) em vez da campanha **ativa** (`selectedCampanhaId || campanhaId`). Corrigir para filtrar apenas pela campanha ativa, usando `useActiveCampanhaId()`.
+**`supabase/functions/create-user/index.ts`**
+- Já aceita `role` e `campanha_id` no body -- nenhuma alteração necessária na edge function
 
-**Arquivo:** `src/components/admin/AdminUsers.tsx`
-- Importar `useActiveCampanhaId`
-- No `filteredUsers`, filtrar por `activeCampanhaId` em vez de todas as campanhas do admin
-
-### 3. Aba "Permissoes" -- Admin so ve/atribui funcoes a usuarios da campanha ativa
-
-**Arquivo:** `src/components/admin/AdminRoleAssignment.tsx`
-
-Atualmente, busca todos os profiles e todos os user_roles sem filtro de campanha. Corrigir:
-
-- Importar `useActiveCampanhaId`
-- Buscar `user_campanhas` para a campanha ativa e cruzar com profiles, mostrando apenas usuarios vinculados a essa campanha
-- Filtrar a listagem de `userRoles` para exibir apenas roles de usuarios da campanha ativa
-- No dropdown de "Atribuir Funcao", listar apenas profiles da campanha ativa
+### Resultado
+Ao criar um usuário, ele já sai vinculado à campanha e com a função correta, eliminando passos manuais e risco de usuários órfãos.
 

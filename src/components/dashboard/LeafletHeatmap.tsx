@@ -169,7 +169,7 @@ export function LeafletHeatmap({ data, loading }: LeafletHeatmapProps) {
             {fullscreen ? <Minimize2 className="w-4 h-4" /> : <Maximize2 className="w-4 h-4" />}
           </Button>
         </CardHeader>
-        <CardContent className={fullscreen ? "flex-1 p-0 min-h-0" : ""}>
+        <CardContent className={fullscreen ? "flex-1 p-0 min-h-0 relative" : ""}>
           {validPoints.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-12 text-muted-foreground">
               <MapPin className="w-10 h-10 mb-2 opacity-40" />
@@ -179,7 +179,7 @@ export function LeafletHeatmap({ data, loading }: LeafletHeatmapProps) {
           ) : (
             <div
               ref={mapRef}
-              className={fullscreen ? "w-full h-full" : "h-80 rounded-lg overflow-hidden"}
+              className={fullscreen ? "absolute inset-0" : "h-80 rounded-lg overflow-hidden"}
             />
           )}
         </CardContent>

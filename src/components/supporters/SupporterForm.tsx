@@ -20,7 +20,7 @@ import { Loader2, Search, User, MapPin } from "lucide-react";
 const FUNCOES_POLITICAS = [
   "Prefeito(a)", "Vereador(a)", "Presidente de Bairro", "Líder Comunitário",
   "Coordenador(a) de Campanha", "Cabo Eleitoral", "Assessor(a) Político",
-  "Militante", "Simpatizante", "Outros",
+  "Militante", "Simpatizante", "Motorista", "Segurança", "Outros",
 ];
 
 const FUNCOES_LIDERANCA = ["Prefeito(a)", "Vereador(a)"];

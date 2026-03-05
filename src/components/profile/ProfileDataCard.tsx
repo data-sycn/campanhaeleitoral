@@ -23,6 +23,7 @@ interface SupporterData {
 interface ProfileDataCardProps {
   supporter: SupporterData | null;
   userEmail: string | null;
+  bare?: boolean;
 }
 
 function DataRow({ icon: Icon, label, value }: { icon: typeof Phone; label: string; value: string | null | undefined }) {
@@ -38,7 +39,7 @@ function DataRow({ icon: Icon, label, value }: { icon: typeof Phone; label: stri
   );
 }
 
-export function ProfileDataCard({ supporter, userEmail }: ProfileDataCardProps) {
+export function ProfileDataCard({ supporter, userEmail, bare }: ProfileDataCardProps) {
   if (!supporter) {
     return (
       <Card>
@@ -57,6 +58,47 @@ export function ProfileDataCard({ supporter, userEmail }: ProfileDataCardProps) 
   const address = [supporter.endereco, supporter.bairro].filter(Boolean).join(", ");
   const cityState = [supporter.cidade, supporter.estado].filter(Boolean).join("/");
 
+  const content = (
+    <>
+      <div className={bare ? "flex items-center justify-between mb-4" : ""}>
+        {bare && <h3 className="text-lg font-semibold">Ficha Cadastral</h3>}
+        {!bare && null}
+        {supporter.funcao_politica && (
+          <Badge variant="secondary" className="gap-1 text-xs">
+            <Briefcase className="w-3 h-3" />
+            {supporter.funcao_politica}
+          </Badge>
+        )}
+      </div>
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 divide-y sm:divide-y-0">
+        <div className="space-y-0">
+          <DataRow icon={Mail} label="Email" value={supporter.email || userEmail} />
+          <DataRow icon={Phone} label="Telefone" value={supporter.telefone} />
+          <DataRow icon={CreditCard} label="CPF" value={supporter.cpf} />
+          <DataRow icon={Briefcase} label="Função Política" value={supporter.funcao_politica} />
+        </div>
+        <div className="space-y-0 pt-2 sm:pt-0">
+          <DataRow icon={Home} label="Endereço" value={address || null} />
+          <DataRow icon={Building} label="Cidade / UF" value={cityState || null} />
+          <DataRow icon={Hash} label="CEP" value={supporter.cep} />
+        </div>
+      </div>
+      {supporter.observacao && (
+        <div className="mt-4 pt-3 border-t">
+          <div className="flex items-start gap-3">
+            <FileText className="w-4 h-4 mt-0.5 text-muted-foreground shrink-0" />
+            <div>
+              <p className="text-xs text-muted-foreground">Observação</p>
+              <p className="text-sm whitespace-pre-wrap">{supporter.observacao}</p>
+            </div>
+          </div>
+        </div>
+      )}
+    </>
+  );
+
+  if (bare) return <div>{content}</div>;
+
   return (
     <Card>
       <CardHeader className="pb-2">
@@ -72,22 +114,18 @@ export function ProfileDataCard({ supporter, userEmail }: ProfileDataCardProps) 
       </CardHeader>
       <CardContent>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 divide-y sm:divide-y-0">
-          {/* Contact */}
           <div className="space-y-0">
             <DataRow icon={Mail} label="Email" value={supporter.email || userEmail} />
             <DataRow icon={Phone} label="Telefone" value={supporter.telefone} />
             <DataRow icon={CreditCard} label="CPF" value={supporter.cpf} />
             <DataRow icon={Briefcase} label="Função Política" value={supporter.funcao_politica} />
           </div>
-
-          {/* Address */}
           <div className="space-y-0 pt-2 sm:pt-0">
             <DataRow icon={Home} label="Endereço" value={address || null} />
             <DataRow icon={Building} label="Cidade / UF" value={cityState || null} />
             <DataRow icon={Hash} label="CEP" value={supporter.cep} />
           </div>
         </div>
-
         {supporter.observacao && (
           <div className="mt-4 pt-3 border-t">
             <div className="flex items-start gap-3">

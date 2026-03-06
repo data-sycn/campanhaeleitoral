@@ -112,29 +112,33 @@ export function LeafletHeatmap({ data, loading }: LeafletHeatmapProps) {
 
       const maxIntensity = Math.max(...heatPoints.map((p) => p[2]), 1);
 
-      // Delay heat layer until map canvas is fully sized to avoid IndexSizeError
-      const addHeatLayer = () => {
-        if (!mapInstanceRef.current) return;
-        try {
-          L.heatLayer(heatPoints, {
-            radius: 30,
-            blur: 20,
-            maxZoom: 16,
-            max: maxIntensity,
-            gradient: {
-              0.2: "#2196F3",
-              0.4: "#4CAF50",
-              0.6: "#FFEB3B",
-              0.8: "#FF9800",
-              1.0: "#F44336",
-            },
-          }).addTo(mapInstanceRef.current);
-        } catch {
-          // Canvas not ready, retry on next frame
-          requestAnimationFrame(addHeatLayer);
+      // Delay heat layer until map container has real dimensions
+      let retries = 0;
+      const heatLayerRef = L.heatLayer(heatPoints, {
+        radius: 30,
+        blur: 20,
+        maxZoom: 16,
+        max: maxIntensity,
+        gradient: {
+          0.2: "#2196F3",
+          0.4: "#4CAF50",
+          0.6: "#FFEB3B",
+          0.8: "#FF9800",
+          1.0: "#F44336",
+        },
+      });
+
+      const tryAddHeat = () => {
+        if (!mapInstanceRef.current || !mapRef.current) return;
+        const size = mapInstanceRef.current.getSize();
+        if (size.x > 0 && size.y > 0) {
+          heatLayerRef.addTo(mapInstanceRef.current);
+        } else if (retries < 20) {
+          retries++;
+          setTimeout(tryAddHeat, 100);
         }
       };
-      requestAnimationFrame(addHeatLayer);
+      tryAddHeat();
 
       // Also add small circle markers with popups for interactivity
       locationMap.forEach((loc) => {

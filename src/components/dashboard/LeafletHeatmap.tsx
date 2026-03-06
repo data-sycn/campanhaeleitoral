@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, useCallback } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { MapPin, Maximize2, Minimize2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -19,156 +19,133 @@ interface LeafletHeatmapProps {
   loading: boolean;
 }
 
-export function LeafletHeatmap({ data, loading }: LeafletHeatmapProps) {
-  const mapRef = useRef<HTMLDivElement>(null);
-  const mapInstanceRef = useRef<L.Map | null>(null);
-  const [fullscreen, setFullscreen] = useState(false);
+/** Inner component that mounts a fresh Leaflet map each time its key changes */
+function HeatmapCanvas({ points, height }: { points: SupporterPoint[]; height: string }) {
+  const containerRef = useRef<HTMLDivElement>(null);
+  const mapRef = useRef<L.Map | null>(null);
 
-  // Invalidate map size when toggling fullscreen
+  const validPoints = points.filter(
+    (d) => d.latitude != null && d.longitude != null
+  );
+
   useEffect(() => {
-    if (mapInstanceRef.current) {
-      // Multiple invalidations to ensure tiles load correctly
-      const t1 = setTimeout(() => mapInstanceRef.current?.invalidateSize(), 50);
-      const t2 = setTimeout(() => mapInstanceRef.current?.invalidateSize(), 200);
-      const t3 = setTimeout(() => mapInstanceRef.current?.invalidateSize(), 500);
-      return () => { clearTimeout(t1); clearTimeout(t2); clearTimeout(t3); };
-    }
-  }, [fullscreen]);
+    const el = containerRef.current;
+    if (!el) return;
+
+    // Wait until container has real dimensions
+    let cancelled = false;
+    let timer: ReturnType<typeof setTimeout>;
+
+    const init = () => {
+      if (cancelled || !el) return;
+      if (el.clientHeight === 0 || el.clientWidth === 0) {
+        timer = setTimeout(init, 50);
+        return;
+      }
+
+      const center: L.LatLngExpression =
+        validPoints.length > 0
+          ? [validPoints[0].latitude!, validPoints[0].longitude!]
+          : [-14.235, -51.9253];
+
+      const map = L.map(el).setView(center, validPoints.length > 0 ? 12 : 4);
+      mapRef.current = map;
+
+      L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OSM</a>',
+        maxZoom: 18,
+      }).addTo(map);
+
+      if (validPoints.length > 0) {
+        const locationMap = new Map<string, { count: number; lat: number; lng: number; label: string }>();
+        validPoints.forEach((p) => {
+          const key = `${p.latitude!.toFixed(4)},${p.longitude!.toFixed(4)}`;
+          const existing = locationMap.get(key);
+          if (existing) {
+            existing.count++;
+          } else {
+            locationMap.set(key, {
+              count: 1,
+              lat: p.latitude!,
+              lng: p.longitude!,
+              label: [p.bairro, p.cidade].filter(Boolean).join(", ") || p.nome,
+            });
+          }
+        });
+
+        const heatPoints: [number, number, number][] = [];
+        locationMap.forEach((loc) => {
+          heatPoints.push([loc.lat, loc.lng, loc.count]);
+        });
+
+        const maxIntensity = Math.max(...heatPoints.map((p) => p[2]), 1);
+
+        // Add heat layer after map is fully ready
+        map.whenReady(() => {
+          if (cancelled) return;
+          L.heatLayer(heatPoints, {
+            radius: 30,
+            blur: 20,
+            maxZoom: 16,
+            max: maxIntensity,
+            gradient: {
+              0.2: "#2196F3",
+              0.4: "#4CAF50",
+              0.6: "#FFEB3B",
+              0.8: "#FF9800",
+              1.0: "#F44336",
+            },
+          }).addTo(map);
+        });
+
+        // Circle markers for interactivity
+        locationMap.forEach((loc) => {
+          L.circleMarker([loc.lat, loc.lng], {
+            radius: 4,
+            fillColor: "transparent",
+            color: "transparent",
+            weight: 0,
+            fillOpacity: 0,
+          })
+            .bindPopup(`<strong>${loc.label}</strong><br/>${loc.count} apoiador${loc.count > 1 ? "es" : ""}`)
+            .addTo(map);
+        });
+
+        if (validPoints.length > 1) {
+          const bounds = L.latLngBounds(
+            validPoints.map((p) => [p.latitude!, p.longitude!] as L.LatLngExpression)
+          );
+          map.fitBounds(bounds, { padding: [30, 30] });
+        }
+      }
+    };
+
+    init();
+
+    return () => {
+      cancelled = true;
+      clearTimeout(timer);
+      if (mapRef.current) {
+        mapRef.current.remove();
+        mapRef.current = null;
+      }
+    };
+  }, [validPoints.length]); // only re-init if data count changes
+
+  return (
+    <div
+      ref={containerRef}
+      className={`w-full rounded-lg overflow-hidden ${height}`}
+    />
+  );
+}
+
+export function LeafletHeatmap({ data, loading }: LeafletHeatmapProps) {
+  const [fullscreen, setFullscreen] = useState(false);
 
   const validPoints = data.filter(
     (d) => d.latitude != null && d.longitude != null
   );
-
-  // Track container readiness
-  const [containerReady, setContainerReady] = useState(false);
-
-  useEffect(() => {
-    const el = mapRef.current;
-    if (!el) return;
-    // If already has size, mark ready immediately
-    if (el.clientHeight > 0 && el.clientWidth > 0) {
-      setContainerReady(true);
-      return;
-    }
-    // Otherwise observe until it gains dimensions
-    const ro = new ResizeObserver((entries) => {
-      for (const entry of entries) {
-        if (entry.contentRect.height > 0 && entry.contentRect.width > 0) {
-          setContainerReady(true);
-          ro.disconnect();
-        }
-      }
-    });
-    ro.observe(el);
-    return () => ro.disconnect();
-  }, [fullscreen, loading]);
-
-  useEffect(() => {
-    if (!mapRef.current || loading || !containerReady) return;
-
-    // Clean up previous instance
-    if (mapInstanceRef.current) {
-      mapInstanceRef.current.remove();
-      mapInstanceRef.current = null;
-    }
-
-    // Default center: Brazil
-    const center: L.LatLngExpression =
-      validPoints.length > 0
-        ? [validPoints[0].latitude!, validPoints[0].longitude!]
-        : [-14.235, -51.9253];
-
-    const map = L.map(mapRef.current).setView(center, validPoints.length > 0 ? 12 : 4);
-    mapInstanceRef.current = map;
-
-    L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
-      attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OSM</a>',
-      maxZoom: 18,
-    }).addTo(map);
-
-    if (validPoints.length > 0) {
-      // Group by location for intensity
-      const locationMap = new Map<string, { count: number; lat: number; lng: number; label: string }>();
-      validPoints.forEach((p) => {
-        const key = `${p.latitude!.toFixed(4)},${p.longitude!.toFixed(4)}`;
-        const existing = locationMap.get(key);
-        if (existing) {
-          existing.count++;
-        } else {
-          locationMap.set(key, {
-            count: 1,
-            lat: p.latitude!,
-            lng: p.longitude!,
-            label: [p.bairro, p.cidade].filter(Boolean).join(", ") || p.nome,
-          });
-        }
-      });
-
-      // Real thermal heatmap layer
-      const heatPoints: [number, number, number][] = [];
-      locationMap.forEach((loc) => {
-        heatPoints.push([loc.lat, loc.lng, loc.count]);
-      });
-
-      const maxIntensity = Math.max(...heatPoints.map((p) => p[2]), 1);
-
-      // Delay heat layer until map container has real dimensions
-      let retries = 0;
-      const heatLayerRef = L.heatLayer(heatPoints, {
-        radius: 30,
-        blur: 20,
-        maxZoom: 16,
-        max: maxIntensity,
-        gradient: {
-          0.2: "#2196F3",
-          0.4: "#4CAF50",
-          0.6: "#FFEB3B",
-          0.8: "#FF9800",
-          1.0: "#F44336",
-        },
-      });
-
-      const tryAddHeat = () => {
-        if (!mapInstanceRef.current || !mapRef.current) return;
-        const size = mapInstanceRef.current.getSize();
-        if (size.x > 0 && size.y > 0) {
-          heatLayerRef.addTo(mapInstanceRef.current);
-        } else if (retries < 20) {
-          retries++;
-          setTimeout(tryAddHeat, 100);
-        }
-      };
-      tryAddHeat();
-
-      // Also add small circle markers with popups for interactivity
-      locationMap.forEach((loc) => {
-        L.circleMarker([loc.lat, loc.lng], {
-          radius: 4,
-          fillColor: "transparent",
-          color: "transparent",
-          weight: 0,
-          fillOpacity: 0,
-        })
-          .bindPopup(`<strong>${loc.label}</strong><br/>${loc.count} apoiador${loc.count > 1 ? "es" : ""}`)
-          .addTo(map);
-      });
-
-      // Fit bounds
-      if (validPoints.length > 1) {
-        const bounds = L.latLngBounds(
-          validPoints.map((p) => [p.latitude!, p.longitude!] as L.LatLngExpression)
-        );
-        map.fitBounds(bounds, { padding: [30, 30] });
-      }
-    }
-
-    return () => {
-      if (mapInstanceRef.current) {
-        mapInstanceRef.current.remove();
-        mapInstanceRef.current = null;
-      }
-    };
-  }, [data, loading, fullscreen, containerReady]);
 
   if (loading) {
     return (
@@ -215,10 +192,14 @@ export function LeafletHeatmap({ data, loading }: LeafletHeatmapProps) {
               <p className="text-xs mt-1">Cadastre apoiadores com endereço para preencher o mapa automaticamente.</p>
             </div>
           ) : (
-            <div
-              ref={mapRef}
-              className={fullscreen ? "absolute inset-0" : "h-80 rounded-lg overflow-hidden"}
-            />
+            /* key={fullscreen} forces full remount with correct container dimensions */
+            <div className={fullscreen ? "absolute inset-0" : ""}>
+              <HeatmapCanvas
+                key={fullscreen ? "fs" : "normal"}
+                points={data}
+                height={fullscreen ? "h-full" : "h-80"}
+              />
+            </div>
           )}
         </CardContent>
       </Card>

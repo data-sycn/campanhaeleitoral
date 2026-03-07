@@ -18,10 +18,9 @@ export function NavNotifications() {
     const { count: total, error } = await supabase
       .from("team_messages")
       .select("*", { count: "exact", head: true })
-      .eq("campanha_id", activeCampanhaId)
-      .neq("sender_id", user.id);
+      .eq("campanha_id", activeCampanhaId);
 
-    if (!error && total) setCount(total);
+    if (!error && total != null) setCount(total);
   }, [user, activeCampanhaId]);
 
   useEffect(() => {
@@ -39,8 +38,8 @@ export function NavNotifications() {
     <Button variant="ghost" size="icon" className="relative" onClick={() => navigate("/messages")}>
       <Bell className="w-4 h-4" />
       {count > 0 && (
-        <span className="absolute -top-1 -right-1 w-4 h-4 bg-destructive rounded-full text-[10px] text-destructive-foreground flex items-center justify-center animate-pulse">
-          {count > 9 ? "9+" : count}
+        <span className="absolute -top-1 -right-1 min-w-[18px] h-[18px] bg-destructive rounded-full text-[10px] text-destructive-foreground flex items-center justify-center px-1 animate-pulse">
+          {count > 99 ? "99+" : count}
         </span>
       )}
     </Button>

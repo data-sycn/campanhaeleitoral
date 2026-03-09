@@ -30,7 +30,8 @@ const TIPO_EMOJI: Record<string, string> = {
   comicio: "📢", reuniao: "👥", debate: "🎤", carreata: "🚗",
   corpo_a_corpo: "🤝", visita_institucional: "🏛️", evento_partidario: "🎉",
   panfletagem: "📄", inauguracao: "🏁", entrevista: "📺",
-  cafe_com_liderancas: "☕", outro: "📌",
+  cafe_com_liderancas: "☕", evento_religioso: "⛪", evento_esportivo: "🏆",
+  evento_cultural: "🎭", outro: "📌",
 };
 
 export function generateAgendaProtocol(opts: ProtocolOptions) {

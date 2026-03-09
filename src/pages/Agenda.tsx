@@ -19,7 +19,8 @@ import {
   CalendarDays, Plus, Search, Loader2, MapPin, Clock, User,
   ChevronLeft, ChevronRight, Megaphone, Users, Mic, Car, Handshake,
   Building2, PartyPopper, Flag, Coffee, Tv, FileText, MoreHorizontal,
-  AlertTriangle, CheckCircle, XCircle, Edit, Trash2, Crown, Phone, Printer
+  AlertTriangle, CheckCircle, XCircle, Edit, Trash2, Crown, Phone, Printer,
+  Church, Trophy, Drama
 } from "lucide-react";
 import { generateAgendaProtocol } from "@/components/agenda/AgendaProtocolPDF";
 import { format, startOfMonth, endOfMonth, eachDayOfInterval, isSameDay, isSameMonth, addMonths, subMonths, isToday, parseISO, startOfWeek, endOfWeek } from "date-fns";

@@ -73,6 +73,9 @@ const EVENT_TYPES: Record<string, { label: string; icon: typeof Megaphone; color
   inauguracao: { label: "Inauguração de Comitê", icon: Flag, color: "bg-green-500/10 text-green-700 border-green-200" },
   entrevista: { label: "Entrevista / Mídia", icon: Tv, color: "bg-cyan-500/10 text-cyan-700 border-cyan-200" },
   cafe_com_liderancas: { label: "Café com Lideranças", icon: Coffee, color: "bg-yellow-500/10 text-yellow-800 border-yellow-200" },
+  evento_religioso: { label: "Evento Religioso", icon: Church, color: "bg-violet-500/10 text-violet-700 border-violet-200" },
+  evento_esportivo: { label: "Evento Esportivo", icon: Trophy, color: "bg-emerald-500/10 text-emerald-700 border-emerald-200" },
+  evento_cultural: { label: "Evento Cultural", icon: Drama, color: "bg-rose-500/10 text-rose-700 border-rose-200" },
   outro: { label: "Outro", icon: MoreHorizontal, color: "bg-muted text-muted-foreground border-border" },
 };
 

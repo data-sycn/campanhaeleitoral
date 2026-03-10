@@ -347,7 +347,7 @@ export function SupporterForm({ onSuccess, onCancel, editData }: SupporterFormPr
               </div>
             </div>
 
-            {/* Função Política + CPF */}
+            {/* Função Política + Liderança + CPF */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div className="space-y-2">
                 <Label htmlFor="funcao_politica">Função Política</Label>
@@ -366,12 +366,38 @@ export function SupporterForm({ onSuccess, onCancel, editData }: SupporterFormPr
                   readOnly
                   className={`bg-muted ${isLiderancaPolitica(form.funcao_politica) ? "text-green-600 font-semibold" : ""}`}
                 />
-                <p className="text-xs text-muted-foreground">Preenchido automaticamente (Prefeito/Vereador)</p>
+                <p className="text-xs text-muted-foreground">Preenchido automaticamente</p>
               </div>
               <div className="space-y-2">
                 <Label htmlFor="cpf">CPF</Label>
                 <Input id="cpf" value={form.cpf} onChange={(e) => handleMaskedChange("cpf", e.target.value, maskCPF)} placeholder="000.000.000-00" maxLength={14} />
                 {errors.cpf && <p className="text-sm text-destructive">{errors.cpf}</p>}
+              </div>
+            </div>
+
+            {/* Data de Nascimento + Gênero + Escolaridade */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="data_nascimento">Data de Nascimento</Label>
+                <Input id="data_nascimento" type="date" value={form.data_nascimento} onChange={(e) => handleChange("data_nascimento", e.target.value)} />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="genero">Gênero</Label>
+                <Select value={form.genero} onValueChange={(value) => handleChange("genero", value)}>
+                  <SelectTrigger><SelectValue placeholder="Selecione o gênero" /></SelectTrigger>
+                  <SelectContent>
+                    {GENEROS.map((g) => (<SelectItem key={g} value={g}>{g}</SelectItem>))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="escolaridade">Escolaridade</Label>
+                <Select value={form.escolaridade} onValueChange={(value) => handleChange("escolaridade", value)}>
+                  <SelectTrigger><SelectValue placeholder="Selecione a escolaridade" /></SelectTrigger>
+                  <SelectContent>
+                    {ESCOLARIDADES.map((e) => (<SelectItem key={e} value={e}>{e}</SelectItem>))}
+                  </SelectContent>
+                </Select>
               </div>
             </div>
           </div>

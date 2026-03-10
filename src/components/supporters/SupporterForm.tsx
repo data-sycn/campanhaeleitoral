@@ -279,6 +279,9 @@ export function SupporterForm({ onSuccess, onCancel, editData }: SupporterFormPr
         cep: data.cep?.replace(/\D/g, "") || null, cpf: data.cpf?.replace(/\D/g, "") || null,
         foto_url: fotoUrl, funcao_politica: data.funcao_politica || null,
         lideranca_politica: isLiderancaPolitica(data.funcao_politica),
+        data_nascimento: data.data_nascimento || null,
+        genero: data.genero || null,
+        escolaridade: data.escolaridade || null,
         observacao: data.observacao || null,
         latitude: coords?.lat ?? null, longitude: coords?.lng ?? null,
       };

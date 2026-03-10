@@ -18,12 +18,19 @@ import { z } from "zod";
 import { Loader2, Search, User, MapPin } from "lucide-react";
 
 const FUNCOES_POLITICAS = [
-  "Prefeito(a)", "Vereador(a)", "Presidente de Bairro", "Líder Comunitário",
-  "Coordenador(a) de Campanha", "Cabo Eleitoral", "Assessor(a) Político",
-  "Militante", "Simpatizante", "Motorista", "Segurança", "Outros",
+  "Assessor(a) Político", "Cabo Eleitoral", "Coordenador(a) de Campanha",
+  "Ex Prefeito(a)", "Líder Comunitário", "Militante", "Motorista",
+  "Prefeito(a)", "Presidente de Bairro", "Presidente de Câmara",
+  "Segurança", "Simpatizante", "Vereador(a)", "Outros",
 ];
 
-const FUNCOES_LIDERANCA = ["Prefeito(a)", "Vereador(a)"];
+const FUNCOES_LIDERANCA = ["Prefeito(a)", "Vereador(a)", "Ex Prefeito(a)", "Presidente de Câmara"];
+
+const GENEROS = ["Masculino", "Feminino", "Outros"];
+
+const ESCOLARIDADES = [
+  "Nível Superior", "Nível Médio", "Nível Fundamental", "Não Alfabetizado",
+];
 
 function isLiderancaPolitica(funcao: string | undefined): boolean {
   return !!funcao && FUNCOES_LIDERANCA.includes(funcao);

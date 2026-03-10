@@ -83,6 +83,9 @@ const supporterSchema = z.object({
     { message: "CPF inválido" }
   ),
   funcao_politica: z.string().trim().max(100).optional().or(z.literal("")),
+  data_nascimento: z.string().trim().max(10).optional().or(z.literal("")),
+  genero: z.string().trim().max(20).optional().or(z.literal("")),
+  escolaridade: z.string().trim().max(50).optional().or(z.literal("")),
   observacao: z.string().trim().max(2000).optional().or(z.literal("")),
 });
 

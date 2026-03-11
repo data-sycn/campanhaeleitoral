@@ -29,10 +29,11 @@ function generatePin(): string {
 
 const ROLE_OPTIONS: { value: AppRole; label: string; masterOnly?: boolean }[] = [
   { value: "supporter", label: "Apoiador" },
-  { value: "political_leader", label: "Liderança Política" },
-  { value: "local_coordinator", label: "Coordenador Local" },
-  { value: "assessor", label: "Assessor" },
   { value: "supervisor", label: "Supervisor de Área" },
+  { value: "local_coordinator", label: "Coordenador Local" },
+  { value: "territorial_coordinator", label: "Coordenador Territorial" },
+  { value: "political_leader", label: "Liderança Política" },
+  { value: "assessor", label: "Assessor" },
   { value: "coordinator", label: "Coordenador Geral" },
   { value: "candidate", label: "Candidato" },
   { value: "admin", label: "Administrador", masterOnly: true },

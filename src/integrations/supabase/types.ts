@@ -2559,6 +2559,7 @@ export type Database = {
         | "supervisor"
         | "local_coordinator"
         | "political_leader"
+        | "assessor"
       expense_category:
         | "publicidade"
         | "transporte"
@@ -2718,6 +2719,7 @@ export const Constants = {
         "supervisor",
         "local_coordinator",
         "political_leader",
+        "assessor",
       ],
       expense_category: [
         "publicidade",

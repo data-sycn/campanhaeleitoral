@@ -54,6 +54,7 @@ export function useAccessControl() {
     supporter: ['/budget', '/expenses', '/admin', '/roi'],
     political_leader: ['/admin', '/roi'],
     local_coordinator: ['/admin', '/roi'],
+    assessor: ['/admin'],
   };
 
   const canAccess = useCallback((route: string): boolean => {

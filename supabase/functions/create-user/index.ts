@@ -54,6 +54,12 @@ Deno.serve(async (req) => {
       return new Response(JSON.stringify({ error: 'Forbidden: only master can assign admin or master roles' }), { status: 403, headers: corsHeaders });
     }
 
+    // Validate role is a known value
+    const VALID_ROLES = ['supporter', 'political_leader', 'local_coordinator', 'supervisor', 'assessor', 'coordinator', 'candidate', 'admin', 'master'];
+    if (role && !VALID_ROLES.includes(role)) {
+      return new Response(JSON.stringify({ error: 'Invalid role' }), { status: 400, headers: corsHeaders });
+    }
+
     if (!email || !name || !password || password.length < 6) {
       return new Response(JSON.stringify({ error: 'Email, name, and password (min 6 chars) are required' }), { status: 400, headers: corsHeaders });
     }

@@ -32,6 +32,7 @@ const ROLE_OPTIONS: { value: AppRole; label: string; masterOnly?: boolean }[] = 
   { value: "political_leader", label: "Liderança Política" },
   { value: "local_coordinator", label: "Coordenador Local" },
   { value: "supervisor", label: "Supervisor de Área" },
+  { value: "assessor", label: "Assessor" },
   { value: "coordinator", label: "Coordenador Geral" },
   { value: "candidate", label: "Candidato" },
   { value: "admin", label: "Administrador", masterOnly: true },
@@ -41,7 +42,7 @@ const ROLE_OPTIONS: { value: AppRole; label: string; masterOnly?: boolean }[] = 
 const getRoleBadgeVariant = (role: AppRole) => {
   switch (role) {
     case 'master': case 'admin': return 'destructive' as const;
-    case 'candidate': case 'coordinator': return 'default' as const;
+    case 'candidate': case 'coordinator': case 'assessor': return 'default' as const;
     case 'local_coordinator': case 'political_leader': return 'outline' as const;
     default: return 'secondary' as const;
   }

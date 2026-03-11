@@ -142,7 +142,7 @@ export function AdminRoleAssignment() {
   const getRoleBadgeVariant = (role: AppRole) => {
     switch (role) {
       case 'master': case 'admin': return 'destructive';
-      case 'candidate': case 'coordinator': return 'default';
+      case 'candidate': case 'coordinator': case 'assessor': return 'default';
       case 'local_coordinator': case 'political_leader': return 'outline';
       default: return 'secondary';
     }
@@ -153,6 +153,7 @@ export function AdminRoleAssignment() {
       case 'master': return 'Master (Desenvolvedor)';
       case 'admin': return 'Administrador de Sistema';
       case 'candidate': return 'Candidato';
+      case 'assessor': return 'Assessor';
       case 'coordinator': return 'Coordenador Geral';
       case 'local_coordinator': return 'Coordenador Local';
       case 'political_leader': return 'Liderança Política';
@@ -214,6 +215,7 @@ export function AdminRoleAssignment() {
                     <SelectItem value="political_leader">Liderança Política</SelectItem>
                     <SelectItem value="local_coordinator">Coordenador Local</SelectItem>
                     <SelectItem value="supervisor">Supervisor de Área</SelectItem>
+                    <SelectItem value="assessor">Assessor</SelectItem>
                     <SelectItem value="coordinator">Coordenador Geral</SelectItem>
                     <SelectItem value="candidate">Candidato</SelectItem>
                     {isMaster && <SelectItem value="admin">Administrador de Sistema</SelectItem>}

@@ -32,6 +32,7 @@ const ROLE_OPTIONS: { value: AppRole; label: string; masterOnly?: boolean }[] = 
   { value: "political_leader", label: "Liderança Política" },
   { value: "local_coordinator", label: "Coordenador Local" },
   { value: "supervisor", label: "Supervisor de Área" },
+  { value: "assessor", label: "Assessor" },
   { value: "coordinator", label: "Coordenador Geral" },
   { value: "candidate", label: "Candidato" },
   { value: "admin", label: "Administrador", masterOnly: true },

@@ -7,6 +7,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider } from "@/hooks/useAuth";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
+import { useCampaignTheme } from "@/hooks/useCampaignTheme";
 
 // Eager: landing + auth (critical path)
 import Index from "./pages/Index";

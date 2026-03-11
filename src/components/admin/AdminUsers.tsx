@@ -42,7 +42,7 @@ const ROLE_OPTIONS: { value: AppRole; label: string; masterOnly?: boolean }[] = 
 const getRoleBadgeVariant = (role: AppRole) => {
   switch (role) {
     case 'master': case 'admin': return 'destructive' as const;
-    case 'candidate': case 'coordinator': return 'default' as const;
+    case 'candidate': case 'coordinator': case 'assessor': return 'default' as const;
     case 'local_coordinator': case 'political_leader': return 'outline' as const;
     default: return 'secondary' as const;
   }

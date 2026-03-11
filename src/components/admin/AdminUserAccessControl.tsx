@@ -37,6 +37,7 @@ const DEFAULT_DENIED: Record<string, string[]> = {
   supporter: ['/budget', '/expenses', '/settings', '/admin', '/roi'],
   political_leader: ['/settings', '/admin', '/roi'],
   local_coordinator: ['/admin', '/roi'],
+  assessor: ['/admin'],
 };
 
 // --- Helper: resolve effective access for a user ---

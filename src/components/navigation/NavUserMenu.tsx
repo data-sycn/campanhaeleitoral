@@ -24,6 +24,7 @@ const ROLE_LABELS: Record<string, { label: string; icon: typeof Crown }> = {
   master: { label: "Desenvolvedor", icon: Crown },
   admin: { label: "Administrador", icon: Shield },
   coordinator: { label: "Coordenador", icon: UserCheck },
+  assessor: { label: "Assessor", icon: UserCheck },
   supervisor: { label: "Supervisor", icon: UserCheck },
   candidate: { label: "Candidato", icon: User },
   supporter: { label: "Apoiador", icon: User },

@@ -216,6 +216,33 @@ const Messages = () => {
         }
       }
 
+      // Send Push notification if checked
+      if (form.notificar_push) {
+        try {
+          const { data: session } = await supabase.auth.getSession();
+          const res = await fetch(
+            `https://mjfmthjpibbvlehgoacr.supabase.co/functions/v1/send-push`,
+            {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+                Authorization: `Bearer ${session?.session?.access_token}`,
+              },
+              body: JSON.stringify({
+                campanha_id: activeCampanhaId,
+                titulo: form.titulo,
+                conteudo: form.conteudo,
+                target_user_ids: form.target_user_ids.length > 0 ? form.target_user_ids : null,
+              }),
+            }
+          );
+          const result = await res.json();
+          toast({ title: `🔔 Push: ${result.enviados}/${result.total} notificações enviadas` });
+        } catch (err) {
+          toast({ title: "Erro ao enviar push", variant: "destructive" });
+        }
+      }
+
       setForm({ titulo: "", conteudo: "", prioridade: "normal", target_cidade: "", target_roles: [], target_user_ids: [], notificar_whatsapp: false, notificar_push: false });
       setShowForm(false);
       fetchMessages();

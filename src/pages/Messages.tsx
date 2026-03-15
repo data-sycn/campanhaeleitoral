@@ -179,39 +179,6 @@ const Messages = () => {
     } else {
       toast({ title: "Mensagem enviada!" });
 
-      // Send WhatsApp notification if checked
-      if (form.notificar_whatsapp) {
-        try {
-          const { data: session } = await supabase.auth.getSession();
-          const res = await fetch(
-            `https://mjfmthjpibbvlehgoacr.supabase.co/functions/v1/send-whatsapp`,
-            {
-              method: "POST",
-              headers: {
-                "Content-Type": "application/json",
-                Authorization: `Bearer ${session?.session?.access_token}`,
-              },
-              body: JSON.stringify({
-                campanha_id: activeCampanhaId,
-                titulo: form.titulo,
-                conteudo: form.conteudo,
-                target_cidade: form.target_cidade || null,
-                target_roles: form.target_roles.length > 0 ? form.target_roles : null,
-              }),
-            }
-          );
-          const result = await res.json();
-          setWhatsappResult(result);
-          if (result.simulation) {
-            toast({ title: `📱 WhatsApp (simulação): ${result.enviados}/${result.total_destinatarios} notificados` });
-          } else {
-            toast({ title: `📱 WhatsApp: ${result.enviados}/${result.total_destinatarios} enviados` });
-          }
-        } catch (err) {
-          toast({ title: "Erro ao notificar via WhatsApp", variant: "destructive" });
-        }
-      }
-
       // Send Push notification if checked
       if (form.notificar_push) {
         try {

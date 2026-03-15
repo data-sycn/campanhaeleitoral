@@ -174,6 +174,7 @@ const Messages = () => {
       prioridade: form.prioridade,
       target_roles: form.target_roles.length > 0 ? form.target_roles : null,
       target_cidade: form.target_cidade || null,
+      target_user_ids: form.target_user_ids.length > 0 ? form.target_user_ids : null,
     });
 
     if (error) {

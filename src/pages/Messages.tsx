@@ -402,6 +402,12 @@ const Messages = () => {
                   </div>
                 </div>
 
+                <UserSelector
+                  selectedIds={form.target_user_ids}
+                  onChange={(ids) => setForm(p => ({ ...p, target_user_ids: ids }))}
+                />
+                </div>
+
                 <div className="space-y-2">
                   <Label>Conteúdo *</Label>
                   <Textarea value={form.conteudo} onChange={(e) => setForm(p => ({ ...p, conteudo: e.target.value }))} placeholder="Escreva a orientação para as equipes..." rows={4} required />

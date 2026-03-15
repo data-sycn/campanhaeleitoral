@@ -419,18 +419,6 @@ const Messages = () => {
                   </div>
                 </div>
 
-                {whatsappResult && (
-                  <div className="p-3 rounded-lg bg-muted text-sm space-y-1">
-                    <p className="font-medium flex items-center gap-2">
-                      <Phone className="w-4 h-4" />
-                      Resultado WhatsApp {whatsappResult.simulation && "(Simulação)"}
-                    </p>
-                    <p className="text-muted-foreground">
-                      {whatsappResult.enviados}/{whatsappResult.total_destinatarios} destinatários notificados
-                    </p>
-                  </div>
-                )}
-
                 <div className="flex gap-2">
                   <Button type="submit" disabled={sending || !form.titulo || !form.conteudo}>
                     {sending && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}

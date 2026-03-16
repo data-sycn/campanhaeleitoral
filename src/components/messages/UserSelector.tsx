@@ -14,14 +14,18 @@ interface Profile {
   id: string;
   name: string;
   email: string | null;
+  cidade: string | null;
+  roles: string[];
 }
 
 interface UserSelectorProps {
   selectedIds: string[];
   onChange: (ids: string[]) => void;
+  filterCidade?: string;
+  filterRoles?: string[];
 }
 
-export function UserSelector({ selectedIds, onChange }: UserSelectorProps) {
+export function UserSelector({ selectedIds, onChange, filterCidade, filterRoles }: UserSelectorProps) {
   const activeCampanhaId = useActiveCampanhaId();
   const [profiles, setProfiles] = useState<Profile[]>([]);
   const [loading, setLoading] = useState(false);
@@ -50,12 +54,54 @@ export function UserSelector({ selectedIds, onChange }: UserSelectorProps) {
 
       if (userIds.size === 0) { setLoading(false); return; }
 
-      const { data } = await supabase
-        .from("profiles")
-        .select("id, name, email")
-        .in("id", Array.from(userIds));
+      const userIdArray = Array.from(userIds);
 
-      if (data) setProfiles(data);
+      // Fetch profiles with supporter city info
+      const { data: profileData } = await supabase
+        .from("profiles")
+        .select("id, name, email, supporter_id")
+        .in("id", userIdArray);
+
+      // Fetch roles for all users
+      const { data: rolesData } = await supabase
+        .from("user_roles")
+        .select("user_id, role")
+        .in("user_id", userIdArray);
+
+      // Fetch supporter cities for profiles that have supporter_id
+      const supporterIds = (profileData || [])
+        .map(p => p.supporter_id)
+        .filter(Boolean) as string[];
+
+      let supporterCityMap: Record<string, string> = {};
+      if (supporterIds.length > 0) {
+        const { data: supporterData } = await supabase
+          .from("supporters")
+          .select("id, cidade")
+          .in("id", supporterIds);
+        if (supporterData) {
+          supporterData.forEach(s => {
+            if (s.cidade) supporterCityMap[s.id] = s.cidade;
+          });
+        }
+      }
+
+      // Build roles map
+      const rolesMap: Record<string, string[]> = {};
+      rolesData?.forEach(r => {
+        if (!rolesMap[r.user_id]) rolesMap[r.user_id] = [];
+        rolesMap[r.user_id].push(r.role);
+      });
+
+      const enriched: Profile[] = (profileData || []).map(p => ({
+        id: p.id,
+        name: p.name,
+        email: p.email,
+        cidade: p.supporter_id ? (supporterCityMap[p.supporter_id] || null) : null,
+        roles: rolesMap[p.id] || [],
+      }));
+
+      setProfiles(enriched);
       setLoading(false);
     };
 
@@ -63,13 +109,31 @@ export function UserSelector({ selectedIds, onChange }: UserSelectorProps) {
   }, [activeCampanhaId, open]);
 
   const filtered = useMemo(() => {
-    if (!search) return profiles;
-    const q = search.toLowerCase();
-    return profiles.filter(p =>
-      p.name.toLowerCase().includes(q) ||
-      (p.email && p.email.toLowerCase().includes(q))
-    );
-  }, [profiles, search]);
+    let result = profiles;
+
+    // Apply city filter
+    if (filterCidade) {
+      result = result.filter(p => p.cidade?.toLowerCase() === filterCidade.toLowerCase());
+    }
+
+    // Apply roles filter
+    if (filterRoles && filterRoles.length > 0) {
+      result = result.filter(p =>
+        filterRoles.some(role => p.roles.includes(role))
+      );
+    }
+
+    // Apply search
+    if (search) {
+      const q = search.toLowerCase();
+      result = result.filter(p =>
+        p.name.toLowerCase().includes(q) ||
+        (p.email && p.email.toLowerCase().includes(q))
+      );
+    }
+
+    return result;
+  }, [profiles, search, filterCidade, filterRoles]);
 
   const selectedProfiles = useMemo(() =>
     profiles.filter(p => selectedIds.includes(p.id)),
@@ -84,10 +148,19 @@ export function UserSelector({ selectedIds, onChange }: UserSelectorProps) {
     );
   };
 
+  const activeFiltersCount = (filterCidade ? 1 : 0) + (filterRoles && filterRoles.length > 0 ? 1 : 0);
+
   return (
     <div className="space-y-2">
       <Label>Destinatários específicos</Label>
-      <p className="text-xs text-muted-foreground">Selecione pessoas para enviar diretamente</p>
+      <p className="text-xs text-muted-foreground">
+        Selecione pessoas para enviar diretamente
+        {activeFiltersCount > 0 && (
+          <span className="ml-1 text-primary font-medium">
+            (filtrado por {[filterCidade && "cidade", filterRoles && filterRoles.length > 0 && "função"].filter(Boolean).join(" e ")})
+          </span>
+        )}
+      </p>
 
       {selectedProfiles.length > 0 && (
         <div className="flex flex-wrap gap-1.5">
@@ -107,6 +180,9 @@ export function UserSelector({ selectedIds, onChange }: UserSelectorProps) {
           <Button type="button" variant="outline" size="sm" className="gap-1.5">
             <UserPlus className="w-3.5 h-3.5" />
             Selecionar pessoas ({selectedIds.length})
+            {activeFiltersCount > 0 && (
+              <Badge variant="secondary" className="text-xs ml-1">{filtered.length} disponíveis</Badge>
+            )}
           </Button>
         </PopoverTrigger>
         <PopoverContent className="w-80 p-0" align="start">

@@ -1,26 +1,44 @@
 
 
-## Melhoria #1: Campanha + Função no Dialog de Criação de Usuário
+## Problema
 
-### Problema
-Ao criar um usuário em AdminUsers, apenas nome, email, senha e PIN são enviados. O usuário é criado "solto" -- sem campanha e sem função. O admin precisa fazer 2 passos manuais extras, que podem ser esquecidos.
+O `selectedCampanhaId` é armazenado no `localStorage` e compartilhado entre sessões de diferentes usuários no mesmo navegador. Quando um Master seleciona a campanha "TITO" e depois o admin (vinculado apenas a "SIMULADA") loga no mesmo navegador, o valor antigo persiste e o hook `useActiveCampanhaId()` retorna a campanha errada.
 
-### Solução
-Adicionar dois campos ao dialog de criação:
-1. **Campanha** (Select) -- pre-selecionada com a campanha ativa do admin
-2. **Função** (Select) -- lista de roles disponíveis (filtrando admin/master se não for master)
+O `useAuth.initUser` só faz auto-seleção quando `selectedCampanhaId` é `null` — nunca valida se o valor existente é permitido para o usuário atual.
 
-### Alterações
+## Solução
 
-**`src/components/admin/AdminUsers.tsx`**
-- Adicionar estados `newUserRole` e `newUserCampanhaId` (pre-setado com `activeCampanhaId`)
-- Adicionar dois `Select` no dialog: campanha e função
-- Enviar `role` e `campanha_id` no `createUserMutation` body
-- Resetar os novos campos no `resetCreateForm`
+Adicionar validação no `initUser` (em `useAuth.tsx`) que, para usuários não-master, verifica se o `selectedCampanhaId` atual está dentro das campanhas permitidas. Se não estiver, limpa o valor e força a seleção correta.
 
-**`supabase/functions/create-user/index.ts`**
-- Já aceita `role` e `campanha_id` no body -- nenhuma alteração necessária na edge function
+### Alterações em `src/hooks/useAuth.tsx`
 
-### Resultado
-Ao criar um usuário, ele já sai vinculado à campanha e com a função correta, eliminando passos manuais e risco de usuários órfãos.
+Na função `initUser`, após carregar perfil e roles:
+
+1. **Para admin (não-master):** buscar `user_campanhas` do usuário e verificar se `selectedCampanhaId` está na lista. Se `profile.campanha_id` existir, incluí-lo também. Se o valor atual não estiver na lista permitida → limpar `selectedCampanhaId`.
+2. **Para usuários comuns (não-admin, não-master):** se `selectedCampanhaId` existir e for diferente de `profile.campanha_id` → limpar.
+3. **Master:** sem restrição (manter comportamento atual).
+
+### Lógica simplificada
+
+```text
+initUser(userId):
+  fetch profile + roles
+  
+  if master → keep selectedCampanhaId as-is
+  else if admin:
+    allowedIds = user_campanhas + profile.campanha_id
+    if selectedCampanhaId NOT in allowedIds → clear it
+    if no selectedCampanhaId and 1 allowed → auto-select
+  else (regular user):
+    if selectedCampanhaId != profile.campanha_id → clear it
+```
+
+### Escopo adicional: limpar localStorage no signOut
+
+Na função `signOut`, remover `selectedCampanhaId` do `localStorage` para evitar vazamento entre sessões de usuários diferentes.
+
+### Arquivos alterados
+- `src/hooks/useAuth.tsx` — validação no `initUser` + limpeza no `signOut`
+
+Nenhuma migração de banco necessária.
 

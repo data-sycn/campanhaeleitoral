@@ -180,67 +180,32 @@ const Messages = () => {
     } else {
       toast({ title: "Mensagem enviada!" });
 
-      // Send WhatsApp notification if checked
-      if (form.notificar_whatsapp) {
-        try {
-          const { data: session } = await supabase.auth.getSession();
-          const res = await fetch(
-            `https://mjfmthjpibbvlehgoacr.supabase.co/functions/v1/send-whatsapp`,
-            {
-              method: "POST",
-              headers: {
-                "Content-Type": "application/json",
-                Authorization: `Bearer ${session?.session?.access_token}`,
-              },
-              body: JSON.stringify({
-                campanha_id: activeCampanhaId,
-                titulo: form.titulo,
-                conteudo: form.conteudo,
-                target_cidade: form.target_cidade || null,
-                target_roles: form.target_roles.length > 0 ? form.target_roles : null,
-              }),
-            }
-          );
-          const result = await res.json();
-          setWhatsappResult(result);
-          if (result.simulation) {
-            toast({ title: `📱 WhatsApp (simulação): ${result.enviados}/${result.total_destinatarios} notificados` });
-          } else {
-            toast({ title: `📱 WhatsApp: ${result.enviados}/${result.total_destinatarios} enviados` });
+      // Always send Push notification
+      try {
+        const { data: session } = await supabase.auth.getSession();
+        const res = await fetch(
+          `https://mjfmthjpibbvlehgoacr.supabase.co/functions/v1/send-push`,
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${session?.session?.access_token}`,
+            },
+            body: JSON.stringify({
+              campanha_id: activeCampanhaId,
+              titulo: form.titulo,
+              conteudo: form.conteudo,
+              target_user_ids: form.target_user_ids.length > 0 ? form.target_user_ids : null,
+            }),
           }
-        } catch (err) {
-          toast({ title: "Erro ao notificar via WhatsApp", variant: "destructive" });
-        }
+        );
+        const result = await res.json();
+        toast({ title: `🔔 Push: ${result.enviados}/${result.total} notificações enviadas` });
+      } catch (err) {
+        console.error("Erro ao enviar push:", err);
       }
 
-      // Send Push notification if checked
-      if (form.notificar_push) {
-        try {
-          const { data: session } = await supabase.auth.getSession();
-          const res = await fetch(
-            `https://mjfmthjpibbvlehgoacr.supabase.co/functions/v1/send-push`,
-            {
-              method: "POST",
-              headers: {
-                "Content-Type": "application/json",
-                Authorization: `Bearer ${session?.session?.access_token}`,
-              },
-              body: JSON.stringify({
-                campanha_id: activeCampanhaId,
-                titulo: form.titulo,
-                conteudo: form.conteudo,
-                target_user_ids: form.target_user_ids.length > 0 ? form.target_user_ids : null,
-              }),
-            }
-          );
-          const result = await res.json();
-          toast({ title: `🔔 Push: ${result.enviados}/${result.total} notificações enviadas` });
-        } catch (err) {
-          toast({ title: "Erro ao enviar push", variant: "destructive" });
-        }
-      }
-
-      setForm({ titulo: "", conteudo: "", prioridade: "normal", target_cidade: "", target_roles: [], target_user_ids: [], notificar_whatsapp: false, notificar_push: false });
+      setForm({ titulo: "", conteudo: "", prioridade: "normal", target_cidade: "", target_roles: [], target_user_ids: [] });
       setShowForm(false);
       fetchMessages();
     }

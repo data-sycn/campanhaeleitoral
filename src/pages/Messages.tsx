@@ -51,7 +51,7 @@ const ROLE_LABELS: Record<string, string> = {
 const SELECTABLE_ROLES = ["admin", "coordinator", "assessor", "territorial_coordinator", "supervisor", "local_coordinator", "political_leader", "supporter"];
 
 const Messages = () => {
-  const { user, isCoordinator } = useAuth();
+  const { user, isCoordinator, userRoles } = useAuth();
   const activeCampanhaId = useActiveCampanhaId();
   const { toast } = useToast();
   const [messages, setMessages] = useState<TeamMessage[]>([]);

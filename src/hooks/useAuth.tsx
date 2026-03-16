@@ -137,11 +137,10 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
     if (isMasterRole) {
       // Master: no restriction, just auto-select if only 1 campanha
-      if (!currentSelected) {
-        const { data } = await supabase.from('campanhas').select('id').is('deleted_at', null);
-        const ids = data?.map(d => d.id) || [];
-        if (ids.length === 1) setSelectedCampanhaId(ids[0]);
-      }
+      const { data } = await supabase.from('campanhas').select('id').is('deleted_at', null);
+      const ids = data?.map(d => d.id) || [];
+      setAllowedCampanhaCount(ids.length);
+      if (!currentSelected && ids.length === 1) setSelectedCampanhaId(ids[0]);
     } else if (isAdminRole) {
       // Admin: validate against allowed campanhas
       const campIds = await fetchAdminCampanhas(userId);

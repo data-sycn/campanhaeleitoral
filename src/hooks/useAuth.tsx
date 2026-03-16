@@ -26,6 +26,7 @@ interface AuthContextType {
   isMaster: boolean;
   campanhaId: string | null;
   selectedCampanhaId: string | null;
+  allowedCampanhaCount: number;
   setSelectedCampanhaId: (id: string | null) => void;
   signUp: (email: string, password: string, name: string) => Promise<{ error: any }>;
   signIn: (email: string, password: string) => Promise<{ error: any }>;
@@ -63,6 +64,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     } catch {}
   }, []);
   const [adminCampanhaIds, setAdminCampanhaIds] = useState<string[]>([]);
+  const [allowedCampanhaCount, setAllowedCampanhaCount] = useState(0);
   const { toast } = useToast();
 
   const fetchUserRoles = async (userId: string) => {
@@ -135,11 +137,10 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
     if (isMasterRole) {
       // Master: no restriction, just auto-select if only 1 campanha
-      if (!currentSelected) {
-        const { data } = await supabase.from('campanhas').select('id').is('deleted_at', null);
-        const ids = data?.map(d => d.id) || [];
-        if (ids.length === 1) setSelectedCampanhaId(ids[0]);
-      }
+      const { data } = await supabase.from('campanhas').select('id').is('deleted_at', null);
+      const ids = data?.map(d => d.id) || [];
+      setAllowedCampanhaCount(ids.length);
+      if (!currentSelected && ids.length === 1) setSelectedCampanhaId(ids[0]);
     } else if (isAdminRole) {
       // Admin: validate against allowed campanhas
       const campIds = await fetchAdminCampanhas(userId);
@@ -147,9 +148,9 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       if (profileData?.campanha_id && !allowedIds.includes(profileData.campanha_id)) {
         allowedIds.push(profileData.campanha_id);
       }
+      setAllowedCampanhaCount(allowedIds.length);
 
       if (currentSelected && !allowedIds.includes(currentSelected)) {
-        // Stored campanha not allowed for this user — clear it
         setSelectedCampanhaId(null);
         currentSelected = null;
       }
@@ -248,6 +249,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       isMaster,
       campanhaId,
       selectedCampanhaId,
+      allowedCampanhaCount,
       setSelectedCampanhaId,
       signUp,
       signIn,

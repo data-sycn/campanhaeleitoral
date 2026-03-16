@@ -64,6 +64,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     } catch {}
   }, []);
   const [adminCampanhaIds, setAdminCampanhaIds] = useState<string[]>([]);
+  const [allowedCampanhaCount, setAllowedCampanhaCount] = useState(0);
   const { toast } = useToast();
 
   const fetchUserRoles = async (userId: string) => {

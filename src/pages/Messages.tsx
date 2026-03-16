@@ -394,6 +394,8 @@ const Messages = () => {
                 <UserSelector
                   selectedIds={form.target_user_ids}
                   onChange={(ids) => setForm(p => ({ ...p, target_user_ids: ids }))}
+                  filterCidade={form.target_cidade}
+                  filterRoles={form.target_roles}
                 />
 
                 <div className="space-y-2">

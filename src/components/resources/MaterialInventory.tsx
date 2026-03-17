@@ -93,10 +93,10 @@ export const MaterialInventory = () => {
   const handleSaveReport = async () => {
     if (!reportDialog.item) return;
     setSavingReport(true);
-    const { error } = await (supabase
-      .from("material_inventory" as any)
+    const { error } = await supabase
+      .from("material_inventory")
       .update({ quantidade_reportada: parseInt(reportAmount) })
-      .eq("id", reportDialog.item.id) as any);
+      .eq("id", reportDialog.item.id);
 
     if (error) {
       toast({ title: "Erro", description: error.message, variant: "destructive" });

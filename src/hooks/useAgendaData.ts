@@ -198,7 +198,7 @@ export function useAgendaData() {
   };
 
   const handleStatusChange = async (id: string, newStatus: string) => {
-    const { error } = await (supabase.from("agenda_events" as any) as any).update({ status: newStatus }).eq("id", id);
+    const { error } = await supabase.from("agenda_events").update({ status: newStatus }).eq("id", id);
     if (error) {
       toast({ title: "Erro", description: error.message, variant: "destructive" });
     } else {

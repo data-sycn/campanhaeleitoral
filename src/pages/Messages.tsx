@@ -189,7 +189,7 @@ const Messages = () => {
     if (error) {
       toast({ title: "Erro", description: error.message, variant: "destructive" });
     } else {
-      setReadMap(prev => ({ ...prev, [messageId]: new Date().toISOString() }));
+      queryClient.invalidateQueries({ queryKey: ["message-reads"] });
       toast({ title: "Mensagem marcada como lida ✓" });
     }
     setMarkingRead(null);

@@ -49,9 +49,9 @@ export const MaterialInventory = () => {
   const fetchItems = useCallback(async () => {
     if (!user || (!campanhaId && !isMaster)) { setLoading(false); return; }
     let query = supabase
-      .from("material_inventory" as any)
+      .from("material_inventory")
       .select("*")
-      .order("created_at", { ascending: false }) as any;
+      .order("created_at", { ascending: false });
     if (campanhaId) query = query.eq("campanha_id", campanhaId);
     const { data, error } = await query;
 

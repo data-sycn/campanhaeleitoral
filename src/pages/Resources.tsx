@@ -154,10 +154,10 @@ const Resources = () => {
   const handleSaveUsage = async () => {
     if (!usageDialog.request) return;
     setSavingUsage(true);
-    const { error } = await (supabase
-      .from("resource_requests" as any)
+    const { error } = await supabase
+      .from("resource_requests")
       .update({ quantidade_utilizada: parseFloat(usageAmount) })
-      .eq("id", usageDialog.request.id) as any);
+      .eq("id", usageDialog.request.id);
 
     if (error) {
       toast({ title: "Erro", description: error.message, variant: "destructive" });

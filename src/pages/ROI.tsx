@@ -32,7 +32,7 @@ const ROI = () => {
     // Fetch expenses by city, votes, and approved resource requests
     const [expensesRes, resourcesRes, votesRes] = await Promise.all([
       supabase.from("expenses").select("amount, category").eq("campanha_id", activeCampanhaId),
-      (supabase.from("resource_requests" as any).select("valor_estimado, cidade, status").eq("campanha_id", activeCampanhaId).eq("status", "aprovado") as any),
+      supabase.from("resource_requests").select("valor_estimado, cidade, status").eq("campanha_id", activeCampanhaId).eq("status", "aprovado"),
       supabase.from("street_checkins").select("streets(cidade)").eq("campanha_id", activeCampanhaId),
     ]);
 

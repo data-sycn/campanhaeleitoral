@@ -53,8 +53,8 @@ const Resources = () => {
   const campanhaId = useActiveCampanhaId();
   const { toast } = useToast();
   const [activeTab, setActiveTab] = useState("solicitacoes");
+  const queryClient = useQueryClient();
   const [requests, setRequests] = useState<ResourceRequest[]>([]);
-  const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
   const [creating, setCreating] = useState(false);
   const [form, setForm] = useState({
@@ -73,24 +73,22 @@ const Resources = () => {
   const [usageAmount, setUsageAmount] = useState("");
   const [savingUsage, setSavingUsage] = useState(false);
 
-  const fetchRequests = useCallback(async () => {
-    if (!user || (!campanhaId && !isMaster)) { setLoading(false); return; }
-    let query = supabase
-      .from("resource_requests" as any)
-      .select("*")
-      .order("created_at", { ascending: false }) as any;
-    if (campanhaId) query = query.eq("campanha_id", campanhaId);
-    const { data, error } = await query;
-
-    if (error) {
-      toast({ title: "Erro", description: error.message, variant: "destructive" });
-    } else {
-      setRequests((data as ResourceRequest[]) || []);
-    }
-    setLoading(false);
-  }, [user, campanhaId, isMaster]);
-
-  useEffect(() => { fetchRequests(); }, [fetchRequests]);
+  const { isLoading: loading } = useQuery({
+    queryKey: ["resource-requests", campanhaId],
+    queryFn: async () => {
+      let query = supabase
+        .from("resource_requests" as any)
+        .select("*")
+        .order("created_at", { ascending: false }) as any;
+      if (campanhaId) query = query.eq("campanha_id", campanhaId);
+      const { data, error } = await query;
+      if (error) throw error;
+      const result = (data as ResourceRequest[]) || [];
+      setRequests(result);
+      return result;
+    },
+    enabled: !!user && (!!campanhaId || isMaster),
+  });
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();

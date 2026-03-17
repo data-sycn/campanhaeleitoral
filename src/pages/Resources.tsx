@@ -77,9 +77,9 @@ const Resources = () => {
     queryKey: ["resource-requests", campanhaId],
     queryFn: async () => {
       let query = supabase
-        .from("resource_requests" as any)
+        .from("resource_requests")
         .select("*")
-        .order("created_at", { ascending: false }) as any;
+        .order("created_at", { ascending: false });
       if (campanhaId) query = query.eq("campanha_id", campanhaId);
       const { data, error } = await query;
       if (error) throw error;
@@ -95,7 +95,7 @@ const Resources = () => {
     if (!user || !campanhaId) return;
     setCreating(true);
 
-    const { error } = await (supabase.from("resource_requests" as any) as any).insert({
+    const { error } = await supabase.from("resource_requests").insert({
       campanha_id: campanhaId,
       user_id: user.id,
       tipo: form.tipo,
@@ -138,10 +138,10 @@ const Resources = () => {
   };
 
   const handleUpdateStatus = async (id: string, newStatus: string) => {
-    const { error } = await (supabase
-      .from("resource_requests" as any)
+    const { error } = await supabase
+      .from("resource_requests")
       .update({ status: newStatus, aprovado_por: user?.id, aprovado_em: new Date().toISOString() })
-      .eq("id", id) as any);
+      .eq("id", id);
 
     if (error) {
       toast({ title: "Erro", description: error.message, variant: "destructive" });
@@ -154,10 +154,10 @@ const Resources = () => {
   const handleSaveUsage = async () => {
     if (!usageDialog.request) return;
     setSavingUsage(true);
-    const { error } = await (supabase
-      .from("resource_requests" as any)
+    const { error } = await supabase
+      .from("resource_requests")
       .update({ quantidade_utilizada: parseFloat(usageAmount) })
-      .eq("id", usageDialog.request.id) as any);
+      .eq("id", usageDialog.request.id);
 
     if (error) {
       toast({ title: "Erro", description: error.message, variant: "destructive" });

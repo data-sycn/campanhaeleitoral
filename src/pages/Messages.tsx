@@ -181,7 +181,7 @@ const Messages = () => {
     if (!user || readMap[messageId]) return;
     setMarkingRead(messageId);
 
-    const { error } = await (supabase.from("message_reads" as any) as any).insert({
+    const { error } = await supabase.from("message_reads").insert({
       message_id: messageId,
       user_id: user.id,
     });

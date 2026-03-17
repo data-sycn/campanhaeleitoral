@@ -1,4 +1,5 @@
 import { useState, useMemo } from "react";
+import { BASE_URL } from "@/lib/constants";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -64,7 +65,7 @@ const Supporters = () => {
   // Pagination
   const [page, setPage] = useState(0);
 
-  const BASE_URL = "https://www.gerencialcampanha.com.br";
+  // BASE_URL importada de constants
 
   // Debounce search
   const [searchTimer, setSearchTimer] = useState<ReturnType<typeof setTimeout> | null>(null);

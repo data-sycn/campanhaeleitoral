@@ -174,8 +174,8 @@ export function useAgendaData() {
     };
 
     const query = editingEvent
-      ? (supabase.from("agenda_events" as any) as any).update(payload).eq("id", editingEvent.id)
-      : (supabase.from("agenda_events" as any) as any).insert(payload);
+      ? supabase.from("agenda_events").update(payload).eq("id", editingEvent.id)
+      : supabase.from("agenda_events").insert(payload);
 
     const { error } = await query;
     if (error) {

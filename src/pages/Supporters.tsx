@@ -188,7 +188,6 @@ const Supporters = () => {
 
   const clearFilters = () => {
     setSearchTerm("");
-    setDebouncedSearch("");
     setFilterCidade("all");
     setFilterBairro("all");
     setFilterLideranca("all");

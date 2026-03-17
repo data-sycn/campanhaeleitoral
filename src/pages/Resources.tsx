@@ -132,7 +132,7 @@ const Resources = () => {
       toast({ title: "Solicitação criada!" });
       setForm({ tipo: "", descricao: "", quantidade: "1", valor_estimado: "", localidade: "", bairro: "", cidade: "", notes: "" });
       setShowForm(false);
-      fetchRequests();
+      queryClient.invalidateQueries({ queryKey: ["resource-requests"] });
     }
     setCreating(false);
   };

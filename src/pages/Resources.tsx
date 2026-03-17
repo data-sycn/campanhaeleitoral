@@ -138,10 +138,10 @@ const Resources = () => {
   };
 
   const handleUpdateStatus = async (id: string, newStatus: string) => {
-    const { error } = await (supabase
-      .from("resource_requests" as any)
+    const { error } = await supabase
+      .from("resource_requests")
       .update({ status: newStatus, aprovado_por: user?.id, aprovado_em: new Date().toISOString() })
-      .eq("id", id) as any);
+      .eq("id", id);
 
     if (error) {
       toast({ title: "Erro", description: error.message, variant: "destructive" });

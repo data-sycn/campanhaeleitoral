@@ -164,7 +164,7 @@ const Resources = () => {
     } else {
       toast({ title: "Uso registrado!" });
       setUsageDialog({ open: false, request: null });
-      fetchRequests();
+      queryClient.invalidateQueries({ queryKey: ["resource-requests"] });
     }
     setSavingUsage(false);
   };

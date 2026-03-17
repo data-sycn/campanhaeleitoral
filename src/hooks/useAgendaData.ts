@@ -103,20 +103,20 @@ export function useAgendaData() {
       const monthEnd = endOfMonth(currentMonth);
 
       let evQuery = supabase
-        .from("agenda_events" as any)
+        .from("agenda_events")
         .select("*")
         .gte("data_inicio", monthStart.toISOString())
         .lte("data_inicio", monthEnd.toISOString())
-        .order("data_inicio", { ascending: true }) as any;
+        .order("data_inicio", { ascending: true });
       if (activeCampanhaId) evQuery = evQuery.eq("campanha_id", activeCampanhaId);
 
       let liderQuery = supabase
         .from("supporters")
-        .select("id, nome, funcao_politica, telefone, cidade") as any;
-      liderQuery = liderQuery.eq("lideranca_politica", true);
+        .select("id, nome, funcao_politica, telefone, cidade")
+        .eq("lideranca_politica", true);
       if (activeCampanhaId) liderQuery = liderQuery.eq("campanha_id", activeCampanhaId);
 
-      let profQuery = supabase.from("profiles").select("id, name") as any;
+      let profQuery = supabase.from("profiles").select("id, name");
       if (activeCampanhaId) profQuery = profQuery.eq("campanha_id", activeCampanhaId);
 
       const campanhaQuery = activeCampanhaId
@@ -174,8 +174,8 @@ export function useAgendaData() {
     };
 
     const query = editingEvent
-      ? (supabase.from("agenda_events" as any) as any).update(payload).eq("id", editingEvent.id)
-      : (supabase.from("agenda_events" as any) as any).insert(payload);
+      ? supabase.from("agenda_events").update(payload).eq("id", editingEvent.id)
+      : supabase.from("agenda_events").insert(payload);
 
     const { error } = await query;
     if (error) {
@@ -188,7 +188,7 @@ export function useAgendaData() {
   };
 
   const handleDelete = async (id: string) => {
-    const { error } = await (supabase.from("agenda_events" as any) as any).delete().eq("id", id);
+    const { error } = await supabase.from("agenda_events").delete().eq("id", id);
     if (error) {
       toast({ title: "Erro", description: error.message, variant: "destructive" });
     } else {
@@ -198,7 +198,7 @@ export function useAgendaData() {
   };
 
   const handleStatusChange = async (id: string, newStatus: string) => {
-    const { error } = await (supabase.from("agenda_events" as any) as any).update({ status: newStatus }).eq("id", id);
+    const { error } = await supabase.from("agenda_events").update({ status: newStatus }).eq("id", id);
     if (error) {
       toast({ title: "Erro", description: error.message, variant: "destructive" });
     } else {

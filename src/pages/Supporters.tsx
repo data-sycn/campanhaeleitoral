@@ -1,4 +1,5 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
+import { useDebounce } from "@/hooks/useDebounce";
 import { BASE_URL } from "@/lib/constants";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -56,7 +57,7 @@ const Supporters = () => {
 
   // Filters
   const [searchTerm, setSearchTerm] = useState("");
-  const [debouncedSearch, setDebouncedSearch] = useState("");
+  const debouncedSearch = useDebounce(searchTerm, 400);
   const [filterCidade, setFilterCidade] = useState("all");
   const [filterBairro, setFilterBairro] = useState("all");
   const [filterLideranca, setFilterLideranca] = useState("all");
@@ -65,19 +66,8 @@ const Supporters = () => {
   // Pagination
   const [page, setPage] = useState(0);
 
-  // BASE_URL importada de constants
-
-  // Debounce search
-  const [searchTimer, setSearchTimer] = useState<ReturnType<typeof setTimeout> | null>(null);
-  const handleSearchChange = (value: string) => {
-    setSearchTerm(value);
-    if (searchTimer) clearTimeout(searchTimer);
-    const timer = setTimeout(() => {
-      setDebouncedSearch(value);
-      setPage(0);
-    }, 400);
-    setSearchTimer(timer);
-  };
+  // Reset page on search change
+  useEffect(() => { setPage(0); }, [debouncedSearch]);
 
   // Filter options query (lightweight – only distinct cities/bairros)
   const { data: filterOptions } = useQuery({
@@ -198,7 +188,6 @@ const Supporters = () => {
 
   const clearFilters = () => {
     setSearchTerm("");
-    setDebouncedSearch("");
     setFilterCidade("all");
     setFilterBairro("all");
     setFilterLideranca("all");
@@ -337,7 +326,7 @@ const Supporters = () => {
                 <Input
                   placeholder="Buscar por nome, e-mail, telefone ou CPF..."
                   value={searchTerm}
-                  onChange={(e) => handleSearchChange(e.target.value)}
+                  onChange={(e) => setSearchTerm(e.target.value)}
                   className="pl-9"
                 />
               </div>

@@ -67,9 +67,9 @@ export function usePushNotifications() {
 
       const subJson = sub.toJSON();
 
-      await (supabase.from("push_subscriptions" as any) as any).upsert({
+      await supabase.from("push_subscriptions").upsert({
         user_id: user.id,
-        endpoint: subJson.endpoint,
+        endpoint: subJson.endpoint!,
         p256dh: subJson.keys?.p256dh || "",
         auth_key: subJson.keys?.auth || "",
         device_name: navigator.userAgent.includes("Mobile") ? "Mobile" : "Desktop",
@@ -92,7 +92,7 @@ export function usePushNotifications() {
       if (sub) {
         const endpoint = sub.endpoint;
         await sub.unsubscribe();
-        await (supabase.from("push_subscriptions" as any) as any)
+        await supabase.from("push_subscriptions")
           .delete()
           .eq("user_id", user?.id)
           .eq("endpoint", endpoint);

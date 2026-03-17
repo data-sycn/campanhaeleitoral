@@ -49,9 +49,9 @@ export const MaterialInventory = () => {
   const fetchItems = useCallback(async () => {
     if (!user || (!campanhaId && !isMaster)) { setLoading(false); return; }
     let query = supabase
-      .from("material_inventory" as any)
+      .from("material_inventory")
       .select("*")
-      .order("created_at", { ascending: false }) as any;
+      .order("created_at", { ascending: false });
     if (campanhaId) query = query.eq("campanha_id", campanhaId);
     const { data, error } = await query;
 
@@ -70,7 +70,7 @@ export const MaterialInventory = () => {
     if (!user || !campanhaId) return;
     setCreating(true);
 
-    const { error } = await (supabase.from("material_inventory" as any) as any).insert({
+    const { error } = await supabase.from("material_inventory").insert({
       campanha_id: campanhaId,
       created_by: user.id,
       tipo: form.tipo,
@@ -93,10 +93,10 @@ export const MaterialInventory = () => {
   const handleSaveReport = async () => {
     if (!reportDialog.item) return;
     setSavingReport(true);
-    const { error } = await (supabase
-      .from("material_inventory" as any)
+    const { error } = await supabase
+      .from("material_inventory")
       .update({ quantidade_reportada: parseInt(reportAmount) })
-      .eq("id", reportDialog.item.id) as any);
+      .eq("id", reportDialog.item.id);
 
     if (error) {
       toast({ title: "Erro", description: error.message, variant: "destructive" });

@@ -73,12 +73,12 @@ const Messages = () => {
     queryKey: ["team-messages", activeCampanhaId],
     queryFn: async () => {
       if (!activeCampanhaId) return [];
-      const { data, error } = await (supabase
-        .from("team_messages" as any)
+      const { data, error } = await supabase
+        .from("team_messages")
         .select("*")
         .eq("campanha_id", activeCampanhaId)
         .order("created_at", { ascending: false })
-        .limit(200) as any);
+        .limit(200);
       if (error) throw error;
       return (data as TeamMessage[]) || [];
     },
@@ -89,10 +89,10 @@ const Messages = () => {
   const { data: readMap = {} } = useQuery({
     queryKey: ["message-reads", user?.id],
     queryFn: async () => {
-      const { data } = await (supabase
-        .from("message_reads" as any)
+      const { data } = await supabase
+        .from("message_reads")
         .select("message_id, read_at")
-        .eq("user_id", user!.id) as any);
+        .eq("user_id", user!.id);
       const map: Record<string, string> = {};
       if (data) (data as MessageRead[]).forEach(r => { map[r.message_id] = r.read_at; });
       return map;
@@ -181,7 +181,7 @@ const Messages = () => {
     if (!user || readMap[messageId]) return;
     setMarkingRead(messageId);
 
-    const { error } = await (supabase.from("message_reads" as any) as any).insert({
+    const { error } = await supabase.from("message_reads").insert({
       message_id: messageId,
       user_id: user.id,
     });
@@ -209,7 +209,7 @@ const Messages = () => {
     if (!user || !activeCampanhaId) return;
     setSending(true);
 
-    const { error } = await (supabase.from("team_messages" as any) as any).insert({
+    const { error } = await supabase.from("team_messages").insert({
       campanha_id: activeCampanhaId,
       sender_id: user.id,
       titulo: form.titulo,

@@ -94,14 +94,14 @@ export function useEffectivenessRanking(overrideCampanhaId?: string | null) {
       .eq("status", "completed");
 
     // Get resource costs by city
-    const { data: resources } = await (supabase
-      .from("resource_requests" as any)
+    const { data: resources } = await supabase
+      .from("resource_requests")
       .select("cidade, valor_estimado")
-      .eq("campanha_id", campanhaId) as any);
+      .eq("campanha_id", campanhaId);
 
     // Count unique streets per city
     const cityStreets = new Map<string, Set<string>>();
-    ((checkins as any[]) || []).forEach((c) => {
+    (checkins || []).forEach((c: any) => {
       const cidade = c.streets?.cidade || "Sem cidade";
       if (!cityStreets.has(cidade)) cityStreets.set(cidade, new Set());
       cityStreets.get(cidade)!.add(c.street_id);
@@ -109,7 +109,7 @@ export function useEffectivenessRanking(overrideCampanhaId?: string | null) {
 
     // Sum costs per city
     const cityCosts = new Map<string, number>();
-    ((resources as any[]) || []).forEach((r) => {
+    (resources || []).forEach((r) => {
       const cidade = r.cidade || "Sem cidade";
       cityCosts.set(cidade, (cityCosts.get(cidade) || 0) + Number(r.valor_estimado || 0));
     });

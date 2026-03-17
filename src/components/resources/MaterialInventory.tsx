@@ -70,7 +70,7 @@ export const MaterialInventory = () => {
     if (!user || !campanhaId) return;
     setCreating(true);
 
-    const { error } = await (supabase.from("material_inventory" as any) as any).insert({
+    const { error } = await supabase.from("material_inventory").insert({
       campanha_id: campanhaId,
       created_by: user.id,
       tipo: form.tipo,

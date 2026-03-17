@@ -109,7 +109,7 @@ export function useEffectivenessRanking(overrideCampanhaId?: string | null) {
 
     // Sum costs per city
     const cityCosts = new Map<string, number>();
-    ((resources as any[]) || []).forEach((r) => {
+    (resources || []).forEach((r) => {
       const cidade = r.cidade || "Sem cidade";
       cityCosts.set(cidade, (cityCosts.get(cidade) || 0) + Number(r.valor_estimado || 0));
     });

@@ -73,12 +73,12 @@ const Messages = () => {
     queryKey: ["team-messages", activeCampanhaId],
     queryFn: async () => {
       if (!activeCampanhaId) return [];
-      const { data, error } = await (supabase
-        .from("team_messages" as any)
+      const { data, error } = await supabase
+        .from("team_messages")
         .select("*")
         .eq("campanha_id", activeCampanhaId)
         .order("created_at", { ascending: false })
-        .limit(200) as any);
+        .limit(200);
       if (error) throw error;
       return (data as TeamMessage[]) || [];
     },

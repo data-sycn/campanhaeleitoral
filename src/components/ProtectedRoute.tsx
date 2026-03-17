@@ -12,7 +12,7 @@ interface ProtectedRouteProps {
 }
 
 export const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
-  const { user, loading, isAdmin, isMaster, campanhaId, selectedCampanhaId } = useAuth();
+  const { user, loading, isAdmin, isMaster, campanhaId, selectedCampanhaId, allowedCampanhaCount } = useAuth();
   const { canAccess, isLoading: accessLoading } = useAccessControl();
   const location = useLocation();
   const { toast } = useToast();

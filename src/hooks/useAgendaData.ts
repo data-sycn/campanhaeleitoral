@@ -103,20 +103,20 @@ export function useAgendaData() {
       const monthEnd = endOfMonth(currentMonth);
 
       let evQuery = supabase
-        .from("agenda_events" as any)
+        .from("agenda_events")
         .select("*")
         .gte("data_inicio", monthStart.toISOString())
         .lte("data_inicio", monthEnd.toISOString())
-        .order("data_inicio", { ascending: true }) as any;
+        .order("data_inicio", { ascending: true });
       if (activeCampanhaId) evQuery = evQuery.eq("campanha_id", activeCampanhaId);
 
       let liderQuery = supabase
         .from("supporters")
-        .select("id, nome, funcao_politica, telefone, cidade") as any;
-      liderQuery = liderQuery.eq("lideranca_politica", true);
+        .select("id, nome, funcao_politica, telefone, cidade")
+        .eq("lideranca_politica", true);
       if (activeCampanhaId) liderQuery = liderQuery.eq("campanha_id", activeCampanhaId);
 
-      let profQuery = supabase.from("profiles").select("id, name") as any;
+      let profQuery = supabase.from("profiles").select("id, name");
       if (activeCampanhaId) profQuery = profQuery.eq("campanha_id", activeCampanhaId);
 
       const campanhaQuery = activeCampanhaId

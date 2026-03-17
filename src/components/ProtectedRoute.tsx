@@ -12,7 +12,7 @@ interface ProtectedRouteProps {
 }
 
 export const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
-  const { user, loading, isAdmin, isMaster, campanhaId, selectedCampanhaId } = useAuth();
+  const { user, loading, isAdmin, isMaster, campanhaId, selectedCampanhaId, allowedCampanhaCount } = useAuth();
   const { canAccess, isLoading: accessLoading } = useAccessControl();
   const location = useLocation();
   const { toast } = useToast();
@@ -40,7 +40,6 @@ export const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
   }
 
   // Campaign gate: admin/master with multiple campaigns and no selection
-  const { allowedCampanhaCount } = useAuth();
   const needsCampaignGate = (isAdmin || isMaster) && !selectedCampanhaId && allowedCampanhaCount > 1;
   if (needsCampaignGate) {
     return <CampaignGate onSelected={() => {}} />;

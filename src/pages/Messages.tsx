@@ -55,6 +55,17 @@ const Messages = () => {
   const { user, isCoordinator, userRoles } = useAuth();
   const activeCampanhaId = useActiveCampanhaId();
   const { toast } = useToast();
+  const [sending, setSending] = useState(false);
+  const [markingRead, setMarkingRead] = useState<string | null>(null);
+  const [showForm, setShowForm] = useState(false);
+  const [form, setForm] = useState({
+    titulo: "",
+    conteudo: "",
+    prioridade: "normal",
+    target_cidade: "",
+    target_roles: [] as string[],
+    target_user_ids: [] as string[],
+  });
   const queryClient = useQueryClient();
 
   // Messages query

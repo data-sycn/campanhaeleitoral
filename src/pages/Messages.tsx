@@ -209,7 +209,7 @@ const Messages = () => {
     if (!user || !activeCampanhaId) return;
     setSending(true);
 
-    const { error } = await (supabase.from("team_messages" as any) as any).insert({
+    const { error } = await supabase.from("team_messages").insert({
       campanha_id: activeCampanhaId,
       sender_id: user.id,
       titulo: form.titulo,

@@ -737,7 +737,7 @@ const AgendaPage = () => {
             </form>
           </DialogContent>
         </Dialog>
-      </div>
+      </Tabs>
     </div>
   );
 };

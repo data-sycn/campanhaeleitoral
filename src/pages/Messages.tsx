@@ -245,7 +245,7 @@ const Messages = () => {
 
       setForm({ titulo: "", conteudo: "", prioridade: "normal", target_cidade: "", target_roles: [], target_user_ids: [] });
       setShowForm(false);
-      fetchMessages();
+      queryClient.invalidateQueries({ queryKey: ["team-messages"] });
     }
     setSending(false);
   };

@@ -578,7 +578,6 @@ const AgendaPage = () => {
               <div className="space-y-3">{filteredEvents.map(renderEventCard)}</div>
             )}
           </TabsContent>
-        </Tabs>
 
         {/* ───── EVENT FORM DIALOG ───── */}
         <Dialog open={showForm} onOpenChange={(o) => { if (!o) { setShowForm(false); setEditingEvent(null); } }}>

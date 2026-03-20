@@ -14,8 +14,9 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { useToast } from "@/hooks/use-toast";
 import {
   UserPlus, Loader2, Trash2, RefreshCw, Copy, Eye, EyeOff,
-  Plus, X, Ban, ShieldCheck, UserCheck, Link2, Unlink, Search, Filter
+  Plus, X, Ban, ShieldCheck, UserCheck, Link2, Unlink, Search, Filter, Check
 } from "lucide-react";
+import { Checkbox } from "@/components/ui/checkbox";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { Database } from "@/integrations/supabase/types";
 import { useAuth } from "@/hooks/useAuth";

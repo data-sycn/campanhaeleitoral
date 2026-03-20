@@ -19,6 +19,8 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { useIBGEMunicipios, fetchPopulacao } from "@/hooks/useIBGEMunicipios";
 import { EleicoesTab } from "@/components/municipios/EleicoesTab";
 import { HistoricoVotacaoTab } from "@/components/municipios/HistoricoVotacaoTab";
+import { MunicipiosImport } from "@/components/municipios/MunicipiosImport";
+import { HistoricoImport } from "@/components/municipios/HistoricoImport";
 
 const ESTADOS_BR = [
   "AC","AL","AP","AM","BA","CE","DF","ES","GO","MA","MT","MS","MG",

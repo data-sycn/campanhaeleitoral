@@ -146,10 +146,13 @@ export function HistoricoVotacaoTab({ campanhaId }: Props) {
             <span className="text-sm text-muted-foreground ml-auto">{filtered.length} registro(s)</span>
           </div>
           {!isInserting && (
-            <Button size="sm" onClick={() => { setSelectedEleicaoId(""); setLinhas([]); setSelectedEleicaoId("pick"); }}
-              disabled={!eleicoes?.length || !municipios?.length}>
-              <Plus className="w-4 h-4 mr-2" /> Lançar Votação
-            </Button>
+            <div className="flex gap-2">
+              <HistoricoImport campanhaId={campanhaId} />
+              <Button size="sm" onClick={() => { setSelectedEleicaoId(""); setLinhas([]); setSelectedEleicaoId("pick"); }}
+                disabled={!eleicoes?.length || !municipios?.length}>
+                <Plus className="w-4 h-4 mr-2" /> Lançar Votação
+              </Button>
+            </div>
           )}
         </div>
       </CardHeader>

@@ -252,15 +252,23 @@ export function AdminUsers() {
     }
   });
 
-  const changeCampaignMutation = useMutation({
-    mutationFn: async ({ userId, campanhaId }: { userId: string; campanhaId: string | null }) => {
-      const { error } = await supabase.from('profiles').update({ campanha_id: campanhaId }).eq('id', userId);
-      if (error) throw error;
+  const toggleCampaignMutation = useMutation({
+    mutationFn: async ({ userId, campanhaId, checked, currentProfileCampanhaId }: { userId: string; campanhaId: string; checked: boolean; currentProfileCampanhaId: string | null }) => {
+      if (checked) {
+        await supabase.from('user_campanhas').insert({ user_id: userId, campanha_id: campanhaId });
+        if (!currentProfileCampanhaId) {
+          await supabase.from('profiles').update({ campanha_id: campanhaId }).eq('id', userId);
+        }
+      } else {
+        await supabase.from('user_campanhas').delete().eq('user_id', userId).eq('campanha_id', campanhaId);
+        if (currentProfileCampanhaId === campanhaId) {
+          await supabase.from('profiles').update({ campanha_id: null }).eq('id', userId);
+        }
+      }
     },
     onSuccess: () => {
       invalidateAll();
-      toast({ title: "Campanha atualizada!" });
-      setChangingCampaignUserId(null);
+      toast({ title: "Campanhas atualizadas!" });
     },
     onError: (error: any) => {
       toast({ title: "Erro", description: error.message, variant: "destructive" });
